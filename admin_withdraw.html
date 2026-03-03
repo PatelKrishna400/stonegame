@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stone Game — Admin Panel</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0d0f1a;
+            --surface: #141727;
+            --surface2: #1c2136;
+            --border: rgba(255, 255, 255, 0.07);
+            --gold: #ffd700;
+            --gold2: #ff8c00;
+            --blue: #64c8ff;
+            --pink: #ff64c8;
+            --green: #27ae60;
+            --red: #e74c3c;
+            --purple: #8e44ad;
+            --text: #ffffff;
+            --text2: rgba(255, 255, 255, 0.5);
+            --text3: rgba(255, 255, 255, 0.25);
+        }
+
+        html {
+            background: #0d0f1a;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+            overflow-y: auto;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        /* HEADER & BOTTOM NAV */
+        header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(20, 23, 39, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .main {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-bottom: 90px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(20, 23, 39, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 12px 0 25px;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--text2);
+            gap: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            width: 25%;
+        }
+
+        .nav-item.active {
+            color: var(--gold);
+        }
+
+        .nav-icon {
+            font-size: 1.3rem;
+            transition: transform 0.2s;
+        }
+
+        .nav-item.active .nav-icon {
+            transform: scale(1.15);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .page-subtitle {
+            color: var(--text2);
+            font-size: 0.8rem;
+            margin-top: 2px;
+        }
+
+        /* COMPONENTS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px 20px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 215, 0, 0.2);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, var(--card-accent, rgba(255, 215, 0, 0.08)), transparent 70%);
+            border-radius: 50%;
+        }
+
+        .stat-label {
+            color: var(--text2);
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.9rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat-sub {
+            font-size: 0.72rem;
+            color: var(--text2);
+        }
+
+        .stat-icon {
+            position: absolute;
+            top: 16px;
+            right: 18px;
+            font-size: 1.6rem;
+            opacity: 0.6;
+        }
+
+        .section-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .grid-2 {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .detail-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .detail-table tr {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-table tr:last-child {
+            border-bottom: none;
+        }
+
+        .detail-table td,
+        .detail-table th {
+            padding: 11px 0;
+            font-size: 0.83rem;
+            color: white;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .badge-green {
+            background: rgba(39, 174, 96, 0.2);
+            color: #2ecc71;
+        }
+
+        .badge-red {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+        }
+
+        .badge-gray {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text2);
+        }
+
+        .danger-btn {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.35);
+            border-radius: 10px;
+            padding: 8px 16px;
+            color: #e74c3c;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .danger-btn:hover {
+            background: rgba(231, 76, 60, 0.25);
+        }
+
+        .quest-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .quest-row:last-child {
+            border-bottom: none;
+        }
+
+        .quest-icon {
+            font-size: 1.3rem;
+        }
+
+        .quest-name {
+            font-size: 0.83rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--gold);
+        }
+
+        .quest-pct {
+            font-size: 0.72rem;
+            color: var(--text2);
+        }
+
+        input {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">Hamster Strike Admin</div>
+    </header>
+    <main class="main">
+        <div class="page active">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">💸 Withdraw Requests</div>
+                    <div class="page-subtitle">Process real money payouts triggered by players</div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <table class="detail-table" style="text-align:left;">
+                    <thead>
+                        <tr style="color:var(--gold);">
+                            <th style="padding:10px;">Req ID</th>
+                            <th>User ID</th>
+                            <th>UPI Address</th>
+                            <th>Amount (Coins)</th>
+                            <th>Payout (₹)</th>
+                            <th style="text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="withdrew-tbody">
+                        <tr>
+                            <td colspan="6" style="text-align:center;color:var(--text2);padding:20px;">Loading real
+                                withdraw requests...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        function loadSave() {
+            const raw = localStorage.getItem('hammerStrikeSave');
+            if (!raw) return null;
+            try { return JSON.parse(raw); } catch (e) { return null; }
+        }
+        function fmt(n) { return Number(n || 0).toLocaleString(); }
+
+        function loadTasks() {
+            const raw = localStorage.getItem('hammerStrikeAdminTasks');
+            if (!raw) return [];
+            try { return JSON.parse(raw); } catch (e) { return []; }
+        }
+        function saveTasks(tasks) {
+            localStorage.setItem('hammerStrikeAdminTasks', JSON.stringify(tasks));
+        }
+
+        function loadWithdrawals() {
+            const raw = localStorage.getItem('hammerStrikeWithdrawals');
+            if (!raw) return [];
+            try { return JSON.parse(raw); } catch (e) { return []; }
+        }
+        function saveWithdrawals(reqs) {
+            localStorage.setItem('hammerStrikeWithdrawals', JSON.stringify(reqs));
+        }
+
+        let isRenderedOnce = false;
+
+        function render() {
+            const data = loadSave();
+            const timeEl = document.getElementById('lastSyncTime');
+            if (timeEl) timeEl.textContent = new Date().toLocaleTimeString();
+
+            // Dash
+            const du = document.getElementById('dash-users');
+            if (du) du.textContent = data ? '1' : '0';
+            const dc = document.getElementById('dash-coins');
+            if (dc) dc.textContent = data ? fmt(data.coins || 0) : '0';
+
+            const reqs = loadWithdrawals();
+            const dw = document.getElementById('dash-withdraws');
+            if (dw) dw.textContent = reqs.filter(r => r.status === 'pending').length.toString();
+
+            const autoActive = data && data.autoExpiry && data.autoExpiry > Date.now();
+            const da = document.getElementById('dash-auto');
+            if (da) da.textContent = autoActive ? '1' : '0';
+
+            const eventsTable = document.getElementById('events-table');
+            if (eventsTable && data && !isRenderedOnce) {
+                eventsTable.innerHTML = `
+                    <tr><td>Player save found in localStorage</td><td style="color:#2ecc71;">Online</td></tr>
+                    ${autoActive ? '<tr><td>User PlayerOne auto-click active</td><td style="color:#2ecc71;">Live</td></tr>' : ''}
+                    ${data.stageIdx !== undefined ? `<tr><td>User PlayerOne current stage is ${(data.stageIdx || 0) + 1}</td><td style="color:var(--gold);">Recently</td></tr>` : ''}
+                `;
+                isRenderedOnce = true;
+            }
+
+            // User Data Table
+            const usersTbody = document.getElementById('users-tbody');
+            if (usersTbody) {
+                if (!data) {
+                    if (!isRenderedOnce) usersTbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:20px;">No registered users yet. Play the game first.</td></tr>';
+                } else {
+                    const id = data.id || '#1001';
+                    const nickname = data.nickname || 'PlayerOne';
+                    const lvl = data.level || 1;
+                    const stg = (data.stageIdx || 0) + 1;
+                    const c = fmt(data.coins || 0);
+
+                    usersTbody.innerHTML = `
+                        <tr id="user-row">
+                            <td style="padding:10px;">${id}</td>
+                            <td>${nickname}</td>
+                            <td>Lv ${lvl} / Stg ${stg}</td>
+                            <td style="color:var(--gold);">${c} 🪙</td>
+                            <td><span class="badge badge-green">Online</span></td>
+                            <td style="text-align:right;"><button class="danger-btn" onclick="deleteUser()" style="padding:4px 10px;">Delete Save</button></td>
+                        </tr>
+                    `;
+                }
+            }
+
+            // Tasks 
+            renderTasks();
+
+            // Withdrawals
+            renderWithdrawals();
+        }
+
+        window.deleteUser = function () {
+            if (confirm("Are you sure you want to permanently delete the player save data?")) {
+                localStorage.removeItem('hammerStrikeSave');
+                render();
+            }
+        }
+
+        // Task Management
+        window.uploadTask = function () {
+            const title = document.getElementById('task-title').value;
+            const reward = document.getElementById('task-reward').value;
+            const link = document.getElementById('task-link').value;
+            if (!title || !reward || !link) return alert("Please fill all fields");
+
+            const tasks = loadTasks();
+            tasks.push({ id: Date.now(), title, reward: parseInt(reward), link });
+            saveTasks(tasks);
+
+            document.getElementById('task-title').value = '';
+            document.getElementById('task-reward').value = '';
+            document.getElementById('task-link').value = '';
+            renderTasks();
+        }
+
+        window.removeTask = function (id) {
+            let tasks = loadTasks();
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks(tasks);
+            renderTasks();
+        }
+
+        function renderTasks() {
+            const tb = document.getElementById('tasks-container');
+            if (!tb) return;
+            const tasks = loadTasks();
+            if (tasks.length === 0) {
+                tb.innerHTML = '<div style="color:var(--text2);text-align:center;padding:20px;">No active tasks uploaded yet.</div>';
+            } else {
+                tb.innerHTML = tasks.map(t => `
+                    <div class="quest-row">
+                        <div class="quest-icon">📝</div>
+                        <div class="quest-info">
+                            <div class="quest-name">${t.title}</div>
+                            <div class="quest-pct" style="color:var(--gold);">Reward: ${t.reward} 🪙 | <a href="${t.link}" style="color:var(--blue);" target="_blank">Link</a></div>
+                        </div>
+                        <div><button class="danger-btn" onclick="removeTask(${t.id})" style="padding:5px 10px;">Remove</button></div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Withdrawals Management
+        window.handleWithdrawAction = function (id, action) {
+            let reqs = loadWithdrawals();
+            reqs = reqs.map(r => {
+                if (r.id === id) r.status = action;
+                return r;
+            });
+            saveWithdrawals(reqs);
+            renderWithdrawals();
+        }
+
+        function renderWithdrawals() {
+            const wtb = document.getElementById('withdrew-tbody');
+            if (!wtb) return;
+            const reqs = loadWithdrawals();
+
+            if (reqs.length === 0) {
+                wtb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:20px;">No withdrawal requests found. Submit a request from the game to test.</td></tr>';
+            } else {
+                wtb.innerHTML = reqs.map(r => {
+                    let actions = '';
+                    if (r.status === 'pending') {
+                        actions = `
+                            <button class="danger-btn" onclick="handleWithdrawAction(${r.id}, 'approved')" style="background:#2ecc71; color:#fff; border:none; padding:5px 10px; margin-right:5px;">Approve</button>
+                            <button class="danger-btn" onclick="handleWithdrawAction(${r.id}, 'rejected')" style="padding:5px 10px;">Reject</button>
+                        `;
+                    } else if (r.status === 'approved') {
+                        actions = '<span class="badge badge-green">Approved</span>';
+                    } else if (r.status === 'rejected') {
+                        actions = '<span class="badge badge-red">Rejected</span>';
+                    }
+
+                    return `
+                    <tr>
+                        <td style="padding:10px;">#REQ-${r.id.toString().slice(-4)}</td>
+                        <td>#1001</td>
+                        <td>${r.upi || 'user@upi'}</td>
+                        <td style="color:var(--gold);">${fmt(r.amount)}</td>
+                        <td style="color:#2ecc71;">₹${(r.amount / 10).toFixed(2)}</td>
+                        <td style="text-align:right;">${actions}</td>
+                    </tr>
+                `;
+                }).join('');
+            }
+        }
+
+        setInterval(render, 3000);
+        render(); // Initial call
+    </script>
+
+    <script>
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.expand();
+            window.Telegram.WebApp.ready();
+        }
+    </script>
+    </main>
+
+</body>
+
+</html>

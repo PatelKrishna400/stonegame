@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stone Game — Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0d0f1a;
+            --surface: #141727;
+            --border: rgba(255, 255, 255, 0.07);
+            --gold: #ffd700;
+            --gold2: #ff8c00;
+            --text: #ffffff;
+            --text2: rgba(255, 255, 255, 0.5);
+            --primary: #27ae60;
+            --primary-dark: #2ecc71;
+        }
+
+        body {
+            background: radial-gradient(circle at 50% 50%, #1a1e36, #0d0f1a);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .portal-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .title {
+            color: var(--gold);
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: var(--text2);
+            font-size: 0.85rem;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text2);
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: white;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 800;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            transition: transform 0.2s;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, var(--gold), var(--gold2));
+            color: #0d0f1a;
+        }
+
+        .btn-register {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border: 1px solid var(--border);
+            font-size: 0.9rem;
+            padding: 12px;
+        }
+
+        .toggle-link {
+            color: var(--text2);
+            font-size: 0.85rem;
+            text-decoration: none;
+            cursor: pointer;
+            display: inline-block;
+            margin-top: 10px;
+            border-bottom: 1px dashed var(--text2);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="portal-card">
+        <div class="logo">🪨</div>
+        <div class="title" id="form-title">Account Login</div>
+        <div class="subtitle" id="form-subtitle">Welcome back! Please enter your details.</div>
+
+        <!-- LOGIN FORM -->
+        <div id="login-view">
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="log-username" placeholder="Enter username">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="log-password" placeholder="••••••••">
+            </div>
+
+            <button class="btn btn-secondary" id="btn-new-player" onclick="toggleView('register')">New Player? Create
+                Account</button>
+            <button class="btn btn-login" onclick="handleLogin()">Login</button>
+
+            <div style="margin-top: 15px; text-align: center;">
+                <span onclick="window.location.href='user_stone.html'" id="skip-link"
+                    style="font-size: 0.85rem; color: var(--text2); display: inline-block; cursor: pointer;">Free Play
+                    Game &rarr;</span>
+            </div>
+        </div>
+
+        <!-- REGISTRATION FORM -->
+        <div id="register-view" style="display: none;">
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="reg-username" placeholder="Choose a username">
+            </div>
+            <div class="input-group">
+                <label>Email Address</label>
+                <input type="email" id="reg-email" placeholder="name@domain.com">
+            </div>
+            <div class="input-group">
+                <label>Phone Number</label>
+                <input type="tel" id="reg-phone" placeholder="Your mobile number">
+            </div>
+            <div class="input-group">
+                <label>Create Password</label>
+                <input type="password" id="reg-pass1" placeholder="••••••••">
+            </div>
+            <div class="input-group">
+                <label>Rewrite Password</label>
+                <input type="password" id="reg-pass2" placeholder="••••••••">
+            </div>
+
+            <button class="btn btn-register" onclick="handleRegister()">Registration</button>
+            <span class="toggle-link" onclick="toggleView('login')">&larr; Back to Login</span>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is forced to login (already registered)
+        if (localStorage.getItem('hammerStrikeUserRegistered') === 'true') {
+            document.getElementById('btn-new-player').style.display = 'none';
+            document.getElementById('skip-link').style.display = 'none';
+            document.getElementById('form-subtitle').innerText = "Please log in to continue to the game.";
+        }
+
+        function toggleView(view) {
+            if (view === 'register') {
+                document.getElementById('login-view').style.display = 'none';
+                document.getElementById('register-view').style.display = 'block';
+                document.getElementById('form-title').innerText = "New Player details";
+                document.getElementById('form-subtitle').innerText = "Register securely to start playing.";
+            } else {
+                document.getElementById('login-view').style.display = 'block';
+                document.getElementById('register-view').style.display = 'none';
+                document.getElementById('form-title').innerText = "Account Login";
+                document.getElementById('form-subtitle').innerText = "Welcome back! Please enter your details.";
+            }
+        }
+
+        function handleRegister() {
+            const u = document.getElementById('reg-username').value.trim();
+            const e = document.getElementById('reg-email').value.trim();
+            const n = document.getElementById('reg-phone').value.trim();
+            const p1 = document.getElementById('reg-pass1').value.trim();
+            const p2 = document.getElementById('reg-pass2').value.trim();
+
+            if (!u || !e || !n || !p1 || !p2) {
+                alert("Please fill in all the details.");
+                return;
+            }
+
+            if (p1 !== p2) {
+                alert("Passwords do not match!");
+                return;
+            }
+
+            if (u.toLowerCase() === 'admin') {
+                alert("You cannot register an account with username 'admin'.");
+                return;
+            }
+
+            if (localStorage.getItem('hammerStrikeUserRegistered') === 'true') {
+                alert("This device is already registered. Please login or edit from profile.");
+                return;
+            }
+
+            // Save user global credentials
+            localStorage.setItem('hsGlobalUsername', u);
+            localStorage.setItem('hsGlobalPassword', p1);
+            localStorage.setItem('hsGlobalEmail', e);
+            localStorage.setItem('hsGlobalPhone', n);
+            localStorage.setItem('hammerStrikeUserRegistered', 'true');
+
+            // Sync internal save nickname
+            let save = null;
+            try { save = JSON.parse(localStorage.getItem('hammerStrikeSave') || '{}'); } catch (e) { save = {}; }
+            save.nickname = u;
+            localStorage.setItem('hammerStrikeSave', JSON.stringify(save));
+
+            alert("Registration successful! You can now log in.");
+
+            // Switch back to login page and fill username
+            document.getElementById('log-username').value = u;
+            document.getElementById('log-password').value = "";
+            document.getElementById('skip-link').style.display = 'none';
+            document.getElementById('btn-new-player').style.display = 'none';
+            toggleView('login');
+        }
+
+        function handleLogin() {
+            const u = document.getElementById('log-username').value.trim();
+            const p = document.getElementById('log-password').value.trim();
+
+            if (!u || !p) {
+                alert("Please enter both username and password.");
+                return;
+            }
+
+            // 1. Check Admin Credentials first
+            const customAdminUser = localStorage.getItem('hsAdminUser');
+            const customAdminPass = localStorage.getItem('hsAdminPass');
+
+            // Default fallback config
+            if (!customAdminUser && u === 'admin' && p === 'admin@123') {
+                localStorage.setItem('hsFirstTimeAdmin', 'true');
+                window.location.href = 'admin.html';
+                return;
+            } else if (customAdminUser && u === customAdminUser && p === customAdminPass) {
+                localStorage.setItem('hammerStrikeAdminLoggedIn', 'true');
+                window.location.href = 'admin_dashboard.html';
+                return;
+            }
+
+            // 2. Check Standard User Credentials
+            const storedU = localStorage.getItem('hsGlobalUsername');
+            const storedP = localStorage.getItem('hsGlobalPassword');
+
+            if (!storedU) {
+                alert("No registered account found. Please register first by clicking 'New Player'.");
+                return;
+            }
+
+            if (u === storedU && p === storedP) {
+                sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
+                window.location.href = 'user_stone.html';
+            } else {
+                alert("Invalid username or password!");
+            }
+        }
+    </script>
+</body>
+
+</html>

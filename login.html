@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hammer Strike — Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0d0f1a;
+            --surface: #141727;
+            --border: rgba(255, 255, 255, 0.07);
+            --gold: #ffd700;
+            --gold2: #ff8c00;
+            --text: #ffffff;
+            --text2: rgba(255, 255, 255, 0.5);
+        }
+
+        body {
+            background: radial-gradient(circle at 50% 50%, #1a1e36, #0d0f1a);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            width: 90%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .title {
+            color: var(--gold);
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: var(--text2);
+            font-size: 0.85rem;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text2);
+            margin-bottom: 5px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 800;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, var(--gold), var(--gold2));
+            color: #0d0f1a;
+        }
+
+        .btn-register {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border: 1px solid var(--border);
+        }
+
+        .skip-link {
+            color: var(--text2);
+            font-size: 0.8rem;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-card">
+        <div class="logo">⛏️</div>
+        <div class="title">User Login</div>
+        <div class="subtitle" id="subtitle">Log in or create a new account to secure your progress.</div>
+
+        <div class="input-group">
+            <label>Username</label>
+            <input type="text" id="username" placeholder="Enter username">
+        </div>
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="••••••••">
+        </div>
+
+        <button class="btn btn-login" onclick="handleLogin()">Login</button>
+        <button class="btn btn-register" onclick="handleRegister()">Register</button>
+
+        <a href="user_stone.html" class="skip-link" id="skip-link">Skip & Play as Guest &rarr;</a>
+    </div>
+
+    <script>
+        // Check if user is forced to login
+        if (localStorage.getItem('hammerStrikeUserRegistered') === 'true') {
+            document.getElementById('skip-link').style.display = 'none';
+            document.querySelector('.btn-register').style.display = 'none';
+            document.getElementById('subtitle').innerText = "Please log in to continue.";
+        }
+
+        function handleRegister() {
+            const u = document.getElementById('username').value.trim();
+            const p = document.getElementById('password').value.trim();
+
+            if (!u || !p) {
+                alert("Please enter both username and password.");
+                return;
+            }
+
+            if (localStorage.getItem('hammerStrikeUserRegistered') === 'true') {
+                alert("This device is already registered. Please login or edit from profile.");
+                return;
+            }
+
+            localStorage.setItem('hsGlobalUsername', u);
+            localStorage.setItem('hsGlobalPassword', p);
+            localStorage.setItem('hammerStrikeUserRegistered', 'true');
+            sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
+
+            // Sync internal save nickname
+            const save = JSON.parse(localStorage.getItem('hammerStrikeSave') || '{}');
+            save.nickname = u;
+            localStorage.setItem('hammerStrikeSave', JSON.stringify(save));
+
+            alert("Registration successful! Welcome " + u);
+            window.location.href = 'user_stone.html';
+        }
+
+        function handleLogin() {
+            const u = document.getElementById('username').value.trim();
+            const p = document.getElementById('password').value.trim();
+
+            if (!u || !p) {
+                alert("Please enter both username and password.");
+                return;
+            }
+
+            // 1. Check Admin Credentials first
+            const customAdminUser = localStorage.getItem('hsAdminUser');
+            const customAdminPass = localStorage.getItem('hsAdminPass');
+
+            if (!customAdminUser && u === 'admin' && p === 'admin@123') {
+                window.location.href = 'admin.html';
+                return;
+            } else if (customAdminUser && u === customAdminUser && p === customAdminPass) {
+                localStorage.setItem('hammerStrikeAdminLoggedIn', 'true');
+                window.location.href = 'admin.html';
+                return;
+            }
+
+            // 2. Check Standard User Credentials
+            const storedU = localStorage.getItem('hsGlobalUsername');
+            const storedP = localStorage.getItem('hsGlobalPassword');
+
+            if (!storedU) {
+                alert("No registered account found. Please register first.");
+                return;
+            }
+
+            if (u === storedU && p === storedP) {
+                sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
+                window.location.href = 'user_stone.html';
+            } else {
+                alert("Invalid username or password!");
+            }
+        }
+    </script>
+</body>
+
+</html>

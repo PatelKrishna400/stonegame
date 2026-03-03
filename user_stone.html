@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hammer Strike — Home</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0d0f1a;
+            --surface: #141727;
+            --surface2: #1c2136;
+            --border: rgba(255, 255, 255, 0.07);
+            --gold: #ffd700;
+            --gold2: #ff8c00;
+            --blue: #64c8ff;
+            --text: #ffffff;
+            --text2: rgba(255, 255, 255, 0.5);
+        }
+
+        html {
+            background: #0d0f1a;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+            overflow-y: auto;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            padding-bottom: 70px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(20, 23, 39, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold), var(--gold2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: #141727;
+            font-size: 1.2rem;
+        }
+
+        .username {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .balance-pill {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-weight: 800;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .play-card {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.1));
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .play-card::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .play-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: var(--gold);
+        }
+
+        .play-desc {
+            font-size: 0.85rem;
+            color: var(--text2);
+            margin-bottom: 20px;
+        }
+
+        .btn-play {
+            background: linear-gradient(90deg, var(--gold), var(--gold2));
+            color: #0d0f1a;
+            border: none;
+            border-radius: 12px;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            width: 100%;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+            transition: transform 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-play:active {
+            transform: scale(0.96);
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .leaderboard {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .lb-row {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+
+        .lb-row:last-child {
+            border-bottom: none;
+        }
+
+        .lb-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .lb-rank {
+            font-weight: 800;
+            font-size: 1.1rem;
+            width: 30px;
+            text-align: center;
+            color: var(--text2);
+        }
+
+        .lb-rank.gold {
+            color: var(--gold);
+        }
+
+        .lb-rank.silver {
+            color: #c0c0c0;
+        }
+
+        .lb-rank.bronze {
+            color: #cd7f32;
+        }
+
+        .lb-user {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 10px;
+        }
+
+        .lb-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--surface2);
+        }
+
+        .lb-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .lb-score {
+            font-weight: 800;
+            color: var(--gold);
+            font-size: 0.95rem;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(20, 23, 39, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 12px 0 25px;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--text2);
+            gap: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            width: 20%;
+        }
+
+        .nav-item.active {
+            color: var(--gold);
+        }
+
+        .nav-icon {
+            font-size: 1.4rem;
+            transition: transform 0.2s;
+        }
+
+        .nav-item.active .nav-icon {
+            transform: scale(1.15);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        /* AD POPUP OVERLAY */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+
+        .modal-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            width: 85%;
+            max-width: 340px;
+            aspect-ratio: 9/16;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-title {
+            color: var(--gold);
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+
+        .modal-desc {
+            color: var(--text2);
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .btn-watch-ad {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: #fff;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            width: 100%;
+            cursor: pointer;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-close-modal {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text2);
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            width: 100%;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .user-level-badge {
+            font-size: 0.7rem;
+            color: var(--gold);
+            margin-left: 5px;
+        }
+
+        .ad-modal-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="user-info">
+            <div class="avatar" style="display:flex; align-items:center; justify-content:center; cursor:default;">🪨
+            </div>
+            <div class="username"><span id="user-name">PlayerOne</span> <span id="user-level"
+                    class="user-level-badge">Lvl 1</span></div>
+        </div>
+        <div class="header-right" style="display:flex; align-items:center; gap:10px;">
+            <div class="balance-pill" id="user-balance">
+                🪙 24,500
+            </div>
+
+            <div class="menu-btn" onclick="openMenu()"
+                style="background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; color: var(--gold);">
+                ☰</div>
+        </div>
+    </header>
+
+    <div class="menu-overlay" id="menu-overlay" onclick="closeMenu()"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); z-index: 290; display: none;">
+    </div>
+    <div class="side-menu" id="side-menu"
+        style="position: fixed; top: 0; right: 0; width: 250px; height: 100%; background: var(--surface); border-left: 1px solid var(--border); box-shadow: -5px 0 20px rgba(0,0,0,0.5); z-index: 300; padding: 20px; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        <div
+            style="font-size: 1.2rem; font-weight: 800; color: var(--gold); margin-bottom: 20px; display:flex; justify-content:space-between; align-items:center;">
+            <span>☰ Menu</span>
+            <span onclick="closeMenu()" style="cursor:pointer; font-size:1.5rem;">×</span>
+        </div>
+        <div
+            style="text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div style="width: 60px; height: 60px; margin: 0 auto 10px; border-radius: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 2rem; overflow: hidden; position: relative;"
+                id="sm-avatar-container">
+                <span id="sm-avatar-emoji">🪨</span>
+                <img id="sm-avatar-img" src=""
+                    style="display:none; width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0;">
+            </div>
+            <div id="sm-name" style="font-weight: 800; font-size: 1.1rem; color: var(--gold);">PlayerOne</div>
+            <div id="sm-level" style="font-size: 0.8rem; color: var(--text2); margin-top: 5px;">Level 1</div>
+            <div id="sm-coins" style="font-size: 0.9rem; margin-top: 5px; font-weight: bold;">🪙 0</div>
+        </div>
+
+        <a href="profile.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">👤
+            Profile</a>
+        <a href="user_stone.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">🏠
+            Home</a>
+        <a href="upgrade.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">⚡
+            Upgrades</a>
+        <a href="daily_task.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">📋
+            Tasks</a>
+        <a href="refral.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">🤝
+            Invite</a>
+        <a href="withdraw.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">💳
+            Wallet</a>
+    </div>
+    <script>
+        function updateSideMenu() {
+            try {
+                const raw = localStorage.getItem('hammerStrikeSave');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    document.getElementById('sm-name').innerText = parsed.nickname || 'PlayerOne';
+                    document.getElementById('sm-level').innerText = `Level ${parsed.level || 1}`;
+                    document.getElementById('sm-coins').innerText = `🪙 ${(parsed.coins || 0).toLocaleString()}`;
+                    const customPfp = localStorage.getItem('hsCustomAvatar');
+                    if (customPfp) {
+                        document.getElementById('sm-avatar-img').src = customPfp;
+                        document.getElementById('sm-avatar-img').style.display = 'block';
+                        document.getElementById('sm-avatar-emoji').style.display = 'none';
+                    }
+                }
+            } catch (e) { }
+        }
+        function openMenu() {
+            document.getElementById('side-menu').style.transform = 'translateX(0)';
+            document.getElementById('menu-overlay').style.display = 'block';
+            updateSideMenu();
+        }
+        function closeMenu() {
+            document.getElementById('side-menu').style.transform = 'translateX(100%)';
+            document.getElementById('menu-overlay').style.display = 'none';
+        }
+    </script>
+
+    <!-- TICKER -->
+    <div
+        style="background: rgba(255, 215, 0, 0.1); border: 1px solid var(--border); border-radius: 12px; padding: 10px; margin-bottom: 5px; overflow: hidden; white-space: nowrap;">
+        <marquee id="withdraw-ticker" style="color: var(--gold); font-size: 0.9rem; font-weight: 600;">Loading recent
+            payouts...</marquee>
+    </div>
+
+    <div class="play-card">
+        <h2 class="play-title">Ready to Strike?</h2>
+        <p class="play-desc">Tap the stone, earn gold, and upgrade your hammer!</p>
+        <a href="game.html" class="btn-play">▶ Play Game</a>
+
+        <div
+            style="text-align: center; margin-top: 20px; font-size: 0.85rem; color: #2ecc71; font-weight: 600; display:flex; align-items:center; justify-content:center; gap:6px;">
+            <span class="pulse-dot"
+                style="display:inline-block; width:8px; height:8px; background:#2ecc71; border-radius:50%; box-shadow:0 0 10px #2ecc71;"></span>
+            <span id="online-users">1.2k</span> Players Online
+        </div>
+    </div>
+
+    <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3 class="section-title" style="margin-bottom:0;">🏆 Top Miners</h3>
+            <button id="btn-claim-rank" onclick="claimLeaderboardReward()"
+                style="display:none; background: linear-gradient(90deg, var(--gold), var(--gold2)); border: none; padding: 6px 14px; border-radius: 20px; color: #000; font-weight: 800; font-size: 0.8rem; cursor: pointer;">🎁
+                Claim Rank</button>
+        </div>
+
+        <div class="leaderboard">
+            <div id="leaderboard-list" style="max-height: 315px; overflow-y: auto;">
+                <div style="padding:20px; text-align:center; color:var(--text2);">Loading...</div>
+            </div>
+            <div id="leaderboard-me" style="border-top: 1px solid rgba(255,215,0,0.3); background: rgba(0,0,0,0.3);">
+            </div>
+            <div id="leaderboard-timer-box"
+                style="text-align:center; padding: 10px; border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.8rem; color: var(--text2); background: rgba(0,0,0,0.5);">
+                Leaderboard Renews in: <span id="lb-timer"
+                    style="color: var(--gold); font-weight: 800; display: inline-block; min-width: 60px;">...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- AD POPUP OVERLAY -->
+    <div class="modal-overlay" id="ad-modal">
+        <div class="modal-card">
+            <div class="ad-modal-icon">📺</div>
+            <h3 class="modal-title" id="ad-modal-title">Watch an Ad</h3>
+            <p class="modal-desc" id="ad-modal-desc">Support the game by watching a quick ad!</p>
+            <button class="btn-watch-ad" id="btn-watch-ad" onclick="watchLeaderboardAd()">
+                ▶ Watch Ad (<span id="ad-progress">1/5</span>)
+            </button>
+            <button class="btn-close-modal" onclick="closeAdModal()">Maybe Later</button>
+        </div>
+    </div>
+
+    <script>
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.expand();
+            window.Telegram.WebApp.ready();
+        }
+
+        // Authentication Check
+        if (localStorage.getItem('hammerStrikeUserRegistered') === 'true') {
+            if (sessionStorage.getItem('hammerStrikeUserLoggedIn') !== 'true') {
+                window.location.href = 'index.html';
+            }
+        }
+
+        let pendingNavigationUrl = '';
+
+        function showAdModal(targetUrl) {
+            // Prevent default link behavior if needed, but we're using href="#" and onclick
+            pendingNavigationUrl = targetUrl;
+            document.getElementById('ad-modal').style.display = 'flex';
+        }
+
+        function closeAdModal() {
+            document.getElementById('ad-modal').style.display = 'none';
+        }
+
+        // Load sync data
+        function loadDashboardData() {
+            const savedData = localStorage.getItem('hammerStrikeSave');
+            if (savedData) {
+                try {
+                    const parsed = JSON.parse(savedData);
+                    if (parsed && typeof parsed.coins === 'number') {
+                        document.getElementById('user-balance').innerText = '🪙 ' + parsed.coins.toLocaleString();
+                    }
+                    if (parsed && typeof parsed.level === 'number') {
+                        document.getElementById('user-level').innerText = 'Lvl ' + parsed.level;
+                    }
+                    if (parsed && parsed.nickname) {
+                        document.getElementById('user-name').innerText = parsed.nickname;
+                    }
+
+                    // Show claim button only if 30 days passed
+                    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+                    if (parsed.levelReductionDate && Date.now() - parsed.levelReductionDate >= THIRTY_DAYS) {
+                        document.getElementById('btn-claim-rank').style.display = 'inline-block';
+                    } else if (!parsed.levelReductionDate) {
+                        // init if null
+                        parsed.levelReductionDate = Date.now();
+                        localStorage.setItem('hammerStrikeSave', JSON.stringify(parsed));
+                        document.getElementById('btn-claim-rank').style.display = 'none';
+                    } else {
+                        document.getElementById('btn-claim-rank').style.display = 'none';
+                    }
+                } catch (e) { }
+            }
+        }
+
+        function updateOnlineStatus() {
+            // "Real" online users check without a backend server
+            let pingsStr = localStorage.getItem('hammerStrikeLivePings') || '{}';
+            let pings = JSON.parse(pingsStr);
+            const myId = document.getElementById('user-name').innerText || 'User';
+            pings[myId] = Date.now();
+
+            // Cleanup old pings (> 5 mins)
+            let onlineCount = 0;
+            const now = Date.now();
+            for (const [user, time] of Object.entries(pings)) {
+                if (now - time < 5 * 60 * 1000) {
+                    onlineCount++;
+                } else {
+                    delete pings[user];
+                }
+            }
+            localStorage.setItem('hammerStrikeLivePings', JSON.stringify(pings));
+
+            const onlineEl = document.getElementById('online-users');
+            if (onlineEl) onlineEl.innerText = onlineCount.toLocaleString();
+
+            // Real withdrawal requests for the ticker
+            const tickerEl = document.getElementById('withdraw-ticker');
+            if (tickerEl) {
+                const withdrawalsStr = localStorage.getItem('hammerStrikeAdminWithdraws');
+                if (withdrawalsStr) {
+                    const withData = JSON.parse(withdrawalsStr);
+                    if (withData.length > 0) {
+                        const tickerHtml = withData.map(w => `🟢 <b>${w.userName || 'Unknown'}</b> - requested ₹${(w.amount / 100000).toFixed(0)}`).join(' &nbsp;&nbsp;&nbsp;⭐&nbsp;&nbsp;&nbsp; ');
+                        tickerEl.innerHTML = tickerHtml;
+                    } else {
+                        tickerEl.innerText = 'No recent withdrawals... Keep playing!';
+                    }
+                } else {
+                    tickerEl.innerText = 'No recent withdrawals... Keep playing!';
+                }
+            }
+        }
+
+        function updateLeaderboardTimer() {
+            const timerEl = document.getElementById('lb-timer');
+            if (!timerEl) return;
+
+            const now = new Date();
+            // Calculate time until next Sunday midnight (UTC)
+            let daysUntilSunday = 7 - now.getUTCDay();
+            if (daysUntilSunday === 7) daysUntilSunday = 0; // It's Sunday
+
+            const nextSunday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + daysUntilSunday + (daysUntilSunday === 0 && now.getUTCHours() === 0 && now.getUTCMinutes() === 0 ? 7 : 0)));
+            nextSunday.setUTCHours(0, 0, 0, 0);
+
+            // If it's already Sunday past midnight, target NEXT Sunday
+            if (now.getTime() > nextSunday.getTime()) {
+                nextSunday.setUTCDate(nextSunday.getUTCDate() + 7);
+            }
+
+            const diff = nextSunday.getTime() - now.getTime();
+
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+            let timeStr = "";
+            if (d > 0) timeStr += `${d}d `;
+            timeStr += `${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}s`;
+
+            timerEl.innerText = timeStr;
+        }
+
+        setInterval(updateLeaderboardTimer, 1000);
+
+        let lbAdsWatched = 0;
+        let lbAdsRequired = 5;
+        let lbCoinReward = 10000;
+        let isClaimingLB = false;
+
+        function loadLeaderboard() {
+            const raw = localStorage.getItem('hammerStrikeSave');
+            let myLevel = 1;
+            let myName = 'PlayerOne';
+            if (raw) {
+                const p = JSON.parse(raw);
+                if (p.level) myLevel = p.level;
+                if (p.nickname) myName = p.nickname;
+            }
+
+            // Real Time (Uses fake other players to fill it but places you at your REAL rank)
+            // The user requested "not fake user use real time data show" - so we will just show the active user
+            // Unless they meant they want to see other people, but we have no backend!
+            // I will generate a realistic bracket based on the user's level.
+            let users = [];
+            users.push({ name: myName, level: myLevel, isMe: true });
+
+            // Generate other persistent bots based on the user's level
+            let botsStr = localStorage.getItem('hammerStrikeBots');
+            let bots = [];
+            if (botsStr) {
+                // If there are existing bots from earlier saving, empty them out since user requested NO FAKE USERS.
+                localStorage.removeItem('hammerStrikeBots');
+            }
+
+            // No bots added to list
+            // users = users.concat(bots);
+
+            // Sort by level descending
+            users.sort((a, b) => b.level - a.level);
+
+            let myRank = users.findIndex(u => u.isMe) + 1;
+
+            const listEl = document.getElementById('leaderboard-list');
+            const meEl = document.getElementById('leaderboard-me');
+
+            function generateRow(u, rNum, rankClass) {
+                let rowReward = 100;
+                if (rNum === 1) rowReward = 10000;
+                else if (rNum === 2) rowReward = 8000;
+                else if (rNum >= 3 && rNum <= 5) rowReward = 5000;
+                else if (rNum > 5 && rNum <= 10) rowReward = 2500;
+                else if (rNum > 10 && rNum <= 25) rowReward = 1000;
+                else if (rNum > 25 && rNum <= 50) rowReward = 500;
+
+                return `
+                <div class="lb-row" style="${u.isMe ? 'background: rgba(255,215,0,0.1);' : ''}">
+                    <div class="lb-rank ${rankClass}">#${rNum}</div>
+                    <div class="lb-user">
+                        <div class="lb-avatar" style="border-radius:6px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); width:auto; padding:0 8px; font-size:0.75rem; font-weight:800; display:flex; align-items:center; justify-content:center; color:var(--gold);">Lvl ${u.level}</div>
+                        <div class="lb-name">${u.name} ${u.isMe ? '(You)' : ''}</div>
+                    </div>
+                    <div class="lb-score" style="color:#2ecc71;">+${rowReward.toLocaleString()} 🪙</div>
+                </div>`;
+            }
+
+            if (listEl) {
+                listEl.innerHTML = users.slice(0, 100).map((u, i) => {
+                    let rankClass = '';
+                    let rNum = i + 1;
+                    if (rNum === 1) rankClass = 'gold';
+                    else if (rNum === 2) rankClass = 'silver';
+                    else if (rNum === 3) rankClass = 'bronze';
+
+                    return generateRow(u, rNum, rankClass);
+                }).join('');
+            }
+
+            if (meEl) {
+                let myRankClass = '';
+                if (myRank === 1) myRankClass = 'gold';
+                else if (myRank === 2) myRankClass = 'silver';
+                else if (myRank === 3) myRankClass = 'bronze';
+                meEl.innerHTML = generateRow(users.find(u => u.isMe), myRank, myRankClass);
+            }
+
+            // Calculate reward brackets for you
+            if (myRank === 1) { lbAdsRequired = 5; lbCoinReward = 10000; }
+            else if (myRank === 2) { lbAdsRequired = 4; lbCoinReward = 8000; }
+            else if (myRank >= 3 && myRank <= 5) { lbAdsRequired = 4; lbCoinReward = 5000; }
+            else if (myRank > 5 && myRank <= 10) { lbAdsRequired = 3; lbCoinReward = 2500; }
+            else if (myRank > 10 && myRank <= 25) { lbAdsRequired = 2; lbCoinReward = 1000; }
+            else if (myRank > 25 && myRank <= 50) { lbAdsRequired = 1; lbCoinReward = 500; }
+            else { lbAdsRequired = 1; lbCoinReward = 100; }
+        }
+
+        function claimLeaderboardReward() {
+            isClaimingLB = true;
+            lbAdsWatched = 0;
+            document.getElementById('ad-modal-title').innerText = `Claim Rank Reward`;
+            document.getElementById('ad-modal-desc').innerText = `Watch ${lbAdsRequired} ad(s) to collect ${lbCoinReward.toLocaleString()} Coins!`;
+            document.getElementById('ad-progress').innerText = `${lbAdsWatched}/${lbAdsRequired}`;
+
+            // Ensure button calls the LB flow
+            document.getElementById('btn-watch-ad').onclick = watchLeaderboardAd;
+
+            document.getElementById('ad-modal').style.display = 'flex';
+        }
+
+        function watchLeaderboardAd() {
+            const btn = document.getElementById('btn-watch-ad');
+            btn.innerHTML = '⏱ Ad Playing...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                lbAdsWatched++;
+                document.getElementById('ad-progress').innerText = `${lbAdsWatched}/${lbAdsRequired}`;
+                btn.innerHTML = '▶ Watch Ad (<span id="ad-progress">' + lbAdsWatched + '/' + lbAdsRequired + '</span>)';
+                btn.disabled = false;
+
+                if (lbAdsWatched >= lbAdsRequired) {
+                    closeAdModal();
+
+                    // Reward User
+                    const raw = localStorage.getItem('hammerStrikeSave');
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        parsed.coins = (parsed.coins || 0) + lbCoinReward;
+                        // Reset 30-day claim counter
+                        parsed.levelReductionDate = Date.now();
+                        localStorage.setItem('hammerStrikeSave', JSON.stringify(parsed));
+                    }
+                    alert(`Congratulations! You claimed ${lbCoinReward.toLocaleString()} Coins for your rank!`);
+
+                    document.getElementById('btn-claim-rank').style.display = 'none';
+                    loadDashboardData();
+                }
+            }, 2000);
+        }
+
+        function syncAll() {
+            loadDashboardData();
+            updateOnlineStatus();
+            loadLeaderboard();
+        }
+
+        syncAll();
+        setInterval(syncAll, 5000);
+
+        function watchAd() {
+            // Unused generic ad clicker overwritten by Leaderboard above
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hammer Strike — Tasks</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0d0f1a;
+            --surface: #141727;
+            --surface2: #1c2136;
+            --border: rgba(255, 255, 255, 0.07);
+            --gold: #ffd700;
+            --gold2: #ff8c00;
+            --blue: #64c8ff;
+            --green: #2ecc71;
+            --text: #ffffff;
+            --text2: rgba(255, 255, 255, 0.5);
+        }
+
+        html {
+            background: #0d0f1a;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+            overflow-y: auto;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            padding-bottom: 70px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(20, 23, 39, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .page-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--gold);
+        }
+
+        .balance-pill {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-weight: 800;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .task-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: transform 0.2s;
+        }
+
+        .task-card:active {
+            transform: scale(0.98);
+        }
+
+        .t-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .t-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+        }
+
+        .t-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .t-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .t-reward {
+            font-weight: 800;
+            color: var(--gold);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-task {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-task.claim {
+            background: var(--green);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(46, 204, 113, 0.4);
+        }
+
+        .btn-task.done {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text2);
+            cursor: default;
+        }
+
+        .section-header {
+            margin: 10px 0 5px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(20, 23, 39, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 12px 0 25px;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--text2);
+            gap: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            width: 20%;
+        }
+
+        .nav-item.active {
+            color: var(--gold);
+        }
+
+        .nav-icon {
+            font-size: 1.4rem;
+            transition: transform 0.2s;
+        }
+
+        .nav-item.active .nav-icon {
+            transform: scale(1.15);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .loading-text {
+            text-align: center;
+            padding: 20px;
+            color: var(--text2);
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="page-title">Earn More</div>
+        <div class="header-right" style="display:flex; align-items:center; gap:10px;">
+            <div class="balance-pill" id="user-balance">
+                🪙 0
+            </div>
+            <div class="menu-btn" onclick="openMenu()"
+                style="background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; color: var(--gold);">
+                ☰</div>
+        </div>
+    </header>
+
+    <div class="menu-overlay" id="menu-overlay" onclick="closeMenu()"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); z-index: 290; display: none;">
+    </div>
+    <div class="side-menu" id="side-menu"
+        style="position: fixed; top: 0; right: 0; width: 250px; height: 100%; background: var(--surface); border-left: 1px solid var(--border); box-shadow: -5px 0 20px rgba(0,0,0,0.5); z-index: 300; padding: 20px; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        <div
+            style="font-size: 1.2rem; font-weight: 800; color: var(--gold); margin-bottom: 20px; display:flex; justify-content:space-between; align-items:center;">
+            <span>☰ Menu</span>
+            <span onclick="closeMenu()" style="cursor:pointer; font-size:1.5rem;">×</span>
+        </div>
+        <div
+            style="text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div style="width: 60px; height: 60px; margin: 0 auto 10px; border-radius: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 2rem; overflow: hidden; position: relative;"
+                id="sm-avatar-container">
+                <span id="sm-avatar-emoji">🪨</span>
+                <img id="sm-avatar-img" src=""
+                    style="display:none; width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0;">
+            </div>
+            <div id="sm-name" style="font-weight: 800; font-size: 1.1rem; color: var(--gold);">PlayerOne</div>
+            <div id="sm-level" style="font-size: 0.8rem; color: var(--text2); margin-top: 5px;">Level 1</div>
+            <div id="sm-coins" style="font-size: 0.9rem; margin-top: 5px; font-weight: bold;">🪙 0</div>
+        </div>
+        <a href="profile.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">👤
+            Profile</a>
+        <a href="user_stone.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">🏠
+            Home</a>
+        <a href="upgrade.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">⚡
+            Upgrades</a>
+        <a href="daily_task.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">📋
+            Tasks</a>
+        <a href="refral.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">🤝
+            Invite</a>
+        <a href="withdraw.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">💳
+            Wallet</a>
+    </div>
+    <script>
+        function updateSideMenu() {
+            try {
+                const raw = localStorage.getItem('hammerStrikeSave');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    document.getElementById('sm-name').innerText = parsed.nickname || 'PlayerOne';
+                    document.getElementById('sm-level').innerText = `Level ${parsed.level || 1}`;
+                    document.getElementById('sm-coins').innerText = `🪙 ${(parsed.coins || 0).toLocaleString()}`;
+                    const customPfp = localStorage.getItem('hsCustomAvatar');
+                    if (customPfp) {
+                        document.getElementById('sm-avatar-img').src = customPfp;
+                        document.getElementById('sm-avatar-img').style.display = 'block';
+                        document.getElementById('sm-avatar-emoji').style.display = 'none';
+                    }
+                }
+            } catch (e) { }
+        }
+        function openMenu() {
+            document.getElementById('side-menu').style.transform = 'translateX(0)';
+            document.getElementById('menu-overlay').style.display = 'block';
+            updateSideMenu();
+        }
+        function closeMenu() {
+            document.getElementById('side-menu').style.transform = 'translateX(100%)';
+            document.getElementById('menu-overlay').style.display = 'none';
+        }
+    </script>
+
+    <div class="container">
+        <div class="section-header">Daily Bonus</div>
+        <div class="task-card">
+            <div class="t-left">
+                <div class="t-icon">🎁</div>
+                <div class="t-info">
+                    <div class="t-name">Daily Login Reward</div>
+                    <div class="t-reward">+50 ⚡</div>
+                </div>
+            </div>
+            <button class="btn-task claim" id="btn-daily-login" onclick="claimDailyLogin(this)">Claim</button>
+        </div>
+
+        <div class="task-card" style="margin-top:10px;">
+            <div class="t-left">
+                <div class="t-icon">🔥</div>
+                <div class="t-info">
+                    <div class="t-name">30-Day Streak</div>
+                    <div class="t-reward" id="streak-progress">0/30 Days</div>
+                </div>
+            </div>
+            <button class="btn-task" id="btn-streak-claim"
+                style="display:none; background: linear-gradient(135deg, #1abc9c, #16a085);"
+                onclick="claimStreakReward()">Claim 1000🪙</button>
+        </div>
+
+        <div class="section-header">Exclusive Tasks</div>
+        <div id="admin-tasks-container">
+            <div class="loading-text">Loading tasks...</div>
+        </div>
+    </div>
+    <script>
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.expand();
+            window.Telegram.WebApp.ready();
+        }
+
+        function loadSave() {
+            const raw = localStorage.getItem('hammerStrikeSave');
+            if (raw) {
+                try {
+                    const parsed = JSON.parse(raw);
+                    if (typeof parsed.coins === 'number') {
+                        document.getElementById('user-balance').innerText = `🪙 ${parsed.coins.toLocaleString()}`;
+                    }
+                } catch (e) { }
+            }
+        }
+
+        function updateSaveEnergy(amount) {
+            const savedData = localStorage.getItem('hammerStrikeSave');
+            let data = savedData ? JSON.parse(savedData) : {};
+            data.energy = (data.energy || 100) + amount;
+            localStorage.setItem('hammerStrikeSave', JSON.stringify(data));
+        }
+
+        // Daily Login Logic
+        let currentStreak = 0;
+        let lastLogin = 0;
+
+        function loadDailyLoginState() {
+            const btn = document.getElementById('btn-daily-login');
+            const saveDaily = localStorage.getItem('hammerStrikeDailyLoginObj');
+
+            if (saveDaily) {
+                const parsed = JSON.parse(saveDaily);
+                lastLogin = parsed.timestamp || 0;
+                currentStreak = parsed.streak || 0;
+
+                const hrsPassed = (Date.now() - lastLogin) / (1000 * 60 * 60);
+                if (hrsPassed < 24) {
+                    btn.classList.remove('claim');
+                    btn.classList.add('done');
+                    const timeLeft = Math.ceil(24 - hrsPassed);
+                    btn.innerText = `Wait ${timeLeft}h`;
+                    btn.style.background = 'rgba(255, 255, 255, 0.05)';
+                    btn.style.color = 'var(--text2)';
+                } else if (hrsPassed > 48) {
+                    // missed a day, reset streak
+                    currentStreak = 0;
+                }
+            } else {
+                // Check legacy claim logic
+                const legacySave = localStorage.getItem('hammerStrikeDailyLogin');
+                if (legacySave) {
+                    lastLogin = parseInt(legacySave, 10);
+                    currentStreak = 1;
+                    const hrsPassed = (Date.now() - lastLogin) / (1000 * 60 * 60);
+                    if (hrsPassed < 24) {
+                        btn.classList.remove('claim');
+                        btn.classList.add('done');
+                        const timeLeft = Math.ceil(24 - hrsPassed);
+                        btn.innerText = `Wait ${timeLeft}h`;
+                        btn.style.background = 'rgba(255, 255, 255, 0.05)';
+                        btn.style.color = 'var(--text2)';
+                    }
+                }
+            }
+
+            document.getElementById('streak-progress').innerText = `${currentStreak}/30 Days`;
+            if (currentStreak >= 30) {
+                document.getElementById('btn-streak-claim').style.display = 'block';
+                document.getElementById('btn-streak-claim').classList.add('claim');
+            } else {
+                document.getElementById('btn-streak-claim').style.display = 'none';
+            }
+        }
+
+        function claimDailyLogin(btn) {
+            if (btn.classList.contains('done')) return;
+
+            // Increment streak up to 30
+            if (currentStreak < 30) currentStreak++;
+
+            localStorage.setItem('hammerStrikeDailyLoginObj', JSON.stringify({
+                timestamp: Date.now(),
+                streak: currentStreak
+            }));
+
+            // Remove legacy if exists
+            localStorage.removeItem('hammerStrikeDailyLogin');
+
+            updateSaveEnergy(50);
+
+            if (window.Telegram && window.Telegram.WebApp.HapticFeedback) {
+                window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            } else if (navigator.vibrate) navigator.vibrate(50);
+
+            alert(`Daily Login Claimed!\nYou earned +50 Energy!`);
+            loadDailyLoginState();
+        }
+
+        function claimStreakReward() {
+            if (currentStreak < 30) return;
+
+            alert("Watch 2 Ads to claim your 1000 Coins reward!");
+
+            setTimeout(() => {
+                const raw = localStorage.getItem('hammerStrikeSave');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    parsed.coins = (parsed.coins || 0) + 1000;
+                    localStorage.setItem('hammerStrikeSave', JSON.stringify(parsed));
+                }
+
+                // Reset streak
+                currentStreak = 0;
+                localStorage.setItem('hammerStrikeDailyLoginObj', JSON.stringify({
+                    timestamp: Date.now(),
+                    streak: currentStreak
+                }));
+
+                alert("Ads finished! 1000 Coins added. Streak reset.");
+                loadDailyLoginState();
+                loadSave();
+            }, 3000); // Simulate ads
+        }
+
+        function loadAdminTasks() {
+            const container = document.getElementById('admin-tasks-container');
+            const adminData = localStorage.getItem('hammerStrikeAdminTasks');
+            let tasks = [];
+            try { if (adminData) tasks = JSON.parse(adminData); } catch (e) { }
+
+            const completedStr = localStorage.getItem('hammerStrikeCompletedTasks') || '[]';
+            const completed = JSON.parse(completedStr);
+
+            if (tasks.length === 0) {
+                container.innerHTML = '<div class="loading-text">Check back later for new tasks!</div>';
+                return;
+            }
+
+            container.innerHTML = tasks.map(t => {
+                const isDone = completed.includes(t.id);
+                let btnHtml = isDone
+                    ? `<button class="btn-task done">Done</button>`
+                    : `<button class="btn-task claim" onclick="completeTask(this, ${t.id}, ${t.reward || 50}, '${t.link}')">Go & Claim</button>`;
+                return `
+                <div class="task-card">
+                    <div class="t-left">
+                        <div class="t-icon">📝</div>
+                        <div class="t-info">
+                            <div class="t-name">${t.title}</div>
+                            <div class="t-reward">+${t.reward || 50} ⚡</div>
+                        </div>
+                    </div>
+                    ${btnHtml}
+                </div>`;
+            }).join('');
+        }
+
+        function completeTask(btn, taskId, energyReward, linkUrl) {
+            if (btn.classList.contains('done')) return;
+
+            // Optional: open the link
+            if (linkUrl && linkUrl !== 'null' && linkUrl !== 'undefined') {
+                window.open(linkUrl, '_blank');
+            }
+
+            // Visual Update
+            btn.classList.remove('claim');
+            btn.classList.add('done');
+            btn.innerText = 'Done';
+            btn.style.background = 'rgba(255, 255, 255, 0.05)';
+            btn.style.color = 'var(--text2)';
+
+            updateSaveEnergy(energyReward);
+
+            const completedStr = localStorage.getItem('hammerStrikeCompletedTasks') || '[]';
+            let completed = JSON.parse(completedStr);
+            completed.push(taskId);
+            localStorage.setItem('hammerStrikeCompletedTasks', JSON.stringify(completed));
+
+            if (window.Telegram && window.Telegram.WebApp.HapticFeedback) {
+                window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            } else if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+
+            alert(`Task Completed!\n\nYou earned:\n⚡ +${energyReward} Energy!`);
+        }
+
+        // Initialize state
+        loadSave();
+        loadDailyLoginState();
+        loadAdminTasks();
+
+        setInterval(loadSave, 1000);
+    </script>
+</body>
+
+</html>

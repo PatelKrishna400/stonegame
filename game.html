@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hammer Strike — Game</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0d0f1a;
+            --surface: #141727;
+            --border: rgba(255, 255, 255, 0.07);
+            --gold: #ffd700;
+            --gold2: #ff8c00;
+            --blue: #64c8ff;
+            --text: #ffffff;
+            --text2: rgba(255, 255, 255, 0.5);
+        }
+
+        html {
+            background: #0d0f1a;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 215, 0, 0.5);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gold);
+        }
+
+        /* HEADER */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(20, 23, 39, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            z-index: 10;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold), var(--gold2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: #141727;
+            font-size: 1.2rem;
+        }
+
+        /* SCORE DISPLAY */
+        .score-display {
+            text-align: center;
+            margin: 30px 0 10px;
+        }
+
+        .score-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .score-value {
+            font-size: 3.5rem;
+            font-weight: 800;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .league-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            color: var(--text2);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        /* MAIN CLICKER */
+        .clicker-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .clicker-btn {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #4a5568, #1a202c);
+            box-shadow:
+                inset -10px -10px 20px rgba(0, 0, 0, 0.5),
+                inset 10px 10px 20px rgba(255, 255, 255, 0.2),
+                0 0 30px rgba(100, 200, 255, 0.2),
+                0 20px 40px rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 7rem;
+            cursor: pointer;
+            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        .clicker-btn::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.05);
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        .clicker-btn:active {
+            transform: scale(0.95);
+            box-shadow:
+                inset -5px -5px 10px rgba(0, 0, 0, 0.5),
+                inset 5px 5px 10px rgba(255, 255, 255, 0.2),
+                0 0 15px rgba(100, 200, 255, 0.2),
+                0 10px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        /* FLOATING NUMBERS */
+        .floating-number {
+            position: absolute;
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+            z-index: 50;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-100px) scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        /* BOTTOM HUD (ENERGY & NAV) */
+        .bottom-hud {
+            padding: 20px 20px 30px;
+            background: linear-gradient(to top, rgba(13, 15, 26, 1) 50%, transparent);
+            position: relative;
+            z-index: 10;
+        }
+
+        .energy-bar-container {
+            margin-bottom: 25px;
+        }
+
+        .energy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .energy-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text);
+        }
+
+        .energy-track {
+            width: 100%;
+            height: 14px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .energy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f1c40f, #f39c12);
+            width: 100%;
+            border-radius: 10px;
+            transition: width 0.1s linear;
+            box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+        }
+
+        /* BOTTOM NAV */
+        .bottom-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 8px 12px;
+        }
+
+        .nav-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text2);
+            text-decoration: none;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 10px;
+            transition: 0.2s;
+            flex: 1;
+        }
+
+        .nav-link.active {
+            color: var(--gold);
+        }
+
+        .nav-link-icon {
+            font-size: 1.4rem;
+            margin-bottom: 4px;
+        }
+
+        .nav-link.active .nav-link-icon {
+            transform: scale(1.15);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        /* MODAL / AD POPUP */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+
+        .modal-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            width: 85%;
+            max-width: 340px;
+            aspect-ratio: 9/16;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-title {
+            color: var(--gold);
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+
+        .modal-desc {
+            color: var(--text2);
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .btn-watch-ad {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: #fff;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            width: 100%;
+            cursor: pointer;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-close-modal {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text2);
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            width: 100%;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .tracker-track {
+            width: 100%;
+            height: 14px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .tracker-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e74c3c, #f1c40f);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+            background-size: 200% 200%;
+            animation: moveGradient 2s linear infinite;
+        }
+
+        @keyframes moveGradient {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 100% 50%;
+            }
+        }
+
+        @keyframes progressLoop {
+            0% {
+                background-position: 0 0;
+            }
+
+            100% {
+                background-position: 50px 0;
+            }
+        }
+
+        .avatar {
+            cursor: pointer;
+        }
+
+        .username {
+            font-weight: 600;
+        }
+
+        .user-status-text {
+            font-size: 0.85rem;
+            color: var(--text2);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .level-badge {
+            color: var(--gold);
+        }
+
+        .xp-container {
+            margin: 20px auto 0 auto;
+            width: 80%;
+            text-align: left;
+        }
+
+        .tracker-fill-star {
+            background: repeating-linear-gradient(45deg, #3498db, #3498db 10px, #2980b9 10px, #2980b9 20px);
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+            animation: progressLoop 1s linear infinite;
+        }
+
+        .energy-timer {
+            text-align: right;
+            color: var(--gold);
+            font-size: 0.85rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            display: none;
+        }
+
+        .btn-auto {
+            margin-left: 8px;
+            padding: 4px 8px;
+            font-size: 0.6rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        .btn-multiplier {
+            margin-left: 4px;
+            padding: 4px 8px;
+            font-size: 0.6rem;
+            background: linear-gradient(135deg, var(--gold), var(--gold2));
+            border: none;
+            border-radius: 10px;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            min-width: 35px;
+        }
+
+        .btn-buy-stars {
+            margin-left: 8px;
+        }
+
+        .ad-modal-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .ad-modal-text {
+            color: var(--text);
+        }
+
+        .bonus-modal-overlay {
+            z-index: 300;
+        }
+
+        .bonus-modal-card {
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.4);
+        }
+
+        .bonus-modal-icon {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+        }
+
+        .bonus-modal-title {
+            color: var(--gold);
+            font-size: 1.8rem;
+        }
+
+        .bonus-modal-desc {
+            font-size: 1rem;
+        }
+
+        .bonus-amount-text {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #3498db;
+            margin-bottom: 25px;
+        }
+
+        .btn-watch-ad.btn-bonus {
+            background: linear-gradient(135deg, var(--gold), var(--gold2));
+            color: #000;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="user-info">
+            <div class="avatar" onclick="exitGame()">💎</div>
+            <div class="username">PlayerOne</div>
+        </div>
+        <div class="user-status-text">
+            <span id="player-level" class="level-badge">Level 1</span> • Novice
+        </div>
+    </header>
+
+    <div class="score-display">
+        <div class="score-icon">🪙</div>
+        <div class="score-value" id="balance-display">24,500</div>
+
+        <div class="xp-container">
+            <div class="energy-header">
+                <div class="energy-label">✨ Level XP</div>
+                <div><span id="star-current">0</span> / <span id="star-max">500</span></div>
+            </div>
+            <div class="tracker-track">
+                <div class="tracker-fill tracker-fill-star" id="star-fill">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="clicker-area" id="clicker-container">
+        <div class="clicker-btn" id="clicker">
+            🪨
+        </div>
+    </div>
+
+    <div class="bottom-hud">
+        <div class="energy-bar-container">
+            <div id="energy-timer" class="energy-timer">
+                +1 00:60</div>
+            <div class="energy-header">
+                <div class="energy-label">
+                    <span>⚡ Energy</span>
+                    <button id="btn-auto-click" class="btn-task btn-auto" onclick="toggleAutoClick()">🤖 Auto:
+                        Off</button>
+                    <button id="btn-multiplier" class="btn-task btn-multiplier" onclick="toggleMultiplier()">x1</button>
+                </div>
+                <div><span id="energy-current">100</span> / <span id="energy-max">100</span></div>
+            </div>
+            <div class="tracker-track">
+                <div class="tracker-fill" id="energy-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AD POPUP OVERLAY -->
+    <div class="modal-overlay" id="ad-modal">
+        <div class="modal-card">
+            <div class="ad-modal-icon">📺</div>
+            <h3 class="modal-title">Out of Energy!</h3>
+            <p class="modal-desc">Watch a short ad to refill <strong class="ad-modal-text">&nbsp;10
+                    Energy&nbsp;</strong> instantly and keep striking!</p>
+            <button class="btn-watch-ad" onclick="watchAd()">
+                ▶ Watch Ad (Buy 10 Energy)
+            </button>
+            <button class="btn-close-modal" onclick="closeAdModal()">Maybe Later</button>
+        </div>
+    </div>
+
+    <!-- BONUS POPUP OVERLAY -->
+    <div class="modal-overlay bonus-modal-overlay" id="bonus-modal">
+        <div class="modal-card bonus-modal-card">
+            <div class="bonus-modal-icon">🎁</div>
+            <h3 class="modal-title bonus-modal-title">Bonus Win!</h3>
+            <p class="modal-desc bonus-modal-desc">You found a hidden reward while mining!</p>
+            <div id="bonus-amount-text" class="bonus-amount-text">✨ +10 Stars</div>
+            <button class="btn-watch-ad btn-bonus" onclick="collectBonus(1)" style="margin-bottom:10px;">
+                Collect Stars
+            </button>
+            <button class="btn-watch-ad btn-bonus" style="background:var(--blue); color:#fff;"
+                onclick="collectBonusAd()">
+                Watch Ad (*2)
+            </button>
+        </div>
+    </div>
+
+    <!-- BREAK TIMER POPUP OVERLAY -->
+    <div class="modal-overlay" id="break-modal">
+        <div class="modal-card">
+            <h3 class="modal-title" style="color:#e74c3c;">Coffee Break! ☕</h3>
+            <p class="modal-desc">You've been tapping. Time for a 30-minute break while you review the Top 10 Miners!
+            </p>
+
+            <div id="break-leaderboard-list"
+                style="max-height: 150px; overflow-y: auto; text-align:left; background:rgba(0,0,0,0.5); padding:10px; border-radius:10px; margin-bottom:15px; font-size:0.85rem;">
+                <!-- Filled dynamically -->
+            </div>
+
+            <p id="break-timer-text" style="color:var(--text); font-weight:bold; margin-bottom:15px;">Break ends in:
+                30:00</p>
+
+            <button class="btn-watch-ad" onclick="skipBreakAd()"
+                style="background: linear-gradient(135deg, #2ecc71, #27ae60);">
+                ▶ Watch Ad (Skip Break)
+            </button>
+        </div>
+    </div>
+
+    <!-- LEVEL UP MODAL OVERLAY -->
+    <div class="modal-overlay" id="levelup-modal">
+        <div class="modal-card">
+            <div style="font-size: 3.5rem; margin-bottom: 10px;">🌟</div>
+            <h3 class="modal-title" id="lvlup-title">Level Reached!</h3>
+            <p class="modal-desc" id="lvlup-desc">You earned Coins. Watch an ad to DOUBLE it!</p>
+            <button class="btn-watch-ad" id="btn-ad-lvl" onclick="adDoubleLvlReward()">
+                ▶ Watch Ad (*2)
+            </button>
+            <button class="btn-close-modal" onclick="collectLvlReward()">Collect Base Reward</button>
+        </div>
+    </div>
+
+    <script>
+        // Init TG
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.expand();
+            window.Telegram.WebApp.ready();
+        }
+
+        // Game Logic
+        let urlParams = new URLSearchParams(window.location.search);
+        let hasRef = urlParams.has('ref') || localStorage.getItem('hammerStrikeRef') !== null;
+        if (urlParams.has('ref')) localStorage.setItem('hammerStrikeRef', 'true');
+
+        let balance = hasRef ? 1000 : 0;
+        let energy = 100;
+        let clickCount = 0;
+        let clicksSinceLastBonus = 0;
+        let playerLevel = 1;
+        let maxEnergy = 100;
+        let stars = 0;
+        let starsRequired = 500;
+        let levelReductionDate = Date.now();
+        let tapPower = 1;
+        const tapEnergyCost = 1;
+        let rechargeLevel = 1;
+        let timerSeconds = 5;
+        let bonusDropLevel = 1;
+
+        let autoClickSeconds = 0;
+        let pendingBonusStars = 10;
+
+        // Break variables
+        let breakTimeEnd = 0;
+        let sessionPlayTime = 0;
+
+        let multiplierIndex = 0;
+        const multiplierValues = [1, 2, 3, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000];
+
+        function toggleMultiplier() {
+            multiplierIndex = (multiplierIndex + 1) % multiplierValues.length;
+            const m = multiplierValues[multiplierIndex];
+            document.getElementById('btn-multiplier').innerText = `x${m}`;
+
+            // Haptic
+            if (window.Telegram && window.Telegram.WebApp.HapticFeedback) {
+                window.Telegram.WebApp.HapticFeedback.selectionChanged();
+            } else if (navigator.vibrate) {
+                navigator.vibrate(10);
+            }
+        }
+
+        // Load balance from localStorage if available
+        const savedData = localStorage.getItem('hammerStrikeSave');
+        if (savedData) {
+            try {
+                const parsed = JSON.parse(savedData);
+                if (parsed && typeof parsed.coins === 'number') {
+                    balance = parsed.coins;
+                }
+                if (parsed && typeof parsed.clickCount === 'number') {
+                    clickCount = parsed.clickCount;
+                }
+                if (parsed && typeof parsed.clicksSinceLastBonus === 'number') {
+                    clicksSinceLastBonus = parsed.clicksSinceLastBonus;
+                }
+                if (parsed && typeof parsed.maxEnergy === 'number') {
+                    maxEnergy = parsed.maxEnergy;
+                }
+                if (parsed && typeof parsed.energy === 'number') {
+                    energy = parsed.energy;
+                } else {
+                    energy = maxEnergy;
+                }
+                if (parsed && typeof parsed.stars === 'number') {
+                    stars = parsed.stars;
+                }
+                if (parsed && typeof parsed.starsRequired === 'number') {
+                    starsRequired = parsed.starsRequired;
+                }
+                if (parsed && typeof parsed.levelReductionDate === 'number') {
+                    levelReductionDate = parsed.levelReductionDate;
+                }
+                if (parsed && typeof parsed.tapPowerLevel === 'number') {
+                    tapPower = parsed.tapPowerLevel;
+                }
+                if (parsed && typeof parsed.rechargeLevel === 'number') {
+                    rechargeLevel = parsed.rechargeLevel;
+                }
+                if (parsed && typeof parsed.bonusDropLevel === 'number') {
+                    bonusDropLevel = parsed.bonusDropLevel;
+                }
+                if (parsed && typeof parsed.breakTimeEnd === 'number') {
+                    breakTimeEnd = parsed.breakTimeEnd;
+                }
+
+                // Offline Energy Recharge Logic
+                if (parsed && parsed.lastSave) {
+                    const elapsedSecs = Math.floor((Date.now() - parsed.lastSave) / 1000);
+                    if (elapsedSecs > 0) {
+                        const rTime = Math.max(1, 30 - (rechargeLevel - 1));
+                        const rAmt = 1 + (rechargeLevel - 1) * 0.1;
+
+                        const intervals = Math.floor(elapsedSecs / rTime);
+                        const remainder = elapsedSecs % rTime;
+                        const energyToAdd = intervals * rAmt;
+                        energy = Math.min(maxEnergy, energy + energyToAdd);
+
+                        // Prevent the timer from artificially resetting out of bounds
+                        if (parsed.timerSeconds !== undefined && !isNaN(parsed.timerSeconds)) {
+                            timerSeconds = parsed.timerSeconds - (elapsedSecs % rTime);
+                            if (timerSeconds <= 0) timerSeconds += rTime;
+                            if (timerSeconds > rTime) timerSeconds = rTime;
+                        } else {
+                            timerSeconds = rTime - remainder;
+                        }
+                    }
+                }
+
+                if (parsed && typeof parsed.autoClickSeconds === 'number') {
+                    autoClickSeconds = parsed.autoClickSeconds;
+                    document.getElementById('btn-auto-click').innerText = `🤖 Auto: ${autoClickSeconds > 0 ? autoClickSeconds + 's' : 'Off'}`;
+                }
+
+                // Hourly Degradation Logic
+                if (!parsed.lastUpgradeDegrade) {
+                    parsed.lastUpgradeDegrade = Date.now();
+                }
+                const HR_MS = 60 * 60 * 1000;
+                const elapsedDegrade = Date.now() - parsed.lastUpgradeDegrade;
+                if (elapsedDegrade >= HR_MS) {
+                    const hrsPassed = Math.floor(elapsedDegrade / HR_MS);
+
+                    let eLvl = ((parsed.maxEnergy || 100) - 100) / 100 + 1;
+                    let tLvl = parsed.tapPowerLevel || 1;
+                    let rLvl = parsed.rechargeLevel || 1;
+                    let bLvl = parsed.bonusDropLevel || 1;
+
+                    maxEnergy = Math.max(100, (Math.max(1, eLvl - hrsPassed) - 1) * 100 + 100);
+                    tapPower = Math.max(1, tLvl - hrsPassed);
+                    rechargeLevel = Math.max(1, rLvl - hrsPassed);
+                    bonusDropLevel = Math.max(1, bLvl - hrsPassed);
+
+                    if (energy > maxEnergy) energy = maxEnergy;
+
+                    levelReductionDate = parsed.levelReductionDate; // keep existing logic
+                    // Update the saved degradation timestamp
+                    const updatedDataToSave = {
+                        ...parsed,
+                        maxEnergy: maxEnergy,
+                        tapPowerLevel: tapPower,
+                        rechargeLevel: rechargeLevel,
+                        bonusDropLevel: bonusDropLevel,
+                        lastUpgradeDegrade: parsed.lastUpgradeDegrade + (hrsPassed * HR_MS)
+                    };
+                    localStorage.setItem('hammerStrikeSave', JSON.stringify(updatedDataToSave));
+                }
+
+            } catch (e) { }
+        }
+
+        // 30-day cycle level reduction logic
+        const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+        if (Date.now() - levelReductionDate >= THIRTY_DAYS) {
+            playerLevel = 1;
+            stars = 0; // reset XP for the new cycle
+            starsRequired = 500;
+            levelReductionDate = Date.now();
+            alert(`30-Day Cycle Complete! Your Level has been renewed to Level 1.`);
+        }
+        document.getElementById('energy-max').innerText = maxEnergy;
+
+        const balanceDisplay = document.getElementById('balance-display');
+        const energyCurrent = document.getElementById('energy-current');
+        const energyFill = document.getElementById('energy-fill');
+        const clickerContainer = document.getElementById('clicker-container');
+        const clicker = document.getElementById('clicker');
+        const playerLevelSpan = document.getElementById('player-level');
+        const starCurrent = document.getElementById('star-current');
+        const starMax = document.getElementById('star-max');
+        const starFill = document.getElementById('star-fill');
+
+        function updateUI() {
+            balanceDisplay.innerText = balance.toLocaleString();
+            energyCurrent.innerText = Math.floor(energy);
+            const pct = (energy / maxEnergy) * 100;
+            energyFill.style.width = Math.min(100, pct) + '%';
+
+            starCurrent.innerText = Math.floor(stars);
+            starMax.innerText = starsRequired;
+            const starPct = (stars / starsRequired) * 100;
+            starFill.style.width = Math.min(100, starPct) + '%';
+
+            // Level formula based on stars required
+            if (playerLevelSpan) {
+                playerLevelSpan.innerText = 'Level ' + playerLevel;
+            }
+        }
+
+        let autoClickActive = false;
+        let autoClickTimeRemaining = 60;
+        let autoClickInterval = null;
+        let autoClickTimerInterval = null;
+
+        function toggleAutoClick() {
+            if (autoClickActive) {
+                stopAutoClick();
+            } else {
+                startAutoClick();
+            }
+        }
+
+        function startAutoClick() {
+            if (autoClickSeconds <= 0) {
+                alert("You have no Auto-Click time left! Buy some to continue.");
+                return;
+            }
+            autoClickActive = true;
+            document.getElementById('btn-auto-click').innerText = `🤖 Auto: ${autoClickSeconds}s`;
+            document.getElementById('btn-auto-click').style.background = 'var(--gold)';
+            document.getElementById('btn-auto-click').style.color = '#000';
+
+            autoClickTimerInterval = setInterval(() => {
+                autoClickSeconds--;
+                if (autoClickSeconds <= 0) {
+                    stopAutoClick();
+                } else {
+                    document.getElementById('btn-auto-click').innerText = `🤖 Auto: ${autoClickSeconds}s`;
+                }
+            }, 1000);
+
+            // Click multiple times per second
+            autoClickInterval = setInterval(() => {
+                if (!autoClickActive) return;
+
+                // Stop if ad modal is open
+                if (document.getElementById('ad-modal').style.display === 'flex') {
+                    stopAutoClick();
+                    return;
+                }
+
+                // Trigger auto clicking at random center positions
+                const rect = clicker.getBoundingClientRect();
+                const randomX = rect.left + rect.width / 2 + (Math.random() - 0.5) * 50;
+                const randomY = rect.top + rect.height / 2 + (Math.random() - 0.5) * 50;
+
+                processClick(randomX, randomY);
+            }, 250); // 4 clicks per second
+        }
+
+        function stopAutoClick() {
+            autoClickActive = false;
+            clearInterval(autoClickInterval);
+            clearInterval(autoClickTimerInterval);
+            document.getElementById('btn-auto-click').innerText = `🤖 Auto: ${autoClickSeconds > 0 ? autoClickSeconds + 's' : 'Off'}`;
+            document.getElementById('btn-auto-click').style.background = 'rgba(255,255,255,0.1)';
+            document.getElementById('btn-auto-click').style.color = 'var(--text)';
+        }
+
+        function processClick(clientX, clientY) {
+            const currentMultiplier = multiplierValues[multiplierIndex];
+            const currentCost = tapEnergyCost * currentMultiplier;
+            const currentPower = tapPower * currentMultiplier;
+
+            if (energy >= currentCost) {
+                // Haptic feedback if in TMA
+                if (window.Telegram && window.Telegram.WebApp.HapticFeedback) {
+                    window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+                } else if (navigator.vibrate) {
+                    navigator.vibrate(10);
+                }
+
+                // Temporary shrink effect for the main container if touched
+                clicker.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    clicker.style.transform = 'scale(1)';
+                }, 100);
+
+                balance += currentPower;
+                energy -= currentCost;
+                clickCount++;
+
+                let addedAmount = currentPower;
+
+                // Add 0.1 stars silently per click
+                stars += 0.1 * bonusDropLevel * currentMultiplier;
+
+                // Check bonus popup
+                clicksSinceLastBonus++;
+                if (clicksSinceLastBonus >= 30) {
+                    clicksSinceLastBonus = 0; // reset
+                    showBonusModal();
+                }
+
+                // Level Up Logic (Infinite)
+                if (Math.floor(stars) >= starsRequired) {
+                    const levelEnergyRaw = Math.min(50, playerLevel * 10);
+                    energy = Math.min(maxEnergy, energy + levelEnergyRaw);
+
+                    stars -= starsRequired;
+                    playerLevel++;
+                    starsRequired = Math.floor(500 * Math.pow(1.5, playerLevel - 1));
+
+                    showLevelUpModal(playerLevel);
+                }
+
+                createFloatingNumber(clientX, clientY, addedAmount, false);
+                updateUI();
+            } else {
+                if (autoClickActive) {
+                    stopAutoClick();
+                }
+                showAdModal();
+            }
+        }
+
+        // Multi-touch handler via pointerdown
+        clicker.addEventListener('pointerdown', (e) => {
+            if (Date.now() < breakTimeEnd) {
+                showBreakModal();
+                return;
+            }
+            processClick(e.clientX, e.clientY);
+        });
+
+        function populateBreakLeaderboard() {
+            const lbList = document.getElementById('break-leaderboard-list');
+            lbList.innerHTML = '';
+
+            const raw = localStorage.getItem('hammerStrikeSave');
+            let myName = "PlayerOne";
+            if (raw) {
+                try { myName = JSON.parse(raw).nickname || "PlayerOne"; } catch (e) { }
+            }
+
+            let users = [
+                { name: myName, score: Math.floor(stars), isMe: true },
+                { name: "CryptoKing", score: 25000 },
+                { name: "Satoshi_N", score: 22000 },
+                { name: "DiamondHands", score: 18000 },
+                { name: "ToTheMoon", score: 15000 },
+                { name: "DogeLover", score: 14000 },
+                { name: "HODL_Master", score: 12500 },
+                { name: "MinerX", score: 11000 },
+                { name: "WhaleAlert", score: 9500 },
+                { name: "BearKiller", score: 8000 },
+            ];
+            users.sort((a, b) => b.score - a.score);
+
+            users.slice(0, 10).forEach((u, i) => {
+                const div = document.createElement('div');
+                div.style.marginBottom = '5px';
+                div.innerHTML = `<span style="display:inline-block; width:20px; color:var(--gold);">${i + 1}.</span> 
+                                 <span style="${u.isMe ? 'color:var(--gold); font-weight:bold;' : 'color:var(--text);'}">${u.name}</span>
+                                 <span style="float:right; color:#3498db;">${u.score.toLocaleString()} XP</span>`;
+                lbList.appendChild(div);
+            });
+        }
+
+        function showBreakModal() {
+            const remaining = Math.max(0, Math.ceil((breakTimeEnd - Date.now()) / 1000));
+            if (remaining > 0) {
+                const mm = Math.floor(remaining / 60).toString().padStart(2, '0');
+                const ss = (remaining % 60).toString().padStart(2, '0');
+                document.getElementById('break-timer-text').innerText = `Break ends in: ${mm}:${ss}`;
+                if (document.getElementById('break-modal').style.display !== 'flex') {
+                    populateBreakLeaderboard();
+                    document.getElementById('break-modal').style.display = 'flex';
+                }
+                if (autoClickActive) stopAutoClick();
+            } else {
+                document.getElementById('break-modal').style.display = 'none';
+            }
+        }
+
+        function skipBreakAd() {
+            const btn = document.querySelector('#break-modal .btn-watch-ad');
+            btn.innerHTML = '⏱ Loading Ad...';
+            btn.disabled = true;
+            setTimeout(() => {
+                breakTimeEnd = 0;
+                sessionPlayTime = 0;
+                saveGameState();
+                document.getElementById('break-modal').style.display = 'none';
+                btn.innerHTML = '▶ Watch Ad (Skip Break)';
+                btn.disabled = false;
+                alert("Ad watched successfully! Break time skipped.");
+            }, 1000);
+        }
+
+        function showBonusModal() {
+            if (autoClickActive) stopAutoClick();
+
+            const baseBonus = 10;
+            const extraBonus = (bonusDropLevel - 1) * 5;
+            pendingBonusStars = baseBonus + extraBonus;
+
+            document.getElementById('bonus-amount-text').innerText = `✨ +${pendingBonusStars} Stars`;
+            document.getElementById('bonus-modal').style.display = 'flex';
+
+            if (window.Telegram && window.Telegram.WebApp.HapticFeedback) {
+                window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            } else if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        }
+
+        function closeBonusModal() {
+            document.getElementById('bonus-modal').style.display = 'none';
+        }
+
+        function collectBonus(multiplier) {
+            stars += pendingBonusStars * multiplier;
+            closeBonusModal();
+            updateUI();
+            saveGameState();
+            const rect = clicker.getBoundingClientRect();
+            createFloatingStar(rect.left + rect.width / 2, rect.top + rect.height / 2, pendingBonusStars * multiplier);
+            // alert(`You collected ${pendingBonusStars * multiplier} stars!`);
+        }
+
+        function collectBonusAd() {
+            const btn = document.querySelectorAll('.btn-bonus')[1];
+            btn.innerHTML = '⏱ Loading Ad...';
+            btn.disabled = true;
+            setTimeout(() => {
+                collectBonus(2);
+                btn.innerHTML = 'Watch Ad (*2)';
+                btn.disabled = false;
+            }, 1000);
+        }
+
+        function showAdModal() {
+            const todayStr = new Date().toDateString();
+            const adsData = JSON.parse(localStorage.getItem('hammerStrikeAds') || '{"date":"","count":0,"lastTick":0}');
+
+            if (adsData.date !== todayStr) {
+                adsData.date = todayStr;
+                adsData.count = 0;
+                adsData.lastTick = 0;
+            }
+
+            if (adsData.count >= 2) {
+                const now = Date.now();
+                const elapsedSinceAd = now - adsData.lastTick;
+                if (elapsedSinceAd < 60000) {
+                    const remaining = Math.ceil((60000 - elapsedSinceAd) / 1000);
+                    alert(`Ads are renewing. Please wait ${remaining} seconds to watch another ad.`);
+                    return;
+                } else {
+                    adsData.count = 0; // Renew ads limit
+                }
+            }
+
+            const now = Date.now();
+            const elapsedSinceAd = now - adsData.lastTick;
+
+            if (elapsedSinceAd < 30000 && adsData.count > 0) {
+                const remaining = Math.ceil((30000 - elapsedSinceAd) / 1000);
+                alert(`Please wait ${remaining} seconds to watch another ad.`);
+                return;
+            }
+
+            document.getElementById('ad-modal').style.display = 'flex';
+        }
+
+        function closeAdModal() {
+            document.getElementById('ad-modal').style.display = 'none';
+        }
+
+        function watchAd() {
+            const btn = document.querySelector('.btn-watch-ad');
+            btn.innerHTML = '⏱ Loading Ad...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                alert("Ad watched successfully! You bought 10 Energy.");
+                energy = Math.min(energy + 10, maxEnergy);
+                updateUI();
+                closeAdModal();
+                btn.innerHTML = '▶ Watch Ad (Buy 10 Energy)';
+                btn.disabled = false;
+
+                // Save ad usage stats
+                const todayStr = new Date().toDateString();
+                const adsData = JSON.parse(localStorage.getItem('hammerStrikeAds') || '{"date":"","count":0,"lastTick":0}');
+                adsData.date = todayStr;
+                adsData.count += 1;
+                adsData.lastTick = Date.now();
+                localStorage.setItem('hammerStrikeAds', JSON.stringify(adsData));
+
+            }, 1000);
+        }
+
+        // Prevent dragging/zooming problems on the main clicker
+        clickerContainer.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+
+        function createFloatingNumber(x, y, amount, isBonus = false) {
+            const num = document.createElement('div');
+            num.className = 'floating-number';
+            num.innerText = '+' + amount;
+
+            if (isBonus) {
+                num.style.color = 'var(--gold)';
+                num.style.fontSize = '3rem';
+                num.innerText = 'Bonus! +' + amount;
+            }
+
+            const offsetX = (Math.random() - 0.5) * 40;
+            const offsetY = (Math.random() - 0.5) * 40;
+
+            num.style.left = (x + offsetX - 20) + 'px';
+            num.style.top = (y + offsetY - 40) + 'px';
+
+            document.body.appendChild(num);
+
+            setTimeout(() => {
+                num.remove();
+            }, 1000);
+        }
+
+        function createFloatingStar(x, y, amount) {
+            const star = document.createElement('div');
+            star.className = 'floating-number';
+            star.style.color = '#3498db';
+            star.style.fontSize = '1.5rem';
+            star.innerText = '✨ +' + amount;
+
+            const offsetX = (Math.random() - 0.5) * 60;
+            const offsetY = (Math.random() - 0.5) * 60;
+
+            star.style.left = (x + offsetX - 20) + 'px';
+            star.style.top = (y + offsetY - 20) + 'px';
+
+            document.body.appendChild(star);
+
+            setTimeout(() => {
+                star.remove();
+            }, 1000);
+        }
+
+        // Energy recharge loop AND Break Time loop
+        const energyTimerEl = document.getElementById('energy-timer');
+
+        setInterval(() => {
+            // Check break time
+            if (Date.now() < breakTimeEnd) {
+                showBreakModal();
+            } else {
+                document.getElementById('break-modal').style.display = 'none';
+                sessionPlayTime++;
+                if (sessionPlayTime >= 300) { // 5 minutes
+                    sessionPlayTime = 0;
+                    breakTimeEnd = Date.now() + 30 * 60 * 1000; // 30 mins
+                    saveGameState();
+                    showBreakModal();
+                }
+            }
+
+            // Recharge calculations
+            const rTime = Math.max(1, 30 - (rechargeLevel - 1));
+            const rAmt = 1 + (rechargeLevel - 1) * 0.1;
+
+            if (timerSeconds > rTime) timerSeconds = rTime;
+
+            if (energy < maxEnergy) {
+                energyTimerEl.style.display = 'block';
+                timerSeconds--;
+                if (timerSeconds <= 0) {
+                    energy += rAmt;
+                    timerSeconds = rTime;
+                    if (energy >= maxEnergy) {
+                        energy = maxEnergy;
+                        energyTimerEl.style.display = 'none';
+                    }
+                    updateUI();
+                }
+                const formattedSeconds = timerSeconds < 10 ? '0' + timerSeconds : timerSeconds;
+                energyTimerEl.innerText = `+${rAmt.toFixed(1)} 00:${formattedSeconds}`;
+            } else {
+                energyTimerEl.style.display = 'none';
+                timerSeconds = rTime;
+            }
+        }, 1000);
+
+        updateUI();
+
+        function saveGameState() {
+            const existingData = JSON.parse(localStorage.getItem('hammerStrikeSave') || '{}');
+            const data = {
+                ...existingData,
+                id: '#1001',
+                nickname: 'PlayerOne',
+                coins: balance,
+                level: playerLevel,
+                clickCount: clickCount,
+                clicksSinceLastBonus: clicksSinceLastBonus,
+                energy: energy,
+                maxEnergy: maxEnergy,
+                stars: stars,
+                starsRequired: starsRequired,
+                levelReductionDate: levelReductionDate,
+                tapPowerLevel: tapPower,
+                rechargeLevel: rechargeLevel,
+                bonusDropLevel: bonusDropLevel,
+                autoClickSeconds: autoClickSeconds,
+                stageIdx: 0,
+                autoExpiry: Date.now() + 60000,
+                timerSeconds: timerSeconds, // Save real-time sub-timer
+                breakTimeEnd: breakTimeEnd,
+                lastSave: Date.now(),
+                lastUpgradeDegrade: Date.now() // Optional: keep it updated or just rely on the load save
+            };
+
+            // Retain the actual starting day if exist
+            if (existingData.lastUpgradeDegrade) {
+                data.lastUpgradeDegrade = existingData.lastUpgradeDegrade;
+            }
+
+            localStorage.setItem('hammerStrikeSave', JSON.stringify(data));
+        }
+
+        // Save progress to local storage periodically
+        setInterval(() => {
+            saveGameState();
+        }, 1000);
+
+        function exitGame() {
+            saveGameState();
+            window.location.href = 'user_stone.html';
+        }
+
+        let pendingLvlReward = 0;
+
+        function showLevelUpModal(lvl) {
+            if (lvl === 1) pendingLvlReward = 100;
+            else if (lvl === 2) pendingLvlReward = 200;
+            else if (lvl === 3) pendingLvlReward = 500;
+            else pendingLvlReward = lvl * 200;
+
+            if (autoClickActive) stopAutoClick(); // Pause autoclicker when showing modal
+            document.getElementById('lvlup-title').innerText = `Level ${lvl} Reached!`;
+            document.getElementById('lvlup-desc').innerText = `You earned ${pendingLvlReward} Coins. Watch an ad to DOUBLE it (${pendingLvlReward * 2} Coins)!`;
+            document.getElementById('levelup-modal').style.display = 'flex';
+        }
+
+        function collectLvlReward() {
+            balance += pendingLvlReward;
+            document.getElementById('levelup-modal').style.display = 'none';
+            updateUI();
+            saveGameState();
+            alert(`Level Up! You collected ${pendingLvlReward} coins.`);
+        }
+
+        function adDoubleLvlReward() {
+            const btn = document.getElementById('btn-ad-lvl');
+            btn.innerText = "⏱ Loading Ad...";
+            btn.disabled = true;
+            setTimeout(() => {
+                balance += pendingLvlReward * 2;
+                document.getElementById('levelup-modal').style.display = 'none';
+                btn.innerText = "▶ Watch Ad (*2)";
+                btn.disabled = false;
+                updateUI();
+                saveGameState();
+                alert(`Ad watched! You collected ${pendingLvlReward * 2} bonus coins.`);
+            }, 3000);
+        }
+    </script>
+</body>
+
+</html>

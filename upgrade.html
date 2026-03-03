@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hammer Strike — Upgrades</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0d0f1a;
+            --surface: #141727;
+            --surface2: #1c2136;
+            --border: rgba(255, 255, 255, 0.07);
+            --gold: #ffd700;
+            --gold2: #ff8c00;
+            --blue: #64c8ff;
+            --text: #ffffff;
+            --text2: rgba(255, 255, 255, 0.5);
+        }
+
+        html {
+            background: #0d0f1a;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+            overflow-y: auto;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            padding-bottom: 70px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(20, 23, 39, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .page-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--gold);
+        }
+
+        .balance-pill {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-weight: 800;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .upgrade-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .u-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            flex-shrink: 0;
+        }
+
+        .u-info {
+            flex: 1;
+        }
+
+        .u-name {
+            font-weight: 800;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .u-desc {
+            font-size: 0.75rem;
+            color: var(--text2);
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .u-level {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--blue);
+            background: rgba(100, 200, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .u-action {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .u-cost {
+            font-weight: 800;
+            color: var(--gold);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-upgrade {
+            background: var(--text);
+            color: var(--bg);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-upgrade:active {
+            transform: scale(0.95);
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(20, 23, 39, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 12px 0 25px;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--text2);
+            gap: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            width: 20%;
+        }
+
+        .nav-item.active {
+            color: var(--gold);
+        }
+
+        .nav-icon {
+            font-size: 1.4rem;
+            transition: transform 0.2s;
+        }
+
+        .nav-item.active .nav-icon {
+            transform: scale(1.15);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .u-icon-bot {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .u-name-bot {
+            color: var(--gold);
+        }
+
+        .btn-unlock-bot {
+            background: linear-gradient(90deg, var(--gold), var(--gold2));
+            color: #000;
+        }
+
+        /* MODAL STYLES */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+
+        .modal-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            width: 85%;
+            max-width: 340px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-title {
+            color: var(--gold);
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+
+        .modal-desc {
+            color: var(--text2);
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .btn-watch-ad {
+            background: linear-gradient(135deg, var(--gold), var(--gold2));
+            color: #000;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            width: 100%;
+            cursor: pointer;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-close-modal {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text2);
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            width: 100%;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="page-title">Boosters</div>
+        <div class="header-right" style="display:flex; align-items:center; gap:10px;">
+            <div class="balance-pill">
+                🪙 <span id="upgrade-balance">24,500</span>
+            </div>
+            <div class="menu-btn" onclick="openMenu()"
+                style="background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; color: var(--gold);">
+                ☰</div>
+        </div>
+    </header>
+
+    <div class="menu-overlay" id="menu-overlay" onclick="closeMenu()"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); z-index: 290; display: none;">
+    </div>
+    <div class="side-menu" id="side-menu"
+        style="position: fixed; top: 0; right: 0; width: 250px; height: 100%; background: var(--surface); border-left: 1px solid var(--border); box-shadow: -5px 0 20px rgba(0,0,0,0.5); z-index: 300; padding: 20px; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        <div
+            style="font-size: 1.2rem; font-weight: 800; color: var(--gold); margin-bottom: 20px; display:flex; justify-content:space-between; align-items:center;">
+            <span>☰ Menu</span>
+            <span onclick="closeMenu()" style="cursor:pointer; font-size:1.5rem;">×</span>
+        </div>
+        <div
+            style="text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div style="width: 60px; height: 60px; margin: 0 auto 10px; border-radius: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 2rem; overflow: hidden; position: relative;"
+                id="sm-avatar-container">
+                <span id="sm-avatar-emoji">🪨</span>
+                <img id="sm-avatar-img" src=""
+                    style="display:none; width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0;">
+            </div>
+            <div id="sm-name" style="font-weight: 800; font-size: 1.1rem; color: var(--gold);">PlayerOne</div>
+            <div id="sm-level" style="font-size: 0.8rem; color: var(--text2); margin-top: 5px;">Level 1</div>
+            <div id="sm-coins" style="font-size: 0.9rem; margin-top: 5px; font-weight: bold;">🪙 0</div>
+        </div>
+        <a href="profile.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">👤
+            Profile</a>
+        <a href="user_stone.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">🏠
+            Home</a>
+        <a href="upgrade.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">⚡
+            Upgrades</a>
+        <a href="daily_task.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">📋
+            Tasks</a>
+        <a href="refral.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">🤝
+            Invite</a>
+        <a href="withdraw.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">💳
+            Wallet</a>
+    </div>
+    <script>
+        function updateSideMenu() {
+            try {
+                const raw = localStorage.getItem('hammerStrikeSave');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    document.getElementById('sm-name').innerText = parsed.nickname || 'PlayerOne';
+                    document.getElementById('sm-level').innerText = `Level ${parsed.level || 1}`;
+                    document.getElementById('sm-coins').innerText = `🪙 ${(parsed.coins || 0).toLocaleString()}`;
+                    const customPfp = localStorage.getItem('hsCustomAvatar');
+                    if (customPfp) {
+                        document.getElementById('sm-avatar-img').src = customPfp;
+                        document.getElementById('sm-avatar-img').style.display = 'block';
+                        document.getElementById('sm-avatar-emoji').style.display = 'none';
+                    }
+                }
+            } catch (e) { }
+        }
+        function openMenu() {
+            document.getElementById('side-menu').style.transform = 'translateX(0)';
+            document.getElementById('menu-overlay').style.display = 'block';
+            updateSideMenu();
+        }
+        function closeMenu() {
+            document.getElementById('side-menu').style.transform = 'translateX(100%)';
+            document.getElementById('menu-overlay').style.display = 'none';
+        }
+    </script>
+
+    <div class="container">
+        <div class="upgrade-card">
+            <div class="u-icon">🔨</div>
+            <div class="u-info">
+                <div class="u-name">Multitap</div>
+                <div class="u-desc">Increase gold earned per tap by +1.</div>
+                <div class="u-level" id="multitap-level">Lvl 1</div>
+            </div>
+            <div class="u-action">
+                <div class="u-cost" id="multitap-cost">🪙 1,000</div>
+                <button class="btn-upgrade" id="btn-upgrade-multitap" onclick="upgradeMultitap()">Upgrade</button>
+            </div>
+        </div>
+
+        <div class="upgrade-card">
+            <div class="u-icon">🔋</div>
+            <div class="u-info">
+                <div class="u-name">Energy Limit</div>
+                <div class="u-desc">Increase your max energy capacity by 100.</div>
+                <div class="u-level" id="energy-level-text">Lvl 1</div>
+            </div>
+            <div class="u-action">
+                <div class="u-cost" id="energy-limit-cost">🪙 1,000</div>
+                <button class="btn-upgrade" id="btn-upgrade-energy" onclick="upgradeEnergyLimit()">Upgrade</button>
+            </div>
+        </div>
+
+        <div class="upgrade-card">
+            <div class="u-icon">⚡</div>
+            <div class="u-info">
+                <div class="u-name">Recharge Speed</div>
+                <div class="u-desc">Energy recharge time -1s, amount +0.1 per tick.</div>
+                <div class="u-level" id="recharge-level">Lvl 1</div>
+            </div>
+            <div class="u-action">
+                <div class="u-cost" id="recharge-cost">🪙 2,000</div>
+                <button class="btn-upgrade" id="btn-upgrade-recharge" onclick="upgradeRecharge()">Upgrade</button>
+            </div>
+        </div>
+
+        <div class="upgrade-card" id="auto-click-card">
+            <div class="u-icon u-icon-bot">🤖</div>
+            <div class="u-info">
+                <div class="u-name u-name-bot">Auto-Click Time</div>
+                <div class="u-desc">Buy 10 seconds of fast auto-clicking.</div>
+                <div class="u-level" id="auto-click-stock">0s Reserve</div>
+            </div>
+            <div class="u-action">
+                <div class="u-cost">🪙 100</div>
+                <button class="btn-upgrade btn-unlock-bot" onclick="buyAutoClick()">Buy 10s</button>
+            </div>
+        </div>
+
+        <div class="upgrade-card" id="bonus-drop-card">
+            <div class="u-icon u-icon-bot">🎁</div>
+            <div class="u-info">
+                <div class="u-name u-name-bot">Bonus Drop Boost</div>
+                <div class="u-desc">Increases Bonus Drop rewards by 5 stars. Bonus pops up every 30 clicks.</div>
+                <div class="u-level" id="bonus-drop-level">Lvl 1</div>
+            </div>
+            <div class="u-action">
+                <div class="u-cost">🪙 3,000</div>
+                <button class="btn-upgrade btn-unlock-bot" onclick="upgradeBonusDrop()">Upgrade</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEVEL UP MODAL MOVED TO GAME.HTML -->
+    <script>
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.expand();
+            window.Telegram.WebApp.ready();
+        }
+
+        // Shared Game State Loading & Passive Income
+        let balance = 24500;
+        let maxEnergy = 100;
+        let energyLevel = 1;
+        let tapPowerLevel = 1;
+        let rechargeLevel = 1;
+        let autoClickSeconds = 0;
+        let bonusDropLevel = 1;
+        let stars = 0;
+        let starsRequired = 500;
+        let playerLevel = 1;
+
+        function loadSave() {
+            let savedData = localStorage.getItem('hammerStrikeSave');
+            if (savedData) {
+                try {
+                    let parsed = JSON.parse(savedData);
+
+                    // 30-day Cycle Reset Logic
+                    if (!parsed.levelReductionDate) parsed.levelReductionDate = Date.now();
+                    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+                    if (Date.now() - parsed.levelReductionDate >= THIRTY_DAYS) {
+                        parsed.level = 1;
+                        parsed.stars = 0;
+                        parsed.starsRequired = 500;
+                        parsed.levelReductionDate = Date.now();
+                        localStorage.setItem('hammerStrikeSave', JSON.stringify(parsed));
+                        alert(`30-Day Cycle Complete! Your Level has been renewed to Level 1.`);
+                    }
+
+                    // Hourly Degradation Logic
+                    if (!parsed.lastUpgradeDegrade) {
+                        parsed.lastUpgradeDegrade = Date.now();
+                    }
+                    const HR_MS = 60 * 60 * 1000;
+                    const elapsed = Date.now() - parsed.lastUpgradeDegrade;
+                    if (elapsed >= HR_MS) {
+                        const hrsPassed = Math.floor(elapsed / HR_MS);
+
+                        let eLvl = ((parsed.maxEnergy || 100) - 100) / 100 + 1;
+                        let tLvl = parsed.tapPowerLevel || 1;
+                        let rLvl = parsed.rechargeLevel || 1;
+                        let bLvl = parsed.bonusDropLevel || 1;
+
+                        parsed.maxEnergy = Math.max(100, (Math.max(1, eLvl - hrsPassed) - 1) * 100 + 100);
+                        parsed.tapPowerLevel = Math.max(1, tLvl - hrsPassed);
+                        parsed.rechargeLevel = Math.max(1, rLvl - hrsPassed);
+                        parsed.bonusDropLevel = Math.max(1, bLvl - hrsPassed);
+
+                        parsed.lastUpgradeDegrade += hrsPassed * HR_MS;
+                        localStorage.setItem('hammerStrikeSave', JSON.stringify(parsed));
+                    }
+
+                    if (typeof parsed.coins === 'number') balance = parsed.coins;
+                    if (typeof parsed.maxEnergy === 'number') {
+                        maxEnergy = parsed.maxEnergy;
+                        energyLevel = ((maxEnergy - 100) / 100) + 1;
+                    }
+                    if (parsed.tapPowerLevel) tapPowerLevel = parsed.tapPowerLevel;
+                    if (parsed.rechargeLevel) rechargeLevel = parsed.rechargeLevel;
+                    if (parsed.autoClickSeconds) autoClickSeconds = parsed.autoClickSeconds;
+                    if (parsed.bonusDropLevel) bonusDropLevel = parsed.bonusDropLevel;
+                    if (parsed.stars !== undefined) stars = parsed.stars;
+                    if (parsed.starsRequired !== undefined) starsRequired = parsed.starsRequired;
+                    if (parsed.level !== undefined) playerLevel = parsed.level;
+                } catch (e) { }
+            }
+            document.getElementById('upgrade-balance').innerText = balance.toLocaleString();
+
+            document.getElementById('multitap-level').innerText = `Lvl ${tapPowerLevel}`;
+            document.getElementById('recharge-level').innerText = `Lvl ${rechargeLevel}`;
+            document.getElementById('energy-level-text').innerText = `Lvl ${energyLevel}`;
+            document.getElementById('auto-click-stock').innerText = `${autoClickSeconds}s Reserve`;
+            document.getElementById('bonus-drop-level').innerText = `Lvl ${bonusDropLevel}`;
+
+            // Energy Limits display update
+            const limitCost = 1000;
+            document.getElementById('energy-limit-cost').innerText = "🪙 " + limitCost.toLocaleString();
+
+            // Refresh Buttons
+            document.getElementById('recharge-cost').innerText = "🪙 2,000";
+            document.getElementById('multitap-cost').innerText = "🪙 1,000";
+
+            // Recharging Speed max level check
+            if (rechargeLevel >= 29) {
+                document.getElementById('btn-upgrade-recharge').innerText = "Maxed";
+                document.getElementById('btn-upgrade-recharge').disabled = true;
+                document.getElementById('btn-upgrade-recharge').style.opacity = "0.5";
+                document.getElementById('recharge-cost').innerText = "Max Level";
+            }
+        }
+
+        function upgradeEnergyLimit() {
+            const limitCost = 1000;
+
+            if (balance >= limitCost) {
+                balance -= limitCost;
+                maxEnergy += 100;
+                energyLevel++;
+
+                const dataToSave = JSON.parse(localStorage.getItem('hammerStrikeSave') || '{}');
+                dataToSave.coins = balance;
+                dataToSave.maxEnergy = maxEnergy;
+                localStorage.setItem('hammerStrikeSave', JSON.stringify(dataToSave));
+
+                loadSave();
+                alert(`Energy Limit upgraded! Max Energy is now ${maxEnergy}.`);
+            } else {
+                alert(`Insufficient balance. You need ${limitCost.toLocaleString()} coins.`);
+            }
+        }
+
+        function upgradeMultitap() {
+            const limitCost = 1000;
+
+            if (balance >= limitCost) {
+                balance -= limitCost;
+                tapPowerLevel++;
+
+                const dataToSave = JSON.parse(localStorage.getItem('hammerStrikeSave') || '{}');
+                dataToSave.coins = balance;
+                dataToSave.tapPowerLevel = tapPowerLevel;
+                localStorage.setItem('hammerStrikeSave', JSON.stringify(dataToSave));
+
+                loadSave();
+                alert(`Multitap upgraded! Level is now ${tapPowerLevel}. Earn ${tapPowerLevel} gold per click!`);
+            } else {
+                alert(`Insufficient balance. You need ${limitCost.toLocaleString()} coins.`);
+            }
+        }
+
+        function upgradeRecharge() {
+            if (rechargeLevel >= 29) return;
+            const limitCost = 2000;
+
+            if (balance >= limitCost) {
+                balance -= limitCost;
+                rechargeLevel++;
+
+                const dataToSave = JSON.parse(localStorage.getItem('hammerStrikeSave') || '{}');
+                dataToSave.coins = balance;
+                dataToSave.rechargeLevel = rechargeLevel;
+                localStorage.setItem('hammerStrikeSave', JSON.stringify(dataToSave));
+
+                loadSave();
+                alert(`Recharge Speed upgraded! Level is now ${rechargeLevel}. Recharges faster and gives more energy!`);
+            } else {
+                alert(`Insufficient balance. You need ${limitCost.toLocaleString()} coins.`);
+            }
+        }
+
+        function buyAutoClick() {
+            if (balance >= 100) {
+                balance -= 100;
+                autoClickSeconds += 10;
+
+                const dataToSave = JSON.parse(localStorage.getItem('hammerStrikeSave') || '{}');
+                dataToSave.coins = balance;
+                dataToSave.autoClickSeconds = autoClickSeconds;
+                localStorage.setItem('hammerStrikeSave', JSON.stringify(dataToSave));
+
+                loadSave();
+                alert(`Bought 10s of Auto-Click time! You now have ${autoClickSeconds} seconds of auto clicking stored. Toggle it on in the game!`);
+            } else {
+                alert(`Insufficient balance. You need 100 coins.`);
+            }
+        }
+
+        function upgradeBonusDrop() {
+            if (balance >= 3000) {
+                balance -= 3000;
+                bonusDropLevel++;
+
+                const dataToSave = JSON.parse(localStorage.getItem('hammerStrikeSave') || '{}');
+                dataToSave.coins = balance;
+                dataToSave.bonusDropLevel = bonusDropLevel;
+                localStorage.setItem('hammerStrikeSave', JSON.stringify(dataToSave));
+
+                loadSave();
+                alert(`Bonus Drop upgraded! Level is now ${bonusDropLevel}. In-game bonus rewards increased!`);
+            } else {
+                alert(`Insufficient balance. You need 3,000 coins.`);
+            }
+        }
+
+        loadSave();
+
+        // Save real-time when on upgrade page so passive updates from elsewhere sync easily
+        setInterval(() => {
+            loadSave(); // Keep balance synced with other background routines seamlessly
+        }, 1000);
+    </script>
+</body>
+
+</html>

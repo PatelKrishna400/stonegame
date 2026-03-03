@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hammer Strike — Help Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0d0f1a;
+            --surface: #141727;
+            --border: rgba(255, 255, 255, 0.07);
+            --gold: #ffd700;
+            --gold2: #ff8c00;
+            --text: #ffffff;
+            --text2: rgba(255, 255, 255, 0.5);
+            --blue: #64c8ff;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(20, 23, 39, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .help-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 5px;
+        }
+
+        .help-title {
+            color: var(--gold);
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .help-desc {
+            color: var(--text2);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .help-desc ul {
+            margin-left: 20px;
+            margin-top: 5px;
+        }
+
+        .help-desc li {
+            margin-bottom: 3px;
+        }
+
+        .btn-back {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            color: var(--text2);
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div style="font-weight: 800; color: var(--gold); font-size: 1.2rem;">ℹ️ Help Center</div>
+        <a href="profile.html" style="color: var(--text); text-decoration: none; font-weight: 600;">✖ Close</a>
+    </header>
+
+    <div class="container">
+
+        <div class="help-card">
+            <div class="help-title">🎮 How to Play</div>
+            <div class="help-desc">
+                Welcome to Hammer Strike! Your goal is to collect Coins (🪙) and Level Up by striking the stone. Coins
+                can be used for upgrades or requested as real-world cash via the Wallet page!
+            </div>
+        </div>
+
+        <div class="help-card">
+            <div class="help-title">⛏️ Game Page</div>
+            <div class="help-desc">
+                <ul>
+                    <li><strong>Striking:</strong> Tap the big stone to earn XP. Every full XP bar advances you by 1
+                        Level in the Leaderboard.</li>
+                    <li><strong>Energy (⚡):</strong> Actions consume energy. It regenerates slowly over time, both while
+                        playing and while offline.</li>
+                    <li><strong>Ads for Energy:</strong> Run out? Click the watch ads prompt to instantly recover
+                        energy. Limit: 2 ads every 60 seconds.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="help-card">
+            <div class="help-title">⚡ Upgrades Page</div>
+            <div class="help-desc">
+                Spend your hard-earned Coins to buy persistent upgrades:
+                <ul>
+                    <li><strong>Tap Power:</strong> Gain more XP per strike.</li>
+                    <li><strong>Max Energy:</strong> Increase your maximum energy capacity.</li>
+                    <li><strong>Recharge Speed:</strong> Get offline/online energy back faster.</li>
+                    <li><strong>Auto Strike:</strong> Let the game hit the stone completely hands-free for a certain
+                        time duration!</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="help-card">
+            <div class="help-title">🏆 Tasks & Leaderboard</div>
+            <div class="help-desc">
+                <ul>
+                    <li><strong>Daily Login:</strong> Maintain a 30-day streak directly from the Tasks page. Finish the
+                        30 days to watch 2 ads and unlock a huge 1000🪙 prize!</li>
+                    <li><strong>Premium Tasks:</strong> Support the game by downloading listed apps/games to earn big
+                        rewards.</li>
+                    <li><strong>Leaderboard:</strong> View the Top 50 Miners in the world on the Home page. Every 30
+                        days, your Rank drops slightly, but you can claim Coins depending on your current Rank before
+                        the reset!</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="help-card">
+            <div class="help-title">💳 Wallet & Withdraw</div>
+            <div class="help-desc">
+                <ul>
+                    <li><strong>1 Million Coins = ₹10.</strong></li>
+                    <li><strong>QR Payments:</strong> Add a valid UPI QR code from your gallery. All withdrawals are
+                        processed automatically and placed tightly in the Live Global Ticker.</li>
+                    <li><strong>Cooldown:</strong> Every withdraw triggers a 30-min security cooldown. Premium users can
+                        bypass this by watching a short video.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="help-card">
+            <div class="help-title">👤 Account Security</div>
+            <div class="help-desc">
+                Make sure you have officially registered a Username + Password inside the <b>Account Settings</b> in
+                your Profile. Guest users cannot withdraw items.
+            </div>
+        </div>
+
+    </div>
+</body>
+
+</html>
