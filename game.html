@@ -686,27 +686,27 @@
     </div>
 
     <script>
-    function checkAuth() {
-        const isIndex = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/');
-        const loggedIn = sessionStorage.getItem('hammerStrikeUserLoggedIn') === 'true';
-        const hasData = localStorage.getItem('hammerStrikeSave') !== null;
-        
-        if (isIndex) {
-            if (loggedIn && hasData) {
-                window.location.href = 'user_stone.html';
+        function checkAuth() {
+            const isIndex = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/');
+            const loggedIn = sessionStorage.getItem('hammerStrikeUserLoggedIn') === 'true';
+            const hasData = localStorage.getItem('hammerStrikeSave') !== null;
+
+            if (isIndex) {
+                if (loggedIn && hasData) {
+                    window.location.href = 'user_stone.html';
+                }
+            } else {
+                if (!loggedIn || !hasData) {
+                    window.location.href = 'index.html';
+                }
             }
-        } else {
-            if (!loggedIn || !hasData) {
+        }
+        checkAuth();
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'hammerStrikeSave' && e.newValue === null) {
                 window.location.href = 'index.html';
             }
-        }
-    }
-    checkAuth();
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'hammerStrikeSave' && e.newValue === null) {
-            window.location.href = 'index.html';
-        }
-    });
+        });
 
         // Init TG
         if (window.Telegram && window.Telegram.WebApp) {
@@ -1050,24 +1050,23 @@
             btn.innerHTML = '⏱ Loading Ad...';
             btn.disabled = true;
 
-            if (typeof show_10676091 === 'function') {
-                show_10676091().then(() => {
-                    breakTimeEnd = 0;
-                    sessionPlayTime = 0;
-                    saveGameState();
-                    document.getElementById('break-modal').style.display = 'none';
-                    btn.innerHTML = '▶ Watch Ad (Skip Break)';
-                    btn.disabled = false;
-                    alert("Ad watched successfully! Break time skipped.");
-                }).catch(err => {
-                    btn.innerHTML = '▶ Watch Ad (Skip Break)';
-                    btn.disabled = false;
-                    alert("Ad failed to load.");
-                });
-            } else {
+            const finish = () => {
+                breakTimeEnd = 0;
+                sessionPlayTime = 0;
+                saveGameState();
+                document.getElementById('break-modal').style.display = 'none';
                 btn.innerHTML = '▶ Watch Ad (Skip Break)';
                 btn.disabled = false;
-                alert("Ad provider not ready.");
+                alert("Break time skipped successfully!");
+            };
+
+            if (typeof show_10676091 === 'function') {
+                show_10676091().then(finish).catch(() => {
+                    console.log("Ad failed, but granting reward anyway");
+                    finish();
+                });
+            } else {
+                finish();
             }
         }
 
@@ -1107,20 +1106,19 @@
             btn.innerHTML = '⏱ Loading Ad...';
             btn.disabled = true;
 
-            if (typeof show_10676091 === 'function') {
-                show_10676091().then(() => {
-                    collectBonus(2);
-                    btn.innerHTML = 'Watch Ad (*2)';
-                    btn.disabled = false;
-                }).catch(err => {
-                    btn.innerHTML = 'Watch Ad (*2)';
-                    btn.disabled = false;
-                    alert("Ad failed to load.");
-                });
-            } else {
+            const finish = () => {
+                collectBonus(2);
                 btn.innerHTML = 'Watch Ad (*2)';
                 btn.disabled = false;
-                alert("Ad provider not ready.");
+            };
+
+            if (typeof show_10676091 === 'function') {
+                show_10676091().then(finish).catch(() => {
+                    console.log("Ad failed, but granting reward anyway");
+                    finish();
+                });
+            } else {
+                finish();
             }
         }
 
@@ -1362,25 +1360,23 @@
             btn.innerText = "⏱ Loading Ad...";
             btn.disabled = true;
 
-            if (typeof show_10676091 === 'function') {
-                show_10676091().then(() => {
-                    alert('You have seen an ad!');
-                    balance += pendingLvlReward * 2;
-                    document.getElementById('levelup-modal').style.display = 'none';
-                    btn.innerText = "▶ Watch Ad (*2)";
-                    btn.disabled = false;
-                    updateUI();
-                    saveGameState();
-                    alert(`Ad watched! You collected ${pendingLvlReward * 2} bonus coins.`);
-                }).catch(err => {
-                    btn.innerText = "▶ Watch Ad (*2)";
-                    btn.disabled = false;
-                    alert("Ad failed to load.");
-                });
-            } else {
+            const finish = () => {
+                balance += pendingLvlReward * 2;
+                document.getElementById('levelup-modal').style.display = 'none';
                 btn.innerText = "▶ Watch Ad (*2)";
                 btn.disabled = false;
-                alert("Ad provider not ready.");
+                updateUI();
+                saveGameState();
+                alert(`Level Up Bonus! You collected ${pendingLvlReward * 2} bonus coins.`);
+            };
+
+            if (typeof show_10676091 === 'function') {
+                show_10676091().then(finish).catch(() => {
+                    console.log("Ad failed, but granting reward anyway");
+                    finish();
+                });
+            } else {
+                finish();
             }
         }
 

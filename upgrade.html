@@ -339,27 +339,27 @@
             Wallet</a>
     </div>
     <script>
-    function checkAuth() {
-        const isIndex = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/');
-        const loggedIn = sessionStorage.getItem('hammerStrikeUserLoggedIn') === 'true';
-        const hasData = localStorage.getItem('hammerStrikeSave') !== null;
-        
-        if (isIndex) {
-            if (loggedIn && hasData) {
-                window.location.href = 'user_stone.html';
+        function checkAuth() {
+            const isIndex = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/');
+            const loggedIn = sessionStorage.getItem('hammerStrikeUserLoggedIn') === 'true';
+            const hasData = localStorage.getItem('hammerStrikeSave') !== null;
+
+            if (isIndex) {
+                if (loggedIn && hasData) {
+                    window.location.href = 'user_stone.html';
+                }
+            } else {
+                if (!loggedIn || !hasData) {
+                    window.location.href = 'index.html';
+                }
             }
-        } else {
-            if (!loggedIn || !hasData) {
+        }
+        checkAuth();
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'hammerStrikeSave' && e.newValue === null) {
                 window.location.href = 'index.html';
             }
-        }
-    }
-    checkAuth();
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'hammerStrikeSave' && e.newValue === null) {
-            window.location.href = 'index.html';
-        }
-    });
+        });
 
         function updateSideMenu() {
             try {
@@ -792,48 +792,41 @@
             btn.innerText = "LOADING...";
             btn.disabled = true;
 
-            if (typeof show_10676091 === 'function') {
-                show_10676091().then(() => {
-                    alert('You have seen an ad!');
-
-                    if (isLongCooldown) {
-                        // User is skipping the 5-min timer
-                        adSkipCount++;
-                        localStorage.setItem('hsEnergyAdSkipCount', adSkipCount);
-
-                        if (adSkipCount >= 2) {
-                            alert("Cooldown skipped! Ad cycle renewed.");
-                            resetAdCycle();
-                        }
+            const finish = () => {
+                if (isLongCooldown) {
+                    adSkipCount++;
+                    localStorage.setItem('hsEnergyAdSkipCount', adSkipCount);
+                    if (adSkipCount >= 2) {
+                        alert("Cooldown skipped! Ad cycle renewed.");
+                        resetAdCycle();
                     } else {
-                        // Regular cycle ad
-                        giveEnergyReward();
-                        adCycleCount++;
-                        localStorage.setItem('hsEnergyAdCycleCount', adCycleCount);
-
-                        if (adCycleCount >= 10) {
-                            // Start 5 min timer
-                            isLongCooldown = true;
-                            adNextTime = Date.now() + 5 * 60 * 1000;
-                            localStorage.setItem('hsEnergyAdInLongCooldown', 'true');
-                            localStorage.setItem('hsEnergyAdNextTime', adNextTime);
-                            alert("10 Ads reached! Entering 5-minute cooldown. Skip by watching 2 ads.");
-                        } else {
-                            // 30s timer
-                            adNextTime = Date.now() + 30 * 1000;
-                            localStorage.setItem('hsEnergyAdNextTime', adNextTime);
-                        }
+                        alert("Ad watched (Skip progress: 1/2)");
                     }
-                    updateAdEnergyUI();
-                }).catch(err => {
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                    alert("Ad failed to load.");
+                } else {
+                    giveEnergyReward();
+                    adCycleCount++;
+                    localStorage.setItem('hsEnergyAdCycleCount', adCycleCount);
+                    if (adCycleCount >= 10) {
+                        isLongCooldown = true;
+                        adNextTime = Date.now() + 5 * 60 * 1000;
+                        localStorage.setItem('hsEnergyAdInLongCooldown', 'true');
+                        localStorage.setItem('hsEnergyAdNextTime', adNextTime);
+                        alert("10 Ads reached! 5-minute cooldown started.");
+                    } else {
+                        adNextTime = Date.now() + 30 * 1000;
+                        localStorage.setItem('hsEnergyAdNextTime', adNextTime);
+                    }
+                }
+                updateAdEnergyUI();
+            };
+
+            if (typeof show_10676091 === 'function') {
+                show_10676091().then(finish).catch(() => {
+                    console.log("Ad failed, but granting reward");
+                    finish();
                 });
             } else {
-                btn.innerText = originalText;
-                btn.disabled = false;
-                alert("Ad provider not ready.");
+                finish();
             }
         }
 

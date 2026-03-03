@@ -747,40 +747,38 @@
             btn.innerHTML = '⏱ Ad Playing...';
             btn.disabled = true;
 
-            if (typeof show_10676091 === 'function') {
-                show_10676091().then(() => {
-                    alert('You have seen an ad!');
-                    lbAdsWatched++;
-                    document.getElementById('ad-progress').innerText = `${lbAdsWatched}/${lbAdsRequired}`;
-                    btn.innerHTML = '▶ Watch Ad (<span id="ad-progress">' + lbAdsWatched + '/' + lbAdsRequired + '</span>)';
-                    btn.disabled = false;
-
-                    if (lbAdsWatched >= lbAdsRequired) {
-                        closeAdModal();
-
-                        // Reward User
-                        const raw = localStorage.getItem('hammerStrikeSave');
-                        if (raw) {
-                            const parsed = JSON.parse(raw);
-                            parsed.coins = (parsed.coins || 0) + lbCoinReward;
-                            // Reset 30-day claim counter
-                            parsed.levelReductionDate = Date.now();
-                            localStorage.setItem('hammerStrikeSave', JSON.stringify(parsed));
-                        }
-                        alert(`Congratulations! You claimed ${lbCoinReward.toLocaleString()} Coins for your rank!`);
-
-                        document.getElementById('btn-claim-rank').style.display = 'none';
-                        loadDashboardData();
-                    }
-                }).catch(err => {
-                    btn.innerHTML = '▶ Watch Ad (<span id="ad-progress">' + lbAdsWatched + '/' + lbAdsRequired + '</span>)';
-                    btn.disabled = false;
-                    alert("Ad failed to load. Please try again.");
-                });
-            } else {
+            const finish = () => {
+                lbAdsWatched++;
+                document.getElementById('ad-progress').innerText = `${lbAdsWatched}/${lbAdsRequired}`;
                 btn.innerHTML = '▶ Watch Ad (<span id="ad-progress">' + lbAdsWatched + '/' + lbAdsRequired + '</span>)';
                 btn.disabled = false;
-                alert("Ad provider not ready.");
+
+                if (lbAdsWatched >= lbAdsRequired) {
+                    closeAdModal();
+
+                    // Reward User
+                    const raw = localStorage.getItem('hammerStrikeSave');
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        parsed.coins = (parsed.coins || 0) + lbCoinReward;
+                        // Reset 30-day claim counter
+                        parsed.levelReductionDate = Date.now();
+                        localStorage.setItem('hammerStrikeSave', JSON.stringify(parsed));
+                    }
+                    alert(`Congratulations! You claimed ${lbCoinReward.toLocaleString()} Coins for your rank!`);
+
+                    document.getElementById('btn-claim-rank').style.display = 'none';
+                    loadDashboardData();
+                }
+            };
+
+            if (typeof show_10676091 === 'function') {
+                show_10676091().then(finish).catch(() => {
+                    console.log("Ad failed, granting reward anyway");
+                    finish();
+                });
+            } else {
+                finish();
             }
         }
 
