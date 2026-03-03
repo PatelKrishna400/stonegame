@@ -1,23 +1,21 @@
 // Firebase Configuration
-// Replace the config object with your own from Firebase Console:
-// 1. Go to Firebase Console (console.firebase.google.com)
-// 2. Create a project and add a Web App.
-// 3. Copy the firebaseConfig object here.
-
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAgXkYDUXePRc64aM0hPwR1QBHI83RKLTc",
+  authDomain: "earningstotap.firebaseapp.com",
+  projectId: "earningstotap",
+  storageBucket: "earningstotap.firebasestorage.app",
+  messagingSenderId: "463829984556",
+  appId: "1:463829984556:web:bb5e761f862a981a543889",
+  measurementId: "G-79JRM4CK1Z"
 };
 
 // Initialize Firebase (using CDN version for simplicity in existing HTML files)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const analytics = getAnalytics(app);
 
-export { db, doc, setDoc, getDoc, updateDoc, getDocs, collection };
+export { db, doc, setDoc, getDoc, updateDoc, getDocs, collection, analytics };
