@@ -343,6 +343,28 @@
             Wallet</a>
     </div>
     <script>
+    function checkAuth() {
+        const isIndex = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/');
+        const loggedIn = sessionStorage.getItem('hammerStrikeUserLoggedIn') === 'true';
+        const hasData = localStorage.getItem('hammerStrikeSave') !== null;
+        
+        if (isIndex) {
+            if (loggedIn && hasData) {
+                window.location.href = 'user_stone.html';
+            }
+        } else {
+            if (!loggedIn || !hasData) {
+                window.location.href = 'index.html';
+            }
+        }
+    }
+    checkAuth();
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'hammerStrikeSave' && e.newValue === null) {
+            window.location.href = 'index.html';
+        }
+    });
+
         function updateSideMenu() {
             try {
                 const raw = localStorage.getItem('hammerStrikeSave');
