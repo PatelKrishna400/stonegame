@@ -614,14 +614,37 @@
             const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
             const s = Math.floor((diff % (1000 * 60)) / 1000);
-
             let timeStr = "";
             if (d > 0) timeStr += `${d}d `;
             timeStr += `${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}s`;
 
             timerEl.innerText = timeStr;
         }
+    </script>
 
+    <script type="module">
+        import { saveToCloud } from './firebase-sync.js';
+        window.saveToCloud = saveToCloud;
+
+        function sync() {
+            const username = localStorage.getItem('hsGlobalUsername');
+            if (username && window.saveToCloud) {
+                window.saveToCloud(username);
+            }
+        }
+
+        // Sync every 2 minutes
+        setInterval(sync, 120000);
+
+        // Sync on page hide/close
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                sync();
+            }
+        });
+    </script>
+
+    <script>
         setInterval(updateLeaderboardTimer, 1000);
 
         let lbAdsWatched = 0;

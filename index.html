@@ -195,28 +195,35 @@
         </div>
     </div>
 
+    <!-- Firebase System -->
+    <script type="module">
+        import { saveToCloud, loadFromCloud } from './firebase-sync.js';
+        window.saveToCloud = saveToCloud;
+        window.loadFromCloud = loadFromCloud;
+    </script>
+
     <script>
-    function checkAuth() {
-        const isIndex = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/');
-        const loggedIn = sessionStorage.getItem('hammerStrikeUserLoggedIn') === 'true';
-        const hasData = localStorage.getItem('hammerStrikeSave') !== null;
-        
-        if (isIndex) {
-            if (loggedIn && hasData) {
-                window.location.href = 'user_stone.html';
+        function checkAuth() {
+            const isIndex = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/');
+            const loggedIn = sessionStorage.getItem('hammerStrikeUserLoggedIn') === 'true';
+            const hasData = localStorage.getItem('hammerStrikeSave') !== null;
+
+            if (isIndex) {
+                if (loggedIn && hasData) {
+                    window.location.href = 'user_stone.html';
+                }
+            } else {
+                if (!loggedIn || !hasData) {
+                    window.location.href = 'index.html';
+                }
             }
-        } else {
-            if (!loggedIn || !hasData) {
+        }
+        checkAuth();
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'hammerStrikeSave' && e.newValue === null) {
                 window.location.href = 'index.html';
             }
-        }
-    }
-    checkAuth();
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'hammerStrikeSave' && e.newValue === null) {
-            window.location.href = 'index.html';
-        }
-    });
+        });
 
         // Check if user is forced to login (already registered)
         if (localStorage.getItem('hammerStrikeUserRegistered') === 'true') {
@@ -279,7 +286,17 @@
             save.nickname = u;
             localStorage.setItem('hammerStrikeSave', JSON.stringify(save));
 
-            alert("Registration successful! You can now log in.");
+            // Push to Firebase
+            if (window.saveToCloud) {
+                window.saveToCloud(u).then(() => {
+                    alert("Registration successful and synced to cloud! You can now log in.");
+                }).catch(err => {
+                    console.error("Cloud sync failed:", err);
+                    alert("Registration successful! (Sync failed, data saved locally)");
+                });
+            } else {
+                alert("Registration successful! You can now log in.");
+            }
 
             // Switch back to login page and fill username
             document.getElementById('log-username').value = u;
@@ -323,8 +340,20 @@
             }
 
             if (u === storedU && p === storedP) {
-                sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
-                window.location.href = 'user_stone.html';
+                // Load from Firebase to ensure latest data
+                if (window.loadFromCloud) {
+                    const btn = document.querySelector('.btn-login');
+                    btn.innerText = "Syncing...";
+                    btn.disabled = true;
+
+                    window.loadFromCloud(u).finally(() => {
+                        sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
+                        window.location.href = 'user_stone.html';
+                    });
+                } else {
+                    sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
+                    window.location.href = 'user_stone.html';
+                }
             } else {
                 alert("Invalid username or password!");
             }
