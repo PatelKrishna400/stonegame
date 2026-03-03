@@ -485,9 +485,7 @@
             }
         }
 
-        // Daily Referral Logic
-        const FAKE_NAMES_POOL = ["CryptoKing", "Gamer_X", "SatoshiL", "MoonWalk", "DogeFath", "TonMastr", "TapHero", "StrikeK"];
-
+        // Load Real Referrals
         function loadDailyReferrals() {
             let today = new Date().toDateString();
             let storedData = localStorage.getItem('hammerStrikeRefsDaily');
@@ -499,24 +497,11 @@
                 } catch (e) { }
             }
 
-            if (!data || data.date !== today) {
-                // New Day -> Restart History! Generate 1 to 4 new friends for demo.
-                let numFriends = Math.floor(Math.random() * 4) + 1;
-                let newFriends = [];
-                let rewards = [10, 20, 50, 100];
-                let names = [...FAKE_NAMES_POOL].sort(() => 0.5 - Math.random());
-                for (let i = 0; i < numFriends; i++) {
-                    newFriends.push({
-                        id: i,
-                        name: names[i],
-                        level: Math.floor(Math.random() * 10) + 1,
-                        reward: rewards[i] || 10,
-                        claimed: false
-                    });
-                }
+            // Only show actual real saved data, no fake generation
+            if (!data || !data.friends) {
                 data = {
                     date: today,
-                    friends: newFriends
+                    friends: []
                 };
                 localStorage.setItem('hammerStrikeRefsDaily', JSON.stringify(data));
             }
