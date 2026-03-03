@@ -102,7 +102,7 @@
             justify-content: space-around;
             align-items: center;
             padding: 12px 0 25px;
-            z-index: 100;
+            z-index: 1000;
         }
 
         .nav-item {
@@ -116,7 +116,7 @@
             font-size: 0.7rem;
             font-weight: 600;
             transition: all 0.2s;
-            width: 25%;
+            width: 20%;
         }
 
         .nav-item.active {
@@ -346,6 +346,29 @@
     <header>
         <div class="logo">Hamster Strike Admin</div>
     </header>
+
+    <div class="bottom-nav">
+        <a href="admin_dashboard.html" class="nav-item">
+            <span class="nav-icon">📊</span>
+            <span>Dash</span>
+        </a>
+        <a href="admin_usersdata.html" class="nav-item">
+            <span class="nav-icon">👥</span>
+            <span>Users</span>
+        </a>
+        <a href="admin_task.html" class="nav-item active">
+            <span class="nav-icon">📝</span>
+            <span>Tasks</span>
+        </a>
+        <a href="admin_leaderboard.html" class="nav-item">
+            <span class="nav-icon">🏆</span>
+            <span>Rank</span>
+        </a>
+        <a href="admin_withdraw.html" class="nav-item">
+            <span class="nav-icon">💸</span>
+            <span>Funds</span>
+        </a>
+    </div>
     <main class="main">
         <div class="page active">
             <div class="page-header">
@@ -376,6 +399,49 @@
                                 URL</label>
                             <input type="text" id="task-link" placeholder="https://t.me/hammerstrike"
                                 style="width:100%; padding:10px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:white; outline:none;">
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <div style="flex:1;">
+                                <label style="font-size:0.8rem;color:var(--text2);display:block;margin-bottom:5px;">Task
+                                    Type</label>
+                                <select id="task-type" onchange="toggleTaskFields()"
+                                    style="width:100%; padding:10px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:white; outline:none;">
+                                    <option value="website">Website</option>
+                                    <option value="youtube">YouTube</option>
+                                </select>
+                            </div>
+                            <div style="flex:1;">
+                                <label
+                                    style="font-size:0.8rem;color:var(--text2);display:block;margin-bottom:5px;">Timer
+                                    (sec)</label>
+                                <input type="number" id="task-timer" placeholder="30"
+                                    style="width:100%; padding:10px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:white; outline:none;">
+                            </div>
+                            <div style="flex:1;">
+                                <label
+                                    style="font-size:0.8rem;color:var(--text2);display:block;margin-bottom:5px;">Verify
+                                    Code (2 digits)</label>
+                                <input type="number" id="task-verify-code" placeholder="99"
+                                    style="width:100%; padding:10px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:white; outline:none;">
+                            </div>
+                        </div>
+
+                        <!-- YouTube Quiz Fields -->
+                        <div id="quiz-fields" style="display:none; flex-direction:column; gap:10px;">
+                            <div style="border-top: 1px solid var(--border); padding-top:10px; margin-top:5px;">
+                                <label style="font-size:0.8rem;color:var(--gold);display:block;margin-bottom:5px;">Quiz
+                                    Verification</label>
+                                <input type="text" id="q1" placeholder="Question 1 (e.g. Code in video?)"
+                                    style="width:100%; padding:10px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:white; outline:none; margin-bottom:5px;">
+                                <input type="text" id="a1" placeholder="Answer 1"
+                                    style="width:100%; padding:10px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:white; outline:none;">
+                            </div>
+                            <div>
+                                <input type="text" id="q2" placeholder="Question 2"
+                                    style="width:100%; padding:10px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:white; outline:none; margin-bottom:5px;">
+                                <input type="text" id="a2" placeholder="Answer 2"
+                                    style="width:100%; padding:10px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:white; outline:none;">
+                            </div>
                         </div>
                         <div style="display:flex; gap:10px; margin-top:10px;">
                             <button class="danger-btn" id="btn-submit-task" onclick="uploadTask()"
@@ -500,30 +566,60 @@
             const title = document.getElementById('task-title').value;
             const reward = document.getElementById('task-reward').value;
             const link = document.getElementById('task-link').value;
+            const type = document.getElementById('task-type').value;
+            const timer = document.getElementById('task-timer').value || 30;
+            const verifyCode = document.getElementById('task-verify-code').value || '';
+
+            const q1 = document.getElementById('q1').value;
+            const a1 = document.getElementById('a1').value;
+            const q2 = document.getElementById('q2').value;
+            const a2 = document.getElementById('a2').value;
+
             if (!title || !reward || !link) return alert("Please fill all fields");
 
             const tasks = loadTasks();
 
+            const taskObj = {
+                id: editingTaskId || Date.now(),
+                title,
+                reward: parseInt(reward),
+                link,
+                type,
+                timer: parseInt(timer),
+                verifyCode: verifyCode,
+                quiz: type === 'youtube' ? { q1, a1, q2, a2 } : null
+            };
+
             if (editingTaskId) {
                 const idx = tasks.findIndex(t => t.id === editingTaskId);
-                if (idx > -1) {
-                    tasks[idx].title = title;
-                    tasks[idx].reward = parseInt(reward);
-                    tasks[idx].link = link;
-                }
+                if (idx > -1) tasks[idx] = taskObj;
                 editingTaskId = null;
                 document.getElementById('btn-submit-task').innerText = 'Upload Task';
                 document.getElementById('btn-cancel-task').style.display = 'none';
             } else {
-                tasks.push({ id: Date.now(), title, reward: parseInt(reward), link });
+                tasks.push(taskObj);
             }
 
             saveTasks(tasks);
+            clearInputs();
+            renderTasks();
+        }
 
+        function toggleTaskFields() {
+            const type = document.getElementById('task-type').value;
+            document.getElementById('quiz-fields').style.display = (type === 'youtube') ? 'flex' : 'none';
+        }
+
+        function clearInputs() {
             document.getElementById('task-title').value = '';
             document.getElementById('task-reward').value = '';
             document.getElementById('task-link').value = '';
-            renderTasks();
+            document.getElementById('task-timer').value = '';
+            document.getElementById('task-verify-code').value = '';
+            document.getElementById('q1').value = '';
+            document.getElementById('a1').value = '';
+            document.getElementById('q2').value = '';
+            document.getElementById('a2').value = '';
         }
 
         window.editTask = function (id) {
@@ -534,6 +630,18 @@
             document.getElementById('task-title').value = task.title;
             document.getElementById('task-reward').value = task.reward;
             document.getElementById('task-link').value = task.link;
+            document.getElementById('task-type').value = task.type || 'website';
+            document.getElementById('task-timer').value = task.timer || 30;
+            document.getElementById('task-verify-code').value = task.verifyCode || '';
+
+            if (task.quiz) {
+                document.getElementById('q1').value = task.quiz.q1 || '';
+                document.getElementById('a1').value = task.quiz.a1 || '';
+                document.getElementById('q2').value = task.quiz.q2 || '';
+                document.getElementById('a2').value = task.quiz.a2 || '';
+            }
+
+            toggleTaskFields();
 
             editingTaskId = id;
             document.getElementById('btn-submit-task').innerText = 'Save Changes';
@@ -542,11 +650,10 @@
 
         window.cancelEditTask = function () {
             editingTaskId = null;
-            document.getElementById('task-title').value = '';
-            document.getElementById('task-reward').value = '';
-            document.getElementById('task-link').value = '';
+            clearInputs();
             document.getElementById('btn-submit-task').innerText = 'Upload Task';
             document.getElementById('btn-cancel-task').style.display = 'none';
+            toggleTaskFields();
         }
 
         window.removeTask = function (id) {
@@ -563,20 +670,23 @@
             if (tasks.length === 0) {
                 tb.innerHTML = '<div style="color:var(--text2);text-align:center;padding:20px;">No active tasks uploaded yet.</div>';
             } else {
-                tb.innerHTML = tasks.map(t => `
+                tb.innerHTML = tasks.map(t => {
+                    const typeLabel = (t.type === 'youtube' ? '📺 YouTube' : '🌐 Website');
+                    return `
                     <div class="quest-row">
-                        <div class="quest-icon">📝</div>
-                        <div class="quest-info">
+                        <div class="quest-icon">${t.type === 'youtube' ? '🎬' : '📝'}</div>
+                        <div class="quest-info" style="flex:1;">
                             <div class="quest-name">${t.title}</div>
+                            <div style="font-size:0.7rem; color:var(--text2); margin-top:-2px; margin-bottom:4px;">${typeLabel} • ${t.timer || 0}s</div>
                             <div class="quest-pct" style="color:var(--gold);">Reward: ${t.reward} ⚡ | <a href="${t.link}" style="color:var(--blue);" target="_blank">Link</a></div>
-                        </div>
                         </div>
                         <div style="display:flex; flex-direction:column; gap:5px;">
                             <button class="danger-btn" onclick="editTask(${t.id})" style="padding:5px 10px; background:#f39c12; border:none; color:white;">Edit</button>
                             <button class="danger-btn" onclick="removeTask(${t.id})" style="padding:5px 10px;">Remove</button>
                         </div>
                     </div>
-                `).join('');
+                `;
+                }).join('');
             }
         }
 

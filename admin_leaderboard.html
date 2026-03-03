@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stone Game Admin — Leaderboard</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0d0f1a;
+            --surface: #141727;
+            --border: rgba(255, 255, 255, 0.07);
+            --gold: #ffd700;
+            --text: #ffffff;
+            --text2: rgba(255, 255, 255, 0.5);
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            padding-bottom: 90px;
+        }
+
+        header {
+            padding: 15px 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: rgba(20, 23, 39, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--gold);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .main {
+            padding: 20px;
+        }
+
+        .section-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--gold);
+        }
+
+        .rank-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .rank-item:last-child {
+            border-bottom: none;
+        }
+
+        .rank-num {
+            font-weight: 800;
+            width: 30px;
+            color: var(--text2);
+        }
+
+        .rank-info {
+            flex: 1;
+        }
+
+        .rank-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .rank-score {
+            font-size: 0.85rem;
+            color: var(--gold);
+            font-weight: 700;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(20, 23, 39, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0 25px;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text2);
+            gap: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            width: 20%;
+        }
+
+        .nav-item.active {
+            color: var(--gold);
+        }
+
+        .nav-icon {
+            font-size: 1.3rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo">Admin Leaderboard</div>
+    </header>
+
+    <div class="bottom-nav">
+        <a href="admin_dashboard.html" class="nav-item">
+            <span class="nav-icon">📊</span><span>Dash</span>
+        </a>
+        <a href="admin_usersdata.html" class="nav-item">
+            <span class="nav-icon">👥</span><span>Users</span>
+        </a>
+        <a href="admin_task.html" class="nav-item">
+            <span class="nav-icon">📝</span><span>Tasks</span>
+        </a>
+        <a href="admin_leaderboard.html" class="nav-item active">
+            <span class="nav-icon">🏆</span><span>Rank</span>
+        </a>
+        <a href="withdraw.html" class="nav-item">
+            <span class="nav-icon">💸</span><span>Funds</span>
+        </a>
+    </div>
+
+    <main class="main">
+        <div class="section-card">
+            <div class="section-title">🏆 Top Players</div>
+            <div id="leaderboard-list">
+                <div style="text-align:center; padding:20px; color:var(--text2);">Loading rankings...</div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function loadRankings() {
+            const list = document.getElementById('leaderboard-list');
+            const raw = localStorage.getItem('hammerStrikeSave');
+            if (!raw) {
+                list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text2);">No data found.</div>';
+                return;
+            }
+            const data = JSON.parse(raw);
+            // Mocking a list since we currently only have 1 active user in local storage
+            const users = [
+                { nickname: data.nickname || 'PlayerOne', coins: data.coins || 0, level: data.level || 1 },
+                { nickname: 'User_882', coins: 15200, level: 12 },
+                { nickname: 'CryptoKing', coins: 12400, level: 10 },
+                { nickname: 'StoneMiner', coins: 9800, level: 8 },
+                { nickname: 'AlphaPlayer', coins: 7500, level: 6 }
+            ].sort((a, b) => b.coins - a.coins);
+
+            list.innerHTML = users.map((u, i) => `
+                <div class="rank-item">
+                    <div class="rank-num">#${i + 1}</div>
+                    <div class="rank-info">
+                        <div class="rank-name">${u.nickname}</div>
+                        <div style="font-size:0.75rem; color:var(--text2);">Level ${u.level}</div>
+                    </div>
+                    <div class="rank-score">${u.coins.toLocaleString()} 🪙</div>
+                </div>
+            `).join('');
+        }
+        loadRankings();
+    </script>
+</body>
+
+</html>

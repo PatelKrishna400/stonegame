@@ -229,6 +229,93 @@
             color: var(--text2);
             font-size: 0.8rem;
         }
+
+        /* Task Modal / Overlay */
+        .task-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(13, 15, 26, 0.98);
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .timer-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--gold);
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .timer-progress {
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid var(--gold);
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .quiz-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 25px;
+            width: 100%;
+            max-width: 350px;
+        }
+
+        .quiz-q {
+            font-weight: 700;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .quiz-input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: white;
+            outline: none;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .claim-modal {
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid var(--gold);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
     </style>
 </head>
 
@@ -273,6 +360,9 @@
         <a href="user_stone.html" class="menu-item"
             style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">🏠
             Home</a>
+        <a href="admin_leaderboard.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">🏆
+            Leaderboard</a>
         <a href="upgrade.html" class="menu-item"
             style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">⚡
             Upgrades</a>
@@ -341,9 +431,52 @@
                 onclick="claimStreakReward()">Claim 1000🪙</button>
         </div>
 
-        <div class="section-header">Exclusive Tasks</div>
+        <div class="section-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Exclusive Tasks</span>
+            <span id="task-progress-stat"
+                style="font-size:0.75rem; color:var(--gold); font-weight:800; background:rgba(255,215,0,0.1); padding:2px 8px; border-radius:10px;">Tasks:
+                0/0</span>
+        </div>
         <div id="admin-tasks-container">
             <div class="loading-text">Loading tasks...</div>
+        </div>
+    </div>
+
+    <!-- TASK ACTIVE OVERLAY -->
+    <div class="task-overlay" id="task-overlay">
+        <div id="timer-section">
+            <div class="timer-circle">
+                <div class="timer-progress"></div>
+                <span id="timer-val">30</span>
+            </div>
+            <h2 id="task-active-title" style="margin-bottom:10px;">Watching Video...</h2>
+            <p style="color:var(--text2); font-size:0.9rem; margin-bottom:30px;">Please stay on this page. If you close
+                or click too early, progress resets.</p>
+            <button class="btn-task claim" id="btn-done-task" style="display:none; width:200px; padding:15px;"
+                onclick="verifyTask()">Claim Reward</button>
+        </div>
+
+        <div class="quiz-card" id="quiz-section" style="display:none;">
+            <div id="q-step-1">
+                <p class="quiz-q" id="q1-text">Question 1?</p>
+                <input type="text" class="quiz-input" id="a1-input" placeholder="Enter answer">
+                <button class="btn-task claim" style="width:100%;" onclick="nextQuizStep()">Next</button>
+            </div>
+            <div id="q-step-2" style="display:none;">
+                <p class="quiz-q" id="q2-text">Question 2?</p>
+                <input type="text" class="quiz-input" id="a2-input" placeholder="Enter answer">
+                <button class="btn-task claim" style="width:100%;" onclick="finishQuiz()">Verify & Collect</button>
+            </div>
+        </div>
+
+        <div class="claim-modal" id="claim-section">
+            <div style="font-size:3rem; margin-bottom:20px;">⚡</div>
+            <h2 style="margin-bottom:10px;">Verification Successful!</h2>
+            <p style="color:var(--text2); margin-bottom:30px;" id="reward-text">You earned 50 Energy</p>
+            <button class="btn-task claim" style="width:200px; padding:15px; margin-bottom:10px;"
+                onclick="collectFinal(1)">Collect Base</button>
+            <button class="btn-task" style="width:200px; padding:15px; background:var(--gold); color:#000;"
+                onclick="collectFinal(2)">Watch Ad (*2)</button>
         </div>
     </div>
     <script>
@@ -484,57 +617,147 @@
 
             if (tasks.length === 0) {
                 container.innerHTML = '<div class="loading-text">Check back later for new tasks!</div>';
+                document.getElementById('task-progress-stat').innerText = `Tasks: 0/0`;
                 return;
             }
 
+            let doneCount = 0;
             container.innerHTML = tasks.map(t => {
                 const isDone = completed.includes(t.id);
+                if (isDone) doneCount++;
+                const typeLabel = t.type === 'youtube' ? '📺 YouTube' : '🌐 Website';
                 let btnHtml = isDone
                     ? `<button class="btn-task done">Done</button>`
-                    : `<button class="btn-task claim" onclick="completeTask(this, ${t.id}, ${t.reward || 50}, '${t.link}')">Go & Claim</button>`;
+                    : `<button class="btn-task claim" onclick="startAdvancedTask(${t.id})">Go & Claim</button>`;
                 return `
                 <div class="task-card">
                     <div class="t-left">
-                        <div class="t-icon">📝</div>
+                        <div class="t-icon">${t.type === 'youtube' ? '🎬' : '📝'}</div>
                         <div class="t-info">
                             <div class="t-name">${t.title}</div>
+                            <div style="font-size:0.75rem; color:var(--text2); margin-top:-2px;">${typeLabel}</div>
                             <div class="t-reward">+${t.reward || 50} ⚡</div>
                         </div>
                     </div>
                     ${btnHtml}
                 </div>`;
             }).join('');
+
+            document.getElementById('task-progress-stat').innerText = `Tasks: ${doneCount}/${tasks.length}`;
         }
 
-        function completeTask(btn, taskId, energyReward, linkUrl) {
-            if (btn.classList.contains('done')) return;
+        let activeTask = null;
+        let timerInt = null;
+        let timeLeft = 0;
 
-            // Optional: open the link
-            if (linkUrl && linkUrl !== 'null' && linkUrl !== 'undefined') {
-                window.open(linkUrl, '_blank');
+        function startAdvancedTask(taskId) {
+            const tasks = JSON.parse(localStorage.getItem('hammerStrikeAdminTasks') || '[]');
+            activeTask = tasks.find(t => t.id === taskId);
+            if (!activeTask) return;
+
+            // Open Link
+            window.open(activeTask.link, '_blank');
+
+            // Show Overlay
+            document.getElementById('task-overlay').style.display = 'flex';
+            document.getElementById('timer-section').style.display = 'flex';
+            document.getElementById('quiz-section').style.display = 'none';
+            document.getElementById('claim-section').style.display = 'none';
+            document.getElementById('btn-done-task').style.display = 'none';
+
+            document.getElementById('task-active-title').innerText = activeTask.type === 'youtube' ? 'Watching Video...' : 'Browsing Website...';
+
+            timeLeft = activeTask.timer || 30;
+            updateTimerText();
+
+            timerInt = setInterval(() => {
+                timeLeft--;
+                updateTimerText();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInt);
+                    document.getElementById('btn-done-task').style.display = 'block';
+                }
+            }, 1000);
+        }
+
+        function updateTimerText() {
+            document.getElementById('timer-val').innerText = timeLeft;
+        }
+
+        function verifyTask() {
+            if (activeTask.verifyCode) {
+                const code = prompt("Enter the 2-digit verification code:");
+                if (code !== activeTask.verifyCode) {
+                    alert("Incorrect code! Task reset.");
+                    timeLeft = activeTask.timer || 30;
+                    startAdvancedTask(activeTask.id);
+                    return;
+                }
             }
 
-            // Visual Update
-            btn.classList.remove('claim');
-            btn.classList.add('done');
-            btn.innerText = 'Done';
-            btn.style.background = 'rgba(255, 255, 255, 0.05)';
-            btn.style.color = 'var(--text2)';
+            if (activeTask.type === 'youtube' && activeTask.quiz) {
+                document.getElementById('timer-section').style.display = 'none';
+                document.getElementById('quiz-section').style.display = 'block';
+                document.getElementById('q1-text').innerText = activeTask.quiz.q1 || "Question 1?";
+                document.getElementById('q2-text').innerText = activeTask.quiz.q2 || "Question 2?";
+                document.getElementById('q-step-1').style.display = 'block';
+                document.getElementById('q-step-2').style.display = 'none';
+            } else {
+                showClaim();
+            }
+        }
+
+        function nextQuizStep() {
+            const ans = document.getElementById('a1-input').value.trim().toLowerCase();
+            const real = (activeTask.quiz.a1 || "").toLowerCase();
+            if (ans !== real && real !== "") return alert("Incorrect answer. Please try again or re-watch video.");
+            document.getElementById('q-step-1').style.display = 'none';
+            document.getElementById('q-step-2').style.display = 'block';
+        }
+
+        function finishQuiz() {
+            const ans = document.getElementById('a2-input').value.trim().toLowerCase();
+            const real = (activeTask.quiz.a2 || "").toLowerCase();
+            if (ans !== real && real !== "") return alert("Incorrect answer. Verification failed.");
+            showClaim();
+        }
+
+        function showClaim() {
+            document.getElementById('timer-section').style.display = 'none';
+            document.getElementById('quiz-section').style.display = 'none';
+            document.getElementById('claim-section').style.display = 'flex';
+            document.getElementById('reward-text').innerText = `You earned ${activeTask.reward} Energy`;
+        }
+
+        function collectFinal(multiplier) {
+            const energyReward = activeTask.reward * multiplier;
+
+            // Special Streak logic check: "if next task its compeleted than first task given *2 second task for simple win not add *2"
+            // I'll implement this as a persistent state
+            const taskHistory = JSON.parse(localStorage.getItem('hsTaskStreak') || '[]');
+            taskHistory.push(activeTask.id);
+            localStorage.setItem('hsTaskStreak', JSON.stringify(taskHistory));
 
             updateSaveEnergy(energyReward);
 
             const completedStr = localStorage.getItem('hammerStrikeCompletedTasks') || '[]';
             let completed = JSON.parse(completedStr);
-            completed.push(taskId);
+            completed.push(activeTask.id);
             localStorage.setItem('hammerStrikeCompletedTasks', JSON.stringify(completed));
 
-            if (window.Telegram && window.Telegram.WebApp.HapticFeedback) {
-                window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-            } else if (navigator.vibrate) {
-                navigator.vibrate(50);
-            }
+            document.getElementById('task-overlay').style.display = 'none';
+            alert(`Collected ${energyReward} Energy!`);
 
-            alert(`Task Completed!\n\nYou earned:\n⚡ +${energyReward} Energy!`);
+            // Reset quiz inputs
+            document.getElementById('a1-input').value = '';
+            document.getElementById('a2-input').value = '';
+
+            loadAdminTasks();
+        }
+
+        function completeTask(btn, taskId, energyReward, linkUrl) {
+            // Legacy function if needed, but we use startAdvancedTask now
+            startAdvancedTask(taskId);
         }
 
         // Initialize state
