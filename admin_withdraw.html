@@ -399,14 +399,19 @@
 
             <!-- QR POPUP MODAL -->
             <div id="qr-modal"
-                style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; z-index:2000; padding:20px;"
-                onclick="closeQRModal()">
+                style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:none; flex-direction:column; align-items:center; justify-content:center; z-index:2000; padding:20px;">
                 <div
-                    style="background:var(--surface); padding:10px; border-radius:15px; border:1px solid var(--border); max-width:90%; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                    style="background:var(--surface); padding:10px; border-radius:15px; border:1px solid var(--border); max-width:90%; position:relative;">
                     <img id="modal-qr-img" src="" style="width:100%; border-radius:10px; display:block;">
-                    <div style="text-align:center; color:var(--gold); font-weight:800; padding-top:10px;">TAP TO CLOSE
+                    <div
+                        style="display:flex; justify-content:space-between; align-items:center; padding-top:10px; gap:10px;">
+                        <button onclick="closeQRModal()"
+                            style="background:var(--surface2); color:white; border:1px solid var(--border); padding:8px 15px; border-radius:8px; cursor:pointer; flex:1;">Close</button>
+                        <a id="download-qr-link" download="user_qr.png" href=""
+                            style="background:var(--gold); color:#000; text-decoration:none; padding:8px 15px; border-radius:8px; font-weight:800; text-align:center; flex:1;">Download</a>
                     </div>
                 </div>
+                <div style="margin-top:20px; color:var(--text2); font-size:0.8rem;">Tap outside to close</div>
             </div>
 
             <style>
@@ -569,6 +574,7 @@
         window.openQRModal = function (src) {
             if (!src) return alert("No QR image found for this request.");
             document.getElementById('modal-qr-img').src = src;
+            document.getElementById('download-qr-link').href = src;
             document.getElementById('qr-modal').style.display = 'flex';
         }
 
