@@ -623,8 +623,9 @@
     </script>
 
     <script type="module">
-        import { saveToCloud } from './firebase-sync.js';
+        import { saveToCloud, loadFromCloud } from './firebase-sync.js';
         window.saveToCloud = saveToCloud;
+        window.loadFromCloud = loadFromCloud;
 
         function sync() {
             const username = localStorage.getItem('hsGlobalUsername');
@@ -811,8 +812,22 @@
             loadLeaderboard();
         }
 
+        // Initial loads
+        loadDashboardData();
         syncAll();
-        setInterval(syncAll, 5000);
+
+        // Frequent updates to keep UI fresh
+        setInterval(syncAll, 3000);
+
+        // Try to load any remote changes on arrival
+        async function fetchLatestFromCloud() {
+            const username = localStorage.getItem('hsGlobalUsername');
+            if (username && typeof window.loadFromCloud === 'function') {
+                await window.loadFromCloud(username);
+                loadDashboardData();
+            }
+        }
+        fetchLatestFromCloud();
 
         function watchAd() {
             // Unused generic ad clicker overwritten by Leaderboard above
