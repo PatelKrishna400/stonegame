@@ -134,6 +134,8 @@
             border-bottom: 1px dashed var(--text2);
         }
     </style>
+    <meta name="monetag" content="f15c9aa6cd721474b07b0a0f974d06b8">
+    <script src='//libtl.com/sdk.js' data-zone='10676091' data-sdk='show_10676091'></script>
 </head>
 
 <body>
@@ -303,15 +305,6 @@
             } else {
                 alert("Invalid username or password!");
             }
-        }
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js').then(registration => {
-                    console.log('SW registered: ', registration);
-                }).catch(registrationError => {
-                    console.log('SW registration failed: ', registrationError);
-                });
-            });
         }
     </script>
 </body>

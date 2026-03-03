@@ -62,7 +62,7 @@
         /* HEADER & BOTTOM NAV */
         header {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
             padding: 15px 20px;
             background: rgba(20, 23, 39, 0.8);
@@ -71,6 +71,18 @@
             position: sticky;
             top: 0;
             z-index: 10;
+        }
+
+        .logout-btn {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.35);
+            padding: 6px 12px;
+            border-radius: 8px;
+            color: #e74c3c;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
         }
 
         .logo {
@@ -345,6 +357,7 @@
 
     <header>
         <div class="logo">Hamster Strike Admin</div>
+        <button class="logout-btn" onclick="adminLogout()">Logout</button>
     </header>
 
     <div class="bottom-nav">
@@ -610,6 +623,11 @@
                 `;
                 }).join('');
             }
+        }
+
+        function adminLogout() {
+            localStorage.removeItem('hammerStrikeAdminLoggedIn');
+            window.location.href = 'index.html';
         }
 
         setInterval(render, 3000);

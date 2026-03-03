@@ -820,6 +820,7 @@
 
             if (typeof show_10676091 === 'function') {
                 show_10676091().then(() => {
+                    alert('You have seen an ad!');
                     alert("Ad watched completely! Your withdrawal cooldown has been bypassed!");
                     withdrawCooldownEnds = 0;
                     localStorage.setItem('hammerStrikeWithdrawCooldown', 0);

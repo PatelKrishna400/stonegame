@@ -1168,6 +1168,7 @@
 
             if (typeof show_10676091 === 'function') {
                 show_10676091().then(() => {
+                    alert('You have seen an ad!');
                     alert(`Ad watched successfully! You got ${energyReward} Energy.`);
                     energy = Math.min(energy + energyReward, maxEnergy);
                     updateUI();
@@ -1361,6 +1362,7 @@
 
             if (typeof show_10676091 === 'function') {
                 show_10676091().then(() => {
+                    alert('You have seen an ad!');
                     balance += pendingLvlReward * 2;
                     document.getElementById('levelup-modal').style.display = 'none';
                     btn.innerText = "▶ Watch Ad (*2)";
