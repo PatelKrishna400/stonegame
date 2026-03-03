@@ -46,7 +46,7 @@
             overflow-x: hidden;
             overflow-y: auto;
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-            
+
         }
 
         ::-webkit-scrollbar {
@@ -159,15 +159,15 @@
             color: var(--gold);
         }
 
-        
 
-        
 
-        
 
-        
 
-        
+
+
+
+
+
 
         .btn-action {
             background: rgba(255, 255, 255, 0.05);
@@ -215,8 +215,7 @@
             <span>☰ Menu</span>
             <span onclick="closeMenu()" style="cursor:pointer; font-size:1.5rem;">×</span>
         </div>
-        <div
-            style="text-align: center; margin-bottom: 20px;  border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="text-align: center; margin-bottom: 20px;  border-bottom: 1px solid rgba(255,255,255,0.05);">
             <div style="width: 60px; height: 60px; margin: 0 auto 10px; border-radius: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 2rem; overflow: hidden; position: relative;"
                 id="sm-avatar-container">
                 <span id="sm-avatar-emoji">🪨</span>
@@ -248,27 +247,27 @@
             Wallet</a>
     </div>
     <script>
-    function checkAuth() {
-        const isIndex = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/');
-        const loggedIn = sessionStorage.getItem('hammerStrikeUserLoggedIn') === 'true';
-        const hasData = localStorage.getItem('hammerStrikeSave') !== null;
-        
-        if (isIndex) {
-            if (loggedIn && hasData) {
-                window.location.href = 'user_stone.html';
+        function checkAuth() {
+            const isIndex = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/');
+            const loggedIn = sessionStorage.getItem('hammerStrikeUserLoggedIn') === 'true';
+            const hasData = localStorage.getItem('hammerStrikeSave') !== null;
+
+            if (isIndex) {
+                if (loggedIn && hasData) {
+                    window.location.href = 'user_stone.html';
+                }
+            } else {
+                if (!loggedIn || !hasData) {
+                    window.location.href = 'index.html';
+                }
             }
-        } else {
-            if (!loggedIn || !hasData) {
+        }
+        checkAuth();
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'hammerStrikeSave' && e.newValue === null) {
                 window.location.href = 'index.html';
             }
-        }
-    }
-    checkAuth();
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'hammerStrikeSave' && e.newValue === null) {
-            window.location.href = 'index.html';
-        }
-    });
+        });
 
         function updateSideMenu() {
             try {
@@ -298,7 +297,7 @@
         }
     </script>
 
-    
+
 
     <div class="container">
         <div class="container">
@@ -495,6 +494,28 @@
                 sessionStorage.removeItem('hammerStrikeUserLoggedIn');
                 window.location.href = 'index.html';
             }
+        </script>
+        <!-- Firebase System -->
+        <script type="module">
+            import { saveToCloud } from './firebase-sync.js';
+            window.saveToCloud = saveToCloud;
+
+            function sync() {
+                const username = localStorage.getItem('hsGlobalUsername');
+                if (username && window.saveToCloud) {
+                    window.saveToCloud(username);
+                }
+            }
+
+            // Sync every 2 minutes
+            setInterval(sync, 120000);
+
+            // Sync on page hide/close
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'hidden') {
+                    sync();
+                }
+            });
         </script>
 </body>
 

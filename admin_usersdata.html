@@ -646,6 +646,24 @@
             style="display: block; padding: 12px 10px; color: #ffd700; text-decoration: none; font-weight: 700; margin-top: 20px;">🎮
             Exit to Game</a>
     </div>
+    <!-- Firebase System -->
+    <script type="module">
+        import { fetchAllUsers } from './firebase-sync.js';
+
+        // Fetch all users on load
+        async function updateAdminFromCloud() {
+            console.log("Fetching all users for admin...");
+            await fetchAllUsers();
+            if (typeof render === 'function') {
+                render();
+            }
+        }
+
+        updateAdminFromCloud();
+
+        // Refresh every 5 minutes
+        setInterval(updateAdminFromCloud, 300000);
+    </script>
 </body>
 
 </html>

@@ -526,14 +526,20 @@
 
     <header>
         <div class="user-info">
-            <div class="avatar" onclick="exitGame()">💎</div>
-            <div class="username"><span id="user-name-header">PlayerOne</span></div>
+            <div class="avatar" onclick="exitGame()" title="Back to Home"
+                style="cursor: pointer; border-radius: 8px; width: 45px; height: 45px; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border); box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);">
+                💎</div>
+            <div class="username" style="margin-left: 5px;">
+                <span id="user-name-header"
+                    style="font-size: 0.85rem; color: var(--text2); display: block;">Player</span>
+                <span style="font-size: 0.9rem; font-weight: 800; color: var(--gold); cursor: pointer;"
+                    onclick="exitGame()">Home 🏠</span>
+            </div>
         </div>
         <div class="header-right" style="display:flex; align-items:center; gap:10px;">
-            <span id="player-level" class="level-badge">Level 1</span>
-            <div class="menu-btn" onclick="openMenu()"
-                style="background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; color: var(--gold);">
-                ☰</div>
+            <span id="player-level" class="level-badge"
+                style="background: rgba(255, 215, 0, 0.1); padding: 4px 10px; border-radius: 20px; font-weight: 800; border: 1px solid rgba(255, 215, 0, 0.2);">Level
+                1</span>
         </div>
     </header>
 
@@ -597,7 +603,7 @@
 
     <div class="clicker-area" id="clicker-container">
         <div class="clicker-btn" id="clicker"
-            style="background: url('cool_stone_clicker_1772523906526.png'); background-size: cover; display: flex; align-items: center; justify-content: center; font-size: 0;">
+            style="background: url('premium_stone_clicker_1772542669340.png'); background-size: cover; display: flex; align-items: center; justify-content: center; font-size: 0; box-shadow: 0 0 50px rgba(100, 200, 255, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.1);">
             Rock
         </div>
     </div>
@@ -922,6 +928,16 @@
             // Level formula based on stars required
             if (playerLevelSpan) {
                 playerLevelSpan.innerText = 'Level ' + playerLevel;
+            }
+
+            // Dynamic Stone Image Logic
+            // Mapping: 1-5 -> 1, 6-10 -> 5, 11-15 -> 10, 16-20 -> 15, 21-25 -> 20, ..., 51+ -> 50
+            let stoneImgNum = playerLevel <= 5 ? 1 : (Math.floor((playerLevel - 1) / 5) * 5);
+            if (stoneImgNum > 50) stoneImgNum = 50;
+
+            if (clicker) {
+                const imgUrl = `stone_level_${stoneImgNum}.png`;
+                clicker.style.backgroundImage = `url('${imgUrl}')`;
             }
         }
 
@@ -1292,8 +1308,8 @@
             const existingData = JSON.parse(localStorage.getItem('hammerStrikeSave') || '{}');
             const data = {
                 ...existingData,
-                id: '#1001',
-                nickname: 'PlayerOne',
+                id: existingData.id || localStorage.getItem('hsGlobalUsername') || '#1001',
+                nickname: existingData.nickname || localStorage.getItem('hsGlobalUsername') || 'PlayerOne',
                 coins: balance,
                 level: playerLevel,
                 clickCount: clickCount,
@@ -1307,7 +1323,7 @@
                 rechargeLevel: rechargeLevel,
                 bonusDropLevel: bonusDropLevel,
                 autoClickSeconds: autoClickSeconds,
-                stageIdx: 0,
+                stageIdx: existingData.stageIdx || 0,
                 autoExpiry: Date.now() + 60000,
                 timerSeconds: timerSeconds, // Save real-time sub-timer
                 breakTimeEnd: breakTimeEnd,
@@ -1328,8 +1344,18 @@
             saveGameState();
         }, 1000);
 
-        function exitGame() {
+        async function exitGame() {
             saveGameState();
+            const username = localStorage.getItem('hsGlobalUsername');
+            if (username && window.saveToCloud) {
+                // Show a brief loading indicator or just do it
+                console.log("Synchronizing data before exit...");
+                try {
+                    await window.saveToCloud(username);
+                } catch (e) {
+                    console.error("Cloud sync failed during exit:", e);
+                }
+            }
             window.location.href = 'user_stone.html';
         }
 

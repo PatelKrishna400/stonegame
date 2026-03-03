@@ -576,7 +576,7 @@
         function updateTicker() {
             const tickerEl = document.getElementById('withdraw-ticker');
             if (tickerEl) {
-                const withdrawalsStr = localStorage.getItem('hammerStrikeAdminWithdraws');
+                const withdrawalsStr = localStorage.getItem('hammerStrikeWithdrawals');
                 if (withdrawalsStr) {
                     const withData = JSON.parse(withdrawalsStr);
                     if (withData.length > 0) {

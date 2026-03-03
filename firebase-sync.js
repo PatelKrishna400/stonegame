@@ -1,4 +1,4 @@
-import { db, doc, setDoc, getDoc, updateDoc } from './firebase-config.js';
+import { db, doc, setDoc, getDoc, updateDoc, getDocs, collection } from './firebase-config.js';
 
 /**
  * Saves current localStorage data to Firebase
@@ -12,7 +12,7 @@ export async function saveToCloud(username) {
         const globalData = {
             hsGlobalEmail: localStorage.getItem('hsGlobalEmail'),
             hsGlobalPhone: localStorage.getItem('hsGlobalPhone'),
-            hsGlobalPassword: localStorage.getItem('hsGlobalPassword'), // Store for persistence, though better use Firebase Auth later
+            hsGlobalPassword: localStorage.getItem('hsGlobalPassword'),
             hammerStrikeUserRegistered: localStorage.getItem('hammerStrikeUserRegistered'),
             lastSync: Date.now()
         };
@@ -62,5 +62,32 @@ export async function loadFromCloud(username) {
     } catch (error) {
         console.error("Error loading from cloud:", error);
         return null;
+    }
+}
+
+/**
+ * Fetches all users from Firebase and updates hammerStrikeAllUsers in localStorage
+ * Used mainly for Admin Dashboard/Leaderboard
+ */
+export async function fetchAllUsers() {
+    try {
+        const querySnapshot = await getDocs(collection(db, "users"));
+        let allUsers = [];
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.hammerStrikeSave) {
+                allUsers.push({
+                    nickname: data.hammerStrikeSave.nickname || doc.id,
+                    coins: data.hammerStrikeSave.coins || 0,
+                    level: data.hammerStrikeSave.level || 1
+                });
+            }
+        });
+        localStorage.setItem('hammerStrikeAllUsers', JSON.stringify(allUsers));
+        console.log("All users fetched from cloud");
+        return allUsers;
+    } catch (error) {
+        console.error("Error fetching all users:", error);
+        return [];
     }
 }

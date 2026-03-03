@@ -15,9 +15,9 @@ const firebaseConfig = {
 
 // Initialize Firebase (using CDN version for simplicity in existing HTML files)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-export { db, doc, setDoc, getDoc, updateDoc };
+export { db, doc, setDoc, getDoc, updateDoc, getDocs, collection };

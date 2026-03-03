@@ -346,27 +346,27 @@
             Wallet</a>
     </div>
     <script>
-    function checkAuth() {
-        const isIndex = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/');
-        const loggedIn = sessionStorage.getItem('hammerStrikeUserLoggedIn') === 'true';
-        const hasData = localStorage.getItem('hammerStrikeSave') !== null;
-        
-        if (isIndex) {
-            if (loggedIn && hasData) {
-                window.location.href = 'user_stone.html';
+        function checkAuth() {
+            const isIndex = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/');
+            const loggedIn = sessionStorage.getItem('hammerStrikeUserLoggedIn') === 'true';
+            const hasData = localStorage.getItem('hammerStrikeSave') !== null;
+
+            if (isIndex) {
+                if (loggedIn && hasData) {
+                    window.location.href = 'user_stone.html';
+                }
+            } else {
+                if (!loggedIn || !hasData) {
+                    window.location.href = 'index.html';
+                }
             }
-        } else {
-            if (!loggedIn || !hasData) {
+        }
+        checkAuth();
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'hammerStrikeSave' && e.newValue === null) {
                 window.location.href = 'index.html';
             }
-        }
-    }
-    checkAuth();
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'hammerStrikeSave' && e.newValue === null) {
-            window.location.href = 'index.html';
-        }
-    });
+        });
 
         function updateSideMenu() {
             try {
@@ -783,6 +783,28 @@
         loadAdminTasks();
 
         setInterval(loadSave, 1000);
+    </script>
+    <!-- Firebase System -->
+    <script type="module">
+        import { saveToCloud } from './firebase-sync.js';
+        window.saveToCloud = saveToCloud;
+
+        function sync() {
+            const username = localStorage.getItem('hsGlobalUsername');
+            if (username && window.saveToCloud) {
+                window.saveToCloud(username);
+            }
+        }
+
+        // Sync every 2 minutes
+        setInterval(sync, 120000);
+
+        // Sync on page hide/close
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                sync();
+            }
+        });
     </script>
 </body>
 
