@@ -647,12 +647,13 @@
             Exit to Game</a>
     </div>
     <!-- Firebase System -->
+    <!-- Supabase System -->
     <script type="module">
-        import { fetchAllUsers } from './firebase-sync.js';
+        import { fetchAllUsers } from './supabase-sync.js';
 
         // Fetch all users on load
         async function updateAdminFromCloud() {
-            console.log("Fetching all users for admin...");
+            console.log("Fetching all users for admin from Supabase...");
             await fetchAllUsers();
             if (typeof render === 'function') {
                 render();

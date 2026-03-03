@@ -195,9 +195,9 @@
         </div>
     </div>
 
-    <!-- Firebase System -->
+    <!-- Supabase System -->
     <script type="module">
-        import { saveToCloud, loadFromCloud } from './firebase-sync.js';
+        import { saveToCloud, loadFromCloud } from './supabase-sync.js';
         window.saveToCloud = saveToCloud;
         window.loadFromCloud = loadFromCloud;
     </script>
@@ -286,7 +286,7 @@
             save.nickname = u;
             localStorage.setItem('hammerStrikeSave', JSON.stringify(save));
 
-            // Push to Firebase
+            // Push to Supabase
             if (window.saveToCloud) {
                 window.saveToCloud(u).then(() => {
                     alert("Registration successful and synced to cloud! You can now log in.");
@@ -340,7 +340,7 @@
             }
 
             if (u === storedU && p === storedP) {
-                // Load from Firebase to ensure latest data
+                // Load from Supabase to ensure latest data
                 if (window.loadFromCloud) {
                     const btn = document.querySelector('.btn-login');
                     btn.innerText = "Syncing...";

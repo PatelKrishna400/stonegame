@@ -231,9 +231,9 @@
             style="display: block; padding: 12px 10px; color: #ffd700; text-decoration: none; font-weight: 700; margin-top: 20px;">🎮
             Exit to Game</a>
     </div>
-    <!-- Firebase System -->
+    <!-- Supabase System -->
     <script type="module">
-        import { fetchAllUsers } from './firebase-sync.js';
+        import { fetchAllUsers } from './supabase-sync.js';
 
         async function updateAdminFromCloud() {
             await fetchAllUsers();
