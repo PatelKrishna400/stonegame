@@ -46,7 +46,7 @@
             overflow-x: hidden;
             overflow-y: auto;
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-            padding-bottom: 90px;
+            
         }
 
         /* HEADER */
@@ -275,48 +275,15 @@
         }
 
         /* BOTTOM NAV */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: var(--nav-bg);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 12px 0 25px;
-            z-index: 100;
-        }
+        
 
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            color: var(--text2);
-            gap: 6px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            transition: all 0.2s;
-            width: 20%;
-        }
+        
 
-        .nav-item.active {
-            color: var(--gold);
-        }
+        
 
-        .nav-icon {
-            font-size: 1.3rem;
-            transition: transform 0.2s;
-        }
+        
 
-        .nav-item.active .nav-icon {
-            transform: scale(1.15);
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-        }
+        
     </style>
     <meta name="monetag" content="f15c9aa6cd721474b07b0a0f974d06b8">
     <script src='//libtl.com/sdk.js' data-zone='10676091' data-sdk='show_10676091'></script>
@@ -345,7 +312,7 @@
             <span onclick="closeMenu()" style="cursor:pointer; font-size:1.5rem;">×</span>
         </div>
         <div
-            style="text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            style="text-align: center; margin-bottom: 20px;  border-bottom: 1px solid rgba(255,255,255,0.05);">
             <div style="width: 60px; height: 60px; margin: 0 auto 10px; border-radius: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 2rem; overflow: hidden; position: relative;"
                 id="sm-avatar-container">
                 <span id="sm-avatar-emoji">🪨</span>
@@ -404,28 +371,7 @@
         }
     </script>
 
-    <div class="bottom-nav">
-        <a href="user_stone.html" class="nav-item">
-            <span class="nav-icon">🏠</span>
-            <span>Home</span>
-        </a>
-        <a href="daily_task.html" class="nav-item">
-            <span class="nav-icon">📋</span>
-            <span>Tasks</span>
-        </a>
-        <a href="upgrade.html" class="nav-item">
-            <span class="nav-icon">🚀</span>
-            <span>Upgrade</span>
-        </a>
-        <a href="refral.html" class="nav-item active">
-            <span class="nav-icon">👥</span>
-            <span>Friends</span>
-        </a>
-        <a href="profile.html" class="nav-item">
-            <span class="nav-icon">👤</span>
-            <span>Profile</span>
-        </a>
-    </div>
+    
 
     <div class="container">
         <div class="reward-card">

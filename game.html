@@ -249,16 +249,7 @@
         }
 
         /* BOTTOM NAV */
-        .bottom-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 8px 12px;
-        }
+
 
         .nav-link {
             display: flex;
@@ -536,12 +527,57 @@
     <header>
         <div class="user-info">
             <div class="avatar" onclick="exitGame()">💎</div>
-            <div class="username">PlayerOne</div>
+            <div class="username"><span id="user-name-header">PlayerOne</span></div>
         </div>
-        <div class="user-status-text">
-            <span id="player-level" class="level-badge">Level 1</span> • Novice
+        <div class="header-right" style="display:flex; align-items:center; gap:10px;">
+            <span id="player-level" class="level-badge">Level 1</span>
+            <div class="menu-btn" onclick="openMenu()"
+                style="background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; color: var(--gold);">
+                ☰</div>
         </div>
     </header>
+
+    <div class="menu-overlay" id="menu-overlay" onclick="closeMenu()"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); z-index: 290; display: none;">
+    </div>
+    <div class="side-menu" id="side-menu"
+        style="position: fixed; top: 0; right: 0; width: 250px; height: 100%; background: var(--surface); border-left: 1px solid var(--border); box-shadow: -5px 0 20px rgba(0,0,0,0.5); z-index: 300; padding: 20px; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        <div
+            style="font-size: 1.2rem; font-weight: 800; color: var(--gold); margin-bottom: 20px; display:flex; justify-content:space-between; align-items:center;">
+            <span>☰ Menu</span>
+            <span onclick="closeMenu()" style="cursor:pointer; font-size:1.5rem;">×</span>
+        </div>
+        <div
+            style="text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div style="width: 60px; height: 60px; margin: 0 auto 10px; border-radius: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 2rem; overflow: hidden; position: relative;"
+                id="sm-avatar-container">
+                <span id="sm-avatar-emoji">🪨</span>
+                <img id="sm-avatar-img" src=""
+                    style="display:none; width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0;">
+            </div>
+            <div id="sm-name" style="font-weight: 800; font-size: 1.1rem; color: var(--gold);">PlayerOne</div>
+            <div id="sm-level" style="font-size: 0.8rem; color: var(--text2); margin-top: 5px;">Level 1</div>
+            <div id="sm-coins" style="font-size: 0.9rem; margin-top: 5px; font-weight: bold;">🪙 0</div>
+        </div>
+        <a href="profile.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">👤
+            Profile</a>
+        <a href="user_stone.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">🏠
+            Home</a>
+        <a href="upgrade.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">⚡
+            Upgrades</a>
+        <a href="daily_task.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">📋
+            Tasks</a>
+        <a href="refral.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">🤝
+            Invite</a>
+        <a href="withdraw.html" class="menu-item"
+            style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">💳
+            Wallet</a>
+    </div>
 
     <div class="score-display">
         <div class="score-icon">🪙</div>
@@ -573,8 +609,6 @@
             <div class="energy-header">
                 <div class="energy-label">
                     <span>⚡ Energy</span>
-                    <button id="btn-auto-click" class="btn-task btn-auto" onclick="toggleAutoClick()">🤖 Auto:
-                        Off</button>
                     <button id="btn-multiplier" class="btn-task btn-multiplier" onclick="toggleMultiplier()">x1</button>
                 </div>
                 <div><span id="energy-current">100</span> / <span id="energy-max">100</span></div>
@@ -678,7 +712,7 @@
         let timerSeconds = 5;
         let bonusDropLevel = 1;
 
-        let autoClickSeconds = 0;
+
         let pendingBonusStars = 10;
 
         // Break variables
@@ -869,65 +903,9 @@
             }
         }
 
-        let autoClickActive = false;
-        let autoClickTimeRemaining = 60;
-        let autoClickInterval = null;
-        let autoClickTimerInterval = null;
 
-        function toggleAutoClick() {
-            if (autoClickActive) {
-                stopAutoClick();
-            } else {
-                startAutoClick();
-            }
-        }
 
-        function startAutoClick() {
-            if (autoClickSeconds <= 0) {
-                alert("You have no Auto-Click time left! Buy some to continue.");
-                return;
-            }
-            autoClickActive = true;
-            document.getElementById('btn-auto-click').innerText = `🤖 Auto: ${autoClickSeconds}s`;
-            document.getElementById('btn-auto-click').style.background = 'var(--gold)';
-            document.getElementById('btn-auto-click').style.color = '#000';
 
-            autoClickTimerInterval = setInterval(() => {
-                autoClickSeconds--;
-                if (autoClickSeconds <= 0) {
-                    stopAutoClick();
-                } else {
-                    document.getElementById('btn-auto-click').innerText = `🤖 Auto: ${autoClickSeconds}s`;
-                }
-            }, 1000);
-
-            // Click multiple times per second
-            autoClickInterval = setInterval(() => {
-                if (!autoClickActive) return;
-
-                // Stop if ad modal is open
-                if (document.getElementById('ad-modal').style.display === 'flex') {
-                    stopAutoClick();
-                    return;
-                }
-
-                // Trigger auto clicking at random center positions
-                const rect = clicker.getBoundingClientRect();
-                const randomX = rect.left + rect.width / 2 + (Math.random() - 0.5) * 50;
-                const randomY = rect.top + rect.height / 2 + (Math.random() - 0.5) * 50;
-
-                processClick(randomX, randomY);
-            }, 250); // 4 clicks per second
-        }
-
-        function stopAutoClick() {
-            autoClickActive = false;
-            clearInterval(autoClickInterval);
-            clearInterval(autoClickTimerInterval);
-            document.getElementById('btn-auto-click').innerText = `🤖 Auto: ${autoClickSeconds > 0 ? autoClickSeconds + 's' : 'Off'}`;
-            document.getElementById('btn-auto-click').style.background = 'rgba(255,255,255,0.1)';
-            document.getElementById('btn-auto-click').style.color = 'var(--text)';
-        }
 
         function processClick(clientX, clientY) {
             const currentMultiplier = multiplierValues[multiplierIndex];
@@ -1039,7 +1017,7 @@
                     populateBreakLeaderboard();
                     document.getElementById('break-modal').style.display = 'flex';
                 }
-                if (autoClickActive) stopAutoClick();
+
             } else {
                 document.getElementById('break-modal').style.display = 'none';
             }
@@ -1072,7 +1050,7 @@
         }
 
         function showBonusModal() {
-            if (autoClickActive) stopAutoClick();
+
 
             const baseBonus = 10;
             const extraBonus = (bonusDropLevel - 1) * 5;
@@ -1382,6 +1360,33 @@
                 btn.disabled = false;
                 alert("Ad provider not ready.");
             }
+        }
+
+        function updateSideMenu() {
+            try {
+                const raw = localStorage.getItem('hammerStrikeSave');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    document.getElementById('sm-name').innerText = parsed.nickname || 'PlayerOne';
+                    document.getElementById('sm-level').innerText = `Level ${parsed.level || 1}`;
+                    document.getElementById('sm-coins').innerText = `🪙 ${(parsed.coins || 0).toLocaleString()}`;
+                    const customPfp = localStorage.getItem('hsCustomAvatar');
+                    if (customPfp) {
+                        document.getElementById('sm-avatar-img').src = customPfp;
+                        document.getElementById('sm-avatar-img').style.display = 'block';
+                        document.getElementById('sm-avatar-emoji').style.display = 'none';
+                    }
+                }
+            } catch (e) { }
+        }
+        function openMenu() {
+            document.getElementById('side-menu').style.transform = 'translateX(0)';
+            document.getElementById('menu-overlay').style.display = 'block';
+            updateSideMenu();
+        }
+        function closeMenu() {
+            document.getElementById('side-menu').style.transform = 'translateX(100%)';
+            document.getElementById('menu-overlay').style.display = 'none';
         }
     </script>
 </body>
