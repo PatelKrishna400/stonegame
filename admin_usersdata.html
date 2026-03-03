@@ -479,7 +479,16 @@
         window.deleteUser = function () {
             if (confirm("Are you sure you want to permanently delete the player save data?")) {
                 localStorage.removeItem('hammerStrikeSave');
+                localStorage.removeItem('hsGlobalUsername');
+                localStorage.removeItem('hsGlobalPassword');
+                localStorage.removeItem('hsGlobalEmail');
+                localStorage.removeItem('hsGlobalPhone');
+                localStorage.removeItem('hammerStrikeUserRegistered');
+                localStorage.removeItem('hsCustomAvatar');
+                localStorage.removeItem('hammerStrikeAds');
+                localStorage.removeItem('hammerStrikeRefsDaily');
                 render();
+                alert('User data has been completely erased! A new user can now register.');
             }
         }
 
