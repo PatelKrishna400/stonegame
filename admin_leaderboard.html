@@ -176,20 +176,33 @@
     <script>
         function loadRankings() {
             const list = document.getElementById('leaderboard-list');
-            const raw = localStorage.getItem('hammerStrikeSave');
-            if (!raw) {
-                list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text2);">No data found.</div>';
+            const rawAll = localStorage.getItem('hammerStrikeAllUsers');
+            let users = [];
+
+            if (rawAll) {
+                try {
+                    const parsed = JSON.parse(rawAll);
+                    if (Array.isArray(parsed)) users = parsed;
+                } catch (e) { }
+            }
+
+            // Fallback to single user if all users empty but current user exists
+            if (users.length === 0) {
+                const rawSave = localStorage.getItem('hammerStrikeSave');
+                if (rawSave) {
+                    try {
+                        const s = JSON.parse(rawSave);
+                        users.push({ nickname: s.nickname || 'PlayerOne', coins: s.coins || 0, level: s.level || 1 });
+                    } catch (e) { }
+                }
+            }
+
+            if (users.length === 0) {
+                list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text2);">Leaderboard is empty. No users found.</div>';
                 return;
             }
-            const data = JSON.parse(raw);
-            // Mocking a list since we currently only have 1 active user in local storage
-            const users = [
-                { nickname: data.nickname || 'PlayerOne', coins: data.coins || 0, level: data.level || 1 },
-                { nickname: 'User_882', coins: 15200, level: 12 },
-                { nickname: 'CryptoKing', coins: 12400, level: 10 },
-                { nickname: 'StoneMiner', coins: 9800, level: 8 },
-                { nickname: 'AlphaPlayer', coins: 7500, level: 6 }
-            ].sort((a, b) => b.coins - a.coins);
+
+            users.sort((a, b) => b.coins - a.coins);
 
             list.innerHTML = users.map((u, i) => `
                 <div class="rank-item">
@@ -203,6 +216,7 @@
             `).join('');
         }
         loadRankings();
+        setInterval(loadRankings, 5000);
     </script>
 </body>
 

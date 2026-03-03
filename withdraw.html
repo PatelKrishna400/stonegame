@@ -465,13 +465,13 @@
         <div class="exchange-card">
             <div class="e-title">
                 <span>Withdraw via QR</span>
-                <span class="e-rate">1M 🪙 = ₹10</span>
+                <span class="e-rate">100k 🪙 = ₹10</span>
             </div>
 
             <div class="input-group">
-                <button class="btn-adjust" onclick="adjustAmount(-1000000)">-</button>
-                <input type="number" id="withdraw-amount" value="1000000" disabled>
-                <button class="btn-adjust" onclick="adjustAmount(1000000)">+</button>
+                <button class="btn-adjust" onclick="adjustAmount(-100000)">-</button>
+                <input type="number" id="withdraw-amount" value="100000" disabled>
+                <button class="btn-adjust" onclick="adjustAmount(100000)">+</button>
             </div>
             <div class="max-withdraw-label">
                 Balance: <span id="withdraw-balance">0</span>
@@ -488,7 +488,7 @@
 
             <button class="btn-withdraw" id="btn-withdraw" onclick="attemptWithdraw()">Select QR to Withdraw</button>
             <div class="min-withdraw-label">
-                Cost is 1M coins per ₹10.
+                Cost is 100k coins per ₹10. Minimum withdrawal is ₹10.
             </div>
         </div>
 
@@ -635,9 +635,9 @@
 
         function adjustAmount(delta) {
             const el = document.getElementById('withdraw-amount');
-            let val = parseInt(el.value) || 1000000;
+            let val = parseInt(el.value) || 100000;
             val += delta;
-            if (val < 1000000) val = 1000000;
+            if (val < 100000) val = 100000;
             el.value = val;
             updateUI();
         }
@@ -690,7 +690,7 @@
                     btnWithdraw.style.background = 'rgba(255, 255, 255, 0.05)';
                     btnWithdraw.style.color = 'var(--text2)';
                     btnWithdraw.style.cursor = 'not-allowed';
-                    if (balance < 1000000) {
+                    if (balance < 100000) {
                         btnWithdraw.innerText = 'Insufficient Balance';
                     } else {
                         btnWithdraw.innerText = 'Select a QR Code';
@@ -725,7 +725,7 @@
                 return `
                     <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; border:1px solid var(--border);">
                         <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                            <span style="font-weight:900; color:var(--text); font-size:1.1rem;">₹${r.amount / 100000}</span>
+                            <span style="font-weight:900; color:var(--text); font-size:1.1rem;">₹${r.amount / 10000}</span>
                             <span>${cBadge}</span>
                         </div>
                         <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text2);">
@@ -743,9 +743,9 @@
                 return;
             }
 
-            const wAmount = parseInt(document.getElementById('withdraw-amount').value) || 1000000;
+            const wAmount = parseInt(document.getElementById('withdraw-amount').value) || 100000;
             if (balance < wAmount) {
-                alert(`You need ${wAmount.toLocaleString()} coins to withdraw ₹${wAmount / 100000}.`);
+                alert(`You need ${wAmount.toLocaleString()} coins to withdraw ₹${wAmount / 10000}.`);
                 return;
             }
 
@@ -784,7 +784,7 @@
             withdrawCooldownEnds = Date.now() + 30 * 60 * 1000;
             localStorage.setItem('hammerStrikeWithdrawCooldown', withdrawCooldownEnds);
 
-            alert("Withdrawal submitted! Your request was sent to the Admin.");
+            alert(`Withdrawal submitted! Request for ₹${wAmount / 10000} sent to Admin.`);
             updateUI();
         }
 

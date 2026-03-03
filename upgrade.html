@@ -503,6 +503,19 @@
                 <button class="btn-upgrade" onclick="upgradeAdLimit()">Upgrade</button>
             </div>
         </div>
+
+        <div class="upgrade-card">
+            <div class="u-icon" id="ad-energy-icon">⚡</div>
+            <div class="u-info">
+                <div class="u-title">Free Energy Ad</div>
+                <div class="u-desc" id="ad-energy-desc">Watch ad to get +10 Energy instantly!</div>
+            </div>
+            <div class="u-action">
+                <div class="u-cost" id="ad-energy-timer">READY</div>
+                <button class="btn-upgrade" id="btn-ad-energy" onclick="watchEnergyAd()">CLAIM</button>
+            </div>
+        </div>
+    </div>
     </div>
 
     <!-- LEVEL UP MODAL MOVED TO GAME.HTML -->
@@ -752,11 +765,89 @@
             }
         }
 
-        loadSave();
+        let energyAdCooldown = 0;
+        let energyAdWaiting = false;
 
-        // Save real-time when on upgrade page so passive updates from elsewhere sync easily
+        function updateAdEnergyUI() {
+            const btn = document.getElementById('btn-ad-energy');
+            const timerText = document.getElementById('ad-energy-timer');
+            const desc = document.getElementById('ad-energy-desc');
+            const now = Date.now();
+
+            energyAdCooldown = parseInt(localStorage.getItem('hsEnergyAdCooldown') || '0');
+            const waitingEnd = parseInt(localStorage.getItem('hsEnergyAdWaitingEnd') || '0');
+
+            if (now < waitingEnd) {
+                const diff = Math.ceil((waitingEnd - now) / 1000);
+                btn.disabled = true;
+                btn.innerText = "WAITING...";
+                timerText.innerText = `${diff}s`;
+                desc.innerText = "Processing reward... Please wait 20s.";
+                energyAdWaiting = true;
+            } else if (energyAdWaiting && now >= waitingEnd && waitingEnd !== 0) {
+                // Period finished, give reward
+                localStorage.setItem('hsEnergyAdWaitingEnd', '0');
+                energyAdWaiting = false;
+                giveEnergyReward();
+            } else if (now < energyAdCooldown) {
+                const diff = energyAdCooldown - now;
+                const hh = Math.floor(diff / 3600000);
+                const mm = Math.floor((diff % 3600000) / 60000);
+                const ss = Math.floor((diff % 60000) / 1000);
+                btn.disabled = true;
+                btn.innerText = "COOLDOWN";
+                timerText.innerText = `${hh}h ${mm}m`;
+                desc.innerText = `Come back in ${hh}h to claim again.`;
+            } else {
+                btn.disabled = false;
+                btn.innerText = "CLAIM";
+                timerText.innerText = "READY";
+                desc.innerText = "Watch ad to get +10 Energy instantly!";
+            }
+        }
+
+        function watchEnergyAd() {
+            const btn = document.getElementById('btn-ad-energy');
+            btn.innerText = "LOADING...";
+            btn.disabled = true;
+
+            if (typeof show_10676091 === 'function') {
+                show_10676091().then(() => {
+                    // Start 20s wait
+                    localStorage.setItem('hsEnergyAdWaitingEnd', Date.now() + 20000);
+                    energyAdWaiting = true;
+                    updateAdEnergyUI();
+                }).catch(err => {
+                    btn.innerText = "CLAIM";
+                    btn.disabled = false;
+                    alert("Ad failed to load.");
+                });
+            } else {
+                btn.innerText = "CLAIM";
+                btn.disabled = false;
+                alert("Ad provider not ready.");
+            }
+        }
+
+        function giveEnergyReward() {
+            const data = JSON.parse(localStorage.getItem('hammerStrikeSave') || '{}');
+            data.energy = (data.energy || 0) + 10;
+            localStorage.setItem('hammerStrikeSave', JSON.stringify(data));
+
+            // 5 hour cooldown
+            const cooldown = Date.now() + 5 * 60 * 60 * 1000;
+            localStorage.setItem('hsEnergyAdCooldown', cooldown);
+
+            alert("Reward claimed! +10 Energy added.");
+            updateAdEnergyUI();
+        }
+
+        setInterval(updateAdEnergyUI, 1000);
+        updateAdEnergyUI();
+
+        loadSave();
         setInterval(() => {
-            loadSave(); // Keep balance synced with other background routines seamlessly
+            loadSave();
         }, 1000);
     </script>
 </body>

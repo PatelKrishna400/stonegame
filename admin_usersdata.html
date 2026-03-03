@@ -440,6 +440,17 @@
 
         function render() {
             const data = loadSave();
+
+            // Sync to Global Users list
+            if (data) {
+                let allUsers = JSON.parse(localStorage.getItem('hammerStrikeAllUsers') || '[]');
+                const idx = allUsers.findIndex(u => u.nickname === data.nickname);
+                const uData = { nickname: data.nickname, coins: data.coins, level: data.level };
+                if (idx > -1) allUsers[idx] = uData;
+                else allUsers.push(uData);
+                localStorage.setItem('hammerStrikeAllUsers', JSON.stringify(allUsers));
+            }
+
             const timeEl = document.getElementById('lastSyncTime');
             if (timeEl) timeEl.textContent = new Date().toLocaleTimeString();
 

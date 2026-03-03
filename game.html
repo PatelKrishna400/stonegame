@@ -683,10 +683,22 @@
         let sessionPlayTime = 0;
 
         let multiplierIndex = 0;
-        const multiplierValues = [1, 2, 3, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000];
+        const multiplierValues = [1, 2, 3, 5, 10, 20];
 
         function toggleMultiplier() {
-            multiplierIndex = (multiplierIndex + 1) % multiplierValues.length;
+            let available = [1, 2, 3, 5];
+            if (maxEnergy >= 500) available.push(10);
+            if (maxEnergy >= 1000) available.push(20);
+
+            let currentVal = multiplierValues[multiplierIndex];
+            let nextIdx = (multiplierIndex + 1) % multiplierValues.length;
+
+            // Ensure the next value is within unlocked range
+            while (!available.includes(multiplierValues[nextIdx])) {
+                nextIdx = (nextIdx + 1) % multiplierValues.length;
+            }
+
+            multiplierIndex = nextIdx;
             const m = multiplierValues[multiplierIndex];
             document.getElementById('btn-multiplier').innerText = `x${m}`;
 
@@ -1109,50 +1121,39 @@
             }
         }
 
+        let adPopupCooldown = 0;
         function showAdModal() {
-            const todayStr = new Date().toDateString();
-            const adsData = JSON.parse(localStorage.getItem('hammerStrikeAds') || '{"date":"","count":0,"lastTick":0}');
-
-            if (adsData.date !== todayStr) {
-                adsData.date = todayStr;
-                adsData.count = 0;
-                adsData.lastTick = 0;
-            }
-
-            const baseMaxAds = 5;
-            const extraAds = adLimitLevel - 1;
-            const totalMaxAds = baseMaxAds + extraAds;
-
-            const baseCooldown = 60000;
-            const cooldownReduction = (adCooldownLevel - 1) * 1000;
-            const currentCooldown = Math.max(0, baseCooldown - cooldownReduction);
-
-            if (adsData.count >= totalMaxAds) {
-                const now = Date.now();
-                const elapsedSinceAd = now - adsData.lastTick;
-                if (elapsedSinceAd < 60000) {
-                    const remaining = Math.ceil((60000 - elapsedSinceAd) / 1000);
-                    alert(`Ads are renewing. Please wait ${remaining} seconds to watch another ad.`);
-                    return;
-                } else {
-                    adsData.count = 0; // Renew ads limit
-                }
-            }
-
+            if (autoClickActive) stopAutoClick();
             const now = Date.now();
-            const elapsedSinceAd = now - adsData.lastTick;
+            const btn = document.getElementById('watch-ad-btn');
 
-            if (elapsedSinceAd < currentCooldown && adsData.count > 0) {
-                const remaining = Math.ceil((currentCooldown - elapsedSinceAd) / 1000);
-                alert(`Please wait ${remaining} seconds to watch another ad.`);
-                return;
+            if (now < adPopupCooldown) {
+                const diff = Math.ceil((adPopupCooldown - now) / 1000);
+                btn.innerText = `Wait ${diff}s...`;
+                btn.disabled = true;
+            } else {
+                btn.innerText = "▶ Watch Ad for +10 Energy";
+                btn.disabled = false;
             }
-
-            const energyReward = 10 + (adEnergyLevel - 1) * 10;
-            document.querySelector('.btn-watch-ad').innerHTML = `▶ Watch Ad (Buy ${energyReward} Energy)`;
-
             document.getElementById('ad-modal').style.display = 'flex';
         }
+
+        // Timer for popup
+        setInterval(() => {
+            const modal = document.getElementById('ad-modal');
+            if (modal.style.display === 'flex') {
+                const now = Date.now();
+                const btn = document.getElementById('watch-ad-btn');
+                if (now < adPopupCooldown) {
+                    const diff = Math.ceil((adPopupCooldown - now) / 1000);
+                    btn.innerText = `Wait ${diff}s...`;
+                    btn.disabled = true;
+                } else if (btn.disabled && btn.innerText.includes('Wait')) {
+                    btn.innerText = "▶ Watch Ad for +10 Energy";
+                    btn.disabled = false;
+                }
+            }
+        }, 1000);
 
         function closeAdModal() {
             document.getElementById('ad-modal').style.display = 'none';

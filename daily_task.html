@@ -485,6 +485,12 @@
             window.Telegram.WebApp.ready();
         }
 
+        // Login check
+        if (sessionStorage.getItem('hammerStrikeUserLoggedIn') !== 'true' && localStorage.getItem('hammerStrikeUserRegistered') !== 'true') {
+            alert("Please login or register to access tasks.");
+            window.location.href = 'login.html';
+        }
+
         function loadSave() {
             const raw = localStorage.getItem('hammerStrikeSave');
             if (raw) {
