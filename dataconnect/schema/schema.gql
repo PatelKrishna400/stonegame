@@ -1,0 +1,45 @@
+type Admin @table {
+  username: String!
+  email: String!
+  passwordHash: String!
+  createdAt: Timestamp!
+  displayName: String
+  lastLoginAt: Timestamp
+  role: String
+}
+
+type Page @table {
+  name: String!
+  connectionType: String!
+  createdAt: Timestamp!
+  description: String
+  apiUrl: String
+  apiKey: String
+  schemaDefinition: String
+}
+
+type DataRecord @table {
+  page: Page!
+  recordIdentifier: String!
+  data: String!
+  createdAt: Timestamp!
+  updatedAt: Timestamp
+  createdBy: Admin
+  updatedBy: Admin
+}
+
+type ChangeLog @table {
+  admin: Admin!
+  dataRecord: DataRecord!
+  changeType: String!
+  changedAt: Timestamp!
+  oldValue: String
+  newValue: String
+}
+
+type AccessPermission @table(key: ["admin", "page"]) {
+  admin: Admin!
+  page: Page!
+  permissionType: String!
+  grantedAt: Timestamp
+}
