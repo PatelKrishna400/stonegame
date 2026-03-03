@@ -1034,15 +1034,26 @@
             const btn = document.querySelector('#break-modal .btn-watch-ad');
             btn.innerHTML = '⏱ Loading Ad...';
             btn.disabled = true;
-            setTimeout(() => {
-                breakTimeEnd = 0;
-                sessionPlayTime = 0;
-                saveGameState();
-                document.getElementById('break-modal').style.display = 'none';
+
+            if (typeof show_10676091 === 'function') {
+                show_10676091().then(() => {
+                    breakTimeEnd = 0;
+                    sessionPlayTime = 0;
+                    saveGameState();
+                    document.getElementById('break-modal').style.display = 'none';
+                    btn.innerHTML = '▶ Watch Ad (Skip Break)';
+                    btn.disabled = false;
+                    alert("Ad watched successfully! Break time skipped.");
+                }).catch(err => {
+                    btn.innerHTML = '▶ Watch Ad (Skip Break)';
+                    btn.disabled = false;
+                    alert("Ad failed to load.");
+                });
+            } else {
                 btn.innerHTML = '▶ Watch Ad (Skip Break)';
                 btn.disabled = false;
-                alert("Ad watched successfully! Break time skipped.");
-            }, 1000);
+                alert("Ad provider not ready.");
+            }
         }
 
         function showBonusModal() {
@@ -1080,11 +1091,22 @@
             const btn = document.querySelectorAll('.btn-bonus')[1];
             btn.innerHTML = '⏱ Loading Ad...';
             btn.disabled = true;
-            setTimeout(() => {
-                collectBonus(2);
+
+            if (typeof show_10676091 === 'function') {
+                show_10676091().then(() => {
+                    collectBonus(2);
+                    btn.innerHTML = 'Watch Ad (*2)';
+                    btn.disabled = false;
+                }).catch(err => {
+                    btn.innerHTML = 'Watch Ad (*2)';
+                    btn.disabled = false;
+                    alert("Ad failed to load.");
+                });
+            } else {
                 btn.innerHTML = 'Watch Ad (*2)';
                 btn.disabled = false;
-            }, 1000);
+                alert("Ad provider not ready.");
+            }
         }
 
         function showAdModal() {
@@ -1142,23 +1164,32 @@
             btn.innerHTML = '⏱ Loading Ad...';
             btn.disabled = true;
 
-            setTimeout(() => {
-                alert(`Ad watched successfully! You got ${energyReward} Energy.`);
-                energy = Math.min(energy + energyReward, maxEnergy);
-                updateUI();
-                closeAdModal();
+            if (typeof show_10676091 === 'function') {
+                show_10676091().then(() => {
+                    alert(`Ad watched successfully! You got ${energyReward} Energy.`);
+                    energy = Math.min(energy + energyReward, maxEnergy);
+                    updateUI();
+                    closeAdModal();
+                    btn.innerHTML = `▶ Watch Ad (Buy ${energyReward} Energy)`;
+                    btn.disabled = false;
+
+                    // Save ad usage stats
+                    const todayStr = new Date().toDateString();
+                    const adsData = JSON.parse(localStorage.getItem('hammerStrikeAds') || '{"date":"","count":0,"lastTick":0}');
+                    adsData.date = todayStr;
+                    adsData.count += 1;
+                    adsData.lastTick = Date.now();
+                    localStorage.setItem('hammerStrikeAds', JSON.stringify(adsData));
+                }).catch(err => {
+                    btn.innerHTML = `▶ Watch Ad (Buy ${energyReward} Energy)`;
+                    btn.disabled = false;
+                    alert("Ad failed to load.");
+                });
+            } else {
                 btn.innerHTML = `▶ Watch Ad (Buy ${energyReward} Energy)`;
                 btn.disabled = false;
-
-                // Save ad usage stats
-                const todayStr = new Date().toDateString();
-                const adsData = JSON.parse(localStorage.getItem('hammerStrikeAds') || '{"date":"","count":0,"lastTick":0}');
-                adsData.date = todayStr;
-                adsData.count += 1;
-                adsData.lastTick = Date.now();
-                localStorage.setItem('hammerStrikeAds', JSON.stringify(adsData));
-
-            }, 1000);
+                alert("Ad provider not ready.");
+            }
         }
 
         // Prevent dragging/zooming problems on the main clicker
@@ -1325,15 +1356,26 @@
             const btn = document.getElementById('btn-ad-lvl');
             btn.innerText = "⏱ Loading Ad...";
             btn.disabled = true;
-            setTimeout(() => {
-                balance += pendingLvlReward * 2;
-                document.getElementById('levelup-modal').style.display = 'none';
+
+            if (typeof show_10676091 === 'function') {
+                show_10676091().then(() => {
+                    balance += pendingLvlReward * 2;
+                    document.getElementById('levelup-modal').style.display = 'none';
+                    btn.innerText = "▶ Watch Ad (*2)";
+                    btn.disabled = false;
+                    updateUI();
+                    saveGameState();
+                    alert(`Ad watched! You collected ${pendingLvlReward * 2} bonus coins.`);
+                }).catch(err => {
+                    btn.innerText = "▶ Watch Ad (*2)";
+                    btn.disabled = false;
+                    alert("Ad failed to load.");
+                });
+            } else {
                 btn.innerText = "▶ Watch Ad (*2)";
                 btn.disabled = false;
-                updateUI();
-                saveGameState();
-                alert(`Ad watched! You collected ${pendingLvlReward * 2} bonus coins.`);
-            }, 3000);
+                alert("Ad provider not ready.");
+            }
         }
     </script>
 </body>

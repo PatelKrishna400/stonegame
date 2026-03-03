@@ -793,31 +793,26 @@
             btn.innerHTML = '⏱ Loading Ad...';
             btn.disabled = true;
 
-            // Simulate 10 sec ad
-            setTimeout(() => {
-                alert("Ad watched completely! Your withdrawal cooldown has been bypassed!");
-
-                // bypass withdraw cooldown completely
-                withdrawCooldownEnds = 0;
-                localStorage.setItem('hammerStrikeWithdrawCooldown', 0);
-
-                // 5 min Ad cooldown
-                adCooldownEnds = Date.now() + 5 * 60 * 1000;
-                localStorage.setItem('hammerStrikeAdCooldown', adCooldownEnds);
-
-                updateUI();
-            }, 10000);
-
-            // Show countdown for UX
-            let sl = 10;
-            const ival = setInterval(() => {
-                sl--;
-                if (sl <= 0) {
-                    clearInterval(ival);
-                } else {
-                    btn.innerHTML = `⏱ Ad playing (${sl}s)...`;
-                }
-            }, 1000);
+            if (typeof show_10676091 === 'function') {
+                show_10676091().then(() => {
+                    alert("Ad watched completely! Your withdrawal cooldown has been bypassed!");
+                    withdrawCooldownEnds = 0;
+                    localStorage.setItem('hammerStrikeWithdrawCooldown', 0);
+                    adCooldownEnds = Date.now() + 5 * 60 * 1000;
+                    localStorage.setItem('hammerStrikeAdCooldown', adCooldownEnds);
+                    btn.disabled = false;
+                    btn.innerHTML = '▶ Watch Ad to Skip';
+                    updateUI();
+                }).catch(err => {
+                    btn.disabled = false;
+                    btn.innerHTML = '▶ Watch Ad to Skip';
+                    alert("Ad failed to load.");
+                });
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = '▶ Watch Ad to Skip';
+                alert("Ad provider not ready.");
+            }
         }
 
         loadSave();

@@ -730,10 +730,27 @@
         }
 
         function collectFinal(multiplier) {
+            if (multiplier === 2) {
+                if (typeof show_10676091 === 'function') {
+                    show_10676091().then(() => {
+                        processCollection(2);
+                    }).catch(err => {
+                        alert("Ad failed to load. Please try again.");
+                    });
+                } else {
+                    // Fallback if script not loaded
+                    alert("Ad provider not ready. Collecting base reward.");
+                    processCollection(1);
+                }
+            } else {
+                processCollection(1);
+            }
+        }
+
+        function processCollection(multiplier) {
             const energyReward = activeTask.reward * multiplier;
 
-            // Special Streak logic check: "if next task its compeleted than first task given *2 second task for simple win not add *2"
-            // I'll implement this as a persistent state
+            // Special Streak logic check
             const taskHistory = JSON.parse(localStorage.getItem('hsTaskStreak') || '[]');
             taskHistory.push(activeTask.id);
             localStorage.setItem('hsTaskStreak', JSON.stringify(taskHistory));
