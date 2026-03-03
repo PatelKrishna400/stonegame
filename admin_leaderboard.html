@@ -31,7 +31,7 @@
             max-width: 480px;
             margin: 0 auto;
             min-height: 100vh;
-            padding-bottom: 90px;
+            padding-bottom: 20px;
         }
 
         header {
@@ -105,64 +105,30 @@
             font-weight: 700;
         }
 
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(20, 23, 39, 0.95);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: space-around;
-            padding: 12px 0 25px;
-            z-index: 1000;
-        }
+        
 
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: var(--text2);
-            gap: 6px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            width: 20%;
-        }
+        
 
-        .nav-item.active {
-            color: var(--gold);
-        }
+        
 
-        .nav-icon {
-            font-size: 1.3rem;
-        }
+        
     </style>
 </head>
 
 <body>
-    <header>
-        <div class="logo">Admin Leaderboard</div>
+    
+    <header style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: rgba(20, 23, 39, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.07); position: sticky; top: 0; z-index: 2000;">
+        <div class="logo" style="font-size: 1.2rem; font-weight: 800; color: #ffd700; letter-spacing: 2px; text-transform: uppercase;">Leaderboard Admin</div>
+        <div class="header-right" style="display:flex; align-items:center; gap:10px;">
+            <button class="logout-btn" onclick="adminLogout()" style="background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.35); padding: 6px 12px; border-radius: 8px; color: #e74c3c; font-size: 0.8rem; font-weight: 700; cursor: pointer; text-decoration: none;">Logout</button>
+            <div class="menu-btn" onclick="openMenu()" 
+                style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; color: #ffd700;">
+                ☰</div>
+        </div>
     </header>
 
-    <div class="bottom-nav">
-        <a href="admin_dashboard.html" class="nav-item">
-            <span class="nav-icon">📊</span><span>Dash</span>
-        </a>
-        <a href="admin_usersdata.html" class="nav-item">
-            <span class="nav-icon">👥</span><span>Users</span>
-        </a>
-        <a href="admin_task.html" class="nav-item">
-            <span class="nav-icon">📝</span><span>Tasks</span>
-        </a>
-        <a href="admin_leaderboard.html" class="nav-item active">
-            <span class="nav-icon">🏆</span><span>Rank</span>
-        </a>
-        <a href="admin_withdraw.html" class="nav-item">
-            <span class="nav-icon">💸</span><span>Funds</span>
-        </a>
-    </div>
+
+    
 
     <main class="main">
         <div class="section-card">
@@ -217,7 +183,46 @@
         }
         loadRankings();
         setInterval(loadRankings, 5000);
-    </script>
+    
+    function openMenu() {
+        var menu = document.getElementById('side-menu');
+        var overlay = document.getElementById('menu-overlay');
+        if(menu && overlay) {
+            menu.style.transform = 'translateX(0)';
+            overlay.style.display = 'block';
+        }
+    }
+    function closeMenu() {
+        var menu = document.getElementById('side-menu');
+        var overlay = document.getElementById('menu-overlay');
+        if(menu && overlay) {
+            menu.style.transform = 'translateX(100%)';
+            overlay.style.display = 'none';
+        }
+    }
+    function adminLogout() {
+        localStorage.removeItem('hammerStrikeAdminLoggedIn');
+        window.location.href = 'index.html';
+    }
+</script>
+
+    <div class="menu-overlay" id="menu-overlay" onclick="closeMenu()" 
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); z-index: 2900; display: none;">
+    </div>
+    <div class="side-menu" id="side-menu" 
+        style="position: fixed; top: 0; right: 0; width: 250px; height: 100%; background: #141727; border-left: 1px solid rgba(255, 255, 255, 0.07); box-shadow: -5px 0 20px rgba(0,0,0,0.5); z-index: 3000; padding: 20px; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: #ffffff; font-family: 'Inter', sans-serif;">
+        <div 
+            style="font-size: 1.2rem; font-weight: 800; color: #ffd700; margin-bottom: 20px; display:flex; justify-content:space-between; align-items:center;">
+            <span>☰ Menu</span>
+            <span onclick="closeMenu()" style="cursor:pointer; font-size:1.5rem;">×</span>
+        </div>
+        <a href="admin_dashboard.html" class="menu-item" style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 5px;">📊 Dashboard</a>
+        <a href="admin_usersdata.html" class="menu-item" style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 5px;">👥 Users</a>
+        <a href="admin_task.html" class="menu-item" style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 5px;">📋 Tasks</a>
+        <a href="admin_leaderboard.html" class="menu-item" style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 5px;">🏆 Rankings</a>
+        <a href="admin_withdraw.html" class="menu-item" style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 5px;">💸 Funds</a>
+        <a href="user_stone.html" class="menu-item" style="display: block; padding: 12px 10px; color: #ffd700; text-decoration: none; font-weight: 700; margin-top: 20px;">🎮 Exit to Game</a>
+    </div>
 </body>
 
 </html>
