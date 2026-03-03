@@ -543,7 +543,7 @@
 
     <div class="score-display">
         <div class="score-icon">🪙</div>
-        <div class="score-value" id="balance-display">24,500</div>
+        <div class="score-value" id="balance-display">0</div>
 
         <div class="xp-container">
             <div class="energy-header">
@@ -737,6 +737,15 @@
                 }
                 if (parsed && typeof parsed.bonusDropLevel === 'number') {
                     bonusDropLevel = parsed.bonusDropLevel;
+                }
+                if (parsed && typeof parsed.adEnergyLevel === 'number') {
+                    adEnergyLevel = parsed.adEnergyLevel;
+                }
+                if (parsed && typeof parsed.adCooldownLevel === 'number') {
+                    adCooldownLevel = parsed.adCooldownLevel;
+                }
+                if (parsed && typeof parsed.adLimitLevel === 'number') {
+                    adLimitLevel = parsed.adLimitLevel;
                 }
                 if (parsed && typeof parsed.breakTimeEnd === 'number') {
                     breakTimeEnd = parsed.breakTimeEnd;
@@ -1088,7 +1097,15 @@
                 adsData.lastTick = 0;
             }
 
-            if (adsData.count >= 2) {
+            const baseMaxAds = 5;
+            const extraAds = adLimitLevel - 1;
+            const totalMaxAds = baseMaxAds + extraAds;
+
+            const baseCooldown = 60000;
+            const cooldownReduction = (adCooldownLevel - 1) * 1000;
+            const currentCooldown = Math.max(0, baseCooldown - cooldownReduction);
+
+            if (adsData.count >= totalMaxAds) {
                 const now = Date.now();
                 const elapsedSinceAd = now - adsData.lastTick;
                 if (elapsedSinceAd < 60000) {
@@ -1103,11 +1120,14 @@
             const now = Date.now();
             const elapsedSinceAd = now - adsData.lastTick;
 
-            if (elapsedSinceAd < 30000 && adsData.count > 0) {
-                const remaining = Math.ceil((30000 - elapsedSinceAd) / 1000);
+            if (elapsedSinceAd < currentCooldown && adsData.count > 0) {
+                const remaining = Math.ceil((currentCooldown - elapsedSinceAd) / 1000);
                 alert(`Please wait ${remaining} seconds to watch another ad.`);
                 return;
             }
+
+            const energyReward = 10 + (adEnergyLevel - 1) * 10;
+            document.querySelector('.btn-watch-ad').innerHTML = `▶ Watch Ad (Buy ${energyReward} Energy)`;
 
             document.getElementById('ad-modal').style.display = 'flex';
         }
@@ -1118,15 +1138,16 @@
 
         function watchAd() {
             const btn = document.querySelector('.btn-watch-ad');
+            const energyReward = 10 + (adEnergyLevel - 1) * 10;
             btn.innerHTML = '⏱ Loading Ad...';
             btn.disabled = true;
 
             setTimeout(() => {
-                alert("Ad watched successfully! You bought 10 Energy.");
-                energy = Math.min(energy + 10, maxEnergy);
+                alert(`Ad watched successfully! You got ${energyReward} Energy.`);
+                energy = Math.min(energy + energyReward, maxEnergy);
                 updateUI();
                 closeAdModal();
-                btn.innerHTML = '▶ Watch Ad (Buy 10 Energy)';
+                btn.innerHTML = `▶ Watch Ad (Buy ${energyReward} Energy)`;
                 btn.disabled = false;
 
                 // Save ad usage stats

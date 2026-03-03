@@ -321,7 +321,7 @@
         <div class="page-title">Boosters</div>
         <div class="header-right" style="display:flex; align-items:center; gap:10px;">
             <div class="balance-pill">
-                🪙 <span id="upgrade-balance">24,500</span>
+                🪙 <span id="upgrade-balance">0</span>
             </div>
             <div class="menu-btn" onclick="openMenu()"
                 style="background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; color: var(--gold);">
@@ -464,6 +464,45 @@
                 <button class="btn-upgrade btn-unlock-bot" onclick="upgradeBonusDrop()">Upgrade</button>
             </div>
         </div>
+
+        <div class="upgrade-card">
+            <div class="u-icon">📺</div>
+            <div class="u-info">
+                <div class="u-name">Ad Energy Boost</div>
+                <div class="u-desc">+10 extra Energy per collected ad reward.</div>
+                <div class="u-level" id="ad-energy-level">Lvl 1</div>
+            </div>
+            <div class="u-action">
+                <div class="u-cost">🪙 1,000</div>
+                <button class="btn-upgrade" onclick="upgradeAdEnergy()">Upgrade</button>
+            </div>
+        </div>
+
+        <div class="upgrade-card">
+            <div class="u-icon">⏳</div>
+            <div class="u-info">
+                <div class="u-name">Ad Cooldown Reducer</div>
+                <div class="u-desc">Reduces the cooldown time between ads by 1 second.</div>
+                <div class="u-level" id="ad-cooldown-level">Lvl 1</div>
+            </div>
+            <div class="u-action">
+                <div class="u-cost">🪙 1,000</div>
+                <button class="btn-upgrade" onclick="upgradeAdCooldown()">Upgrade</button>
+            </div>
+        </div>
+
+        <div class="upgrade-card">
+            <div class="u-icon">🎬</div>
+            <div class="u-info">
+                <div class="u-name">Extra Daily Ads</div>
+                <div class="u-desc">Increases max back-to-back ad limit by 1 ad before a big rest.</div>
+                <div class="u-level" id="ad-limit-level">Lvl 1</div>
+            </div>
+            <div class="u-action">
+                <div class="u-cost">🪙 10,000</div>
+                <button class="btn-upgrade" onclick="upgradeAdLimit()">Upgrade</button>
+            </div>
+        </div>
     </div>
 
     <!-- LEVEL UP MODAL MOVED TO GAME.HTML -->
@@ -474,13 +513,16 @@
         }
 
         // Shared Game State Loading & Passive Income
-        let balance = 24500;
+        let balance = 0;
         let maxEnergy = 100;
         let energyLevel = 1;
         let tapPowerLevel = 1;
         let rechargeLevel = 1;
         let autoClickSeconds = 0;
         let bonusDropLevel = 1;
+        let adEnergyLevel = 1;
+        let adCooldownLevel = 1;
+        let adLimitLevel = 1;
         let stars = 0;
         let starsRequired = 500;
         let playerLevel = 1;
@@ -538,6 +580,9 @@
                     if (parsed.stars !== undefined) stars = parsed.stars;
                     if (parsed.starsRequired !== undefined) starsRequired = parsed.starsRequired;
                     if (parsed.level !== undefined) playerLevel = parsed.level;
+                    if (typeof parsed.adEnergyLevel === 'number') adEnergyLevel = parsed.adEnergyLevel;
+                    if (typeof parsed.adCooldownLevel === 'number') adCooldownLevel = parsed.adCooldownLevel;
+                    if (typeof parsed.adLimitLevel === 'number') adLimitLevel = parsed.adLimitLevel;
                 } catch (e) { }
             }
             document.getElementById('upgrade-balance').innerText = balance.toLocaleString();
@@ -547,6 +592,9 @@
             document.getElementById('energy-level-text').innerText = `Lvl ${energyLevel}`;
             document.getElementById('auto-click-stock').innerText = `${autoClickSeconds}s Reserve`;
             document.getElementById('bonus-drop-level').innerText = `Lvl ${bonusDropLevel}`;
+            document.getElementById('ad-energy-level').innerText = `Lvl ${adEnergyLevel}`;
+            document.getElementById('ad-cooldown-level').innerText = `Lvl ${adCooldownLevel}`;
+            document.getElementById('ad-limit-level').innerText = `Lvl ${adLimitLevel}`;
 
             // Energy Limits display update
             const limitCost = 1000;
@@ -563,6 +611,52 @@
                 document.getElementById('btn-upgrade-recharge').style.opacity = "0.5";
                 document.getElementById('recharge-cost').innerText = "Max Level";
             }
+        }
+
+        function upgradeAdEnergy() {
+            const limitCost = 1000;
+            if (balance >= limitCost) {
+                balance -= limitCost;
+                adEnergyLevel++;
+                saveAdUpgrades();
+                alert(`Ad Energy Boost upgraded! Extra +${(adEnergyLevel - 1) * 10} Energy per ad.`);
+            } else {
+                alert(`Insufficient balance.`);
+            }
+        }
+
+        function upgradeAdCooldown() {
+            const limitCost = 1000;
+            if (balance >= limitCost) {
+                balance -= limitCost;
+                adCooldownLevel++;
+                saveAdUpgrades();
+                alert(`Ad Cooldown Reducer upgraded! Ad cooldown is now reduced.`);
+            } else {
+                alert(`Insufficient balance.`);
+            }
+        }
+
+        function upgradeAdLimit() {
+            const limitCost = 10000;
+            if (balance >= limitCost) {
+                balance -= limitCost;
+                adLimitLevel++;
+                saveAdUpgrades();
+                alert(`Extra Daily Ads upgraded! Your max combo size is increased.`);
+            } else {
+                alert(`Insufficient balance. You need 10,000 coins.`);
+            }
+        }
+
+        function saveAdUpgrades() {
+            const dataToSave = JSON.parse(localStorage.getItem('hammerStrikeSave') || '{}');
+            dataToSave.coins = balance;
+            dataToSave.adEnergyLevel = adEnergyLevel;
+            dataToSave.adCooldownLevel = adCooldownLevel;
+            dataToSave.adLimitLevel = adLimitLevel;
+            localStorage.setItem('hammerStrikeSave', JSON.stringify(dataToSave));
+            loadSave();
         }
 
         function upgradeEnergyLimit() {
