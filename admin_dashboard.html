@@ -364,7 +364,7 @@
             <span class="nav-icon">🏆</span>
             <span>Rank</span>
         </a>
-        <a href="admin_withdraws.html" class="nav-item">
+        <a href="admin_withdraw.html" class="nav-item">
             <span class="nav-icon">💸</span>
             <span>Funds</span>
         </a>
@@ -397,11 +397,11 @@
                     <div class="stat-value" id="dash-withdraws" style="color:#e74c3c;">0</div>
                     <div class="stat-sub">Requires action</div>
                 </div>
-                <div class="stat-card" style="--card-accent:rgba(46,204,113,0.08);">
-                    <div class="stat-icon">⚡</div>
-                    <div class="stat-label">Active Auto-Clickers</div>
-                    <div class="stat-value" id="dash-auto" style="color:#2ecc71;">0</div>
-                    <div class="stat-sub">Live auto-miners</div>
+                <div class="stat-card" style="--card-accent:rgba(155,89,182,0.08);">
+                    <div class="stat-icon">📺</div>
+                    <div class="stat-label">Total Ads Viewed</div>
+                    <div class="stat-value" id="dash-ads" style="color:#9b59b6;">0</div>
+                    <div class="stat-sub">Across all players</div>
                 </div>
             </div>
             <div class="grid-2">
@@ -469,9 +469,9 @@
             const dw = document.getElementById('dash-withdraws');
             if (dw) dw.textContent = reqs.filter(r => r.status === 'pending').length.toString();
 
-            const autoActive = data && data.autoExpiry && data.autoExpiry > Date.now();
-            const da = document.getElementById('dash-auto');
-            if (da) da.textContent = autoActive ? '1' : '0';
+            const adsCount = parseInt(localStorage.getItem('hammerStrikeAdsWatched') || '0');
+            const da = document.getElementById('dash-ads');
+            if (da) da.textContent = fmt(adsCount);
 
             const eventsTable = document.getElementById('events-table');
             if (eventsTable && data && !isRenderedOnce) {

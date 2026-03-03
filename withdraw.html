@@ -449,6 +449,29 @@
         }
     </script>
 
+    <div class="bottom-nav">
+        <a href="user_stone.html" class="nav-item">
+            <span class="nav-icon">🏠</span>
+            <span>Home</span>
+        </a>
+        <a href="daily_task.html" class="nav-item">
+            <span class="nav-icon">📋</span>
+            <span>Tasks</span>
+        </a>
+        <a href="upgrade.html" class="nav-item">
+            <span class="nav-icon">🚀</span>
+            <span>Upgrade</span>
+        </a>
+        <a href="refral.html" class="nav-item">
+            <span class="nav-icon">👥</span>
+            <span>Friends</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <span class="nav-icon">👤</span>
+            <span>Profile</span>
+        </a>
+    </div>
+
     <div class="container">
         <div class="wallet-card">
             <div class="w-icon">📱</div>
@@ -769,12 +792,14 @@
             try { reqs = JSON.parse(localStorage.getItem('hammerStrikeWithdrawals')) || []; } catch (e) { }
             const qrObj = qrCodes[selectedQRIndex];
             const qrName = typeof qrObj === 'string' ? "Saved QR" : qrObj.name;
+            const qrImage = typeof qrObj === 'string' ? qrObj : qrObj.image;
 
             reqs.push({
                 id: Date.now(),
                 amount: wAmount,
                 status: 'pending',
                 upi: qrName,
+                image: qrImage,
                 timestamp: Date.now(),
                 user: nickname
             });
