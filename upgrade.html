@@ -46,7 +46,7 @@
             overflow-x: hidden;
             overflow-y: auto;
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-            
+
         }
 
         ::-webkit-scrollbar {
@@ -175,15 +175,15 @@
             transform: scale(0.95);
         }
 
-        
 
-        
 
-        
 
-        
 
-        
+
+
+
+
+
 
         .u-icon-bot {
             background: rgba(255, 215, 0, 0.1);
@@ -308,8 +308,7 @@
             <span>☰ Menu</span>
             <span onclick="closeMenu()" style="cursor:pointer; font-size:1.5rem;">×</span>
         </div>
-        <div
-            style="text-align: center; margin-bottom: 20px;  border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="text-align: center; margin-bottom: 20px;  border-bottom: 1px solid rgba(255,255,255,0.05);">
             <div style="width: 60px; height: 60px; margin: 0 auto 10px; border-radius: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 2rem; overflow: hidden; position: relative;"
                 id="sm-avatar-container">
                 <span id="sm-avatar-emoji">🪨</span>
@@ -368,7 +367,7 @@
         }
     </script>
 
-    
+
 
     <div class="container">
         <div class="upgrade-card">
@@ -710,8 +709,11 @@
             }
         }
 
-        let energyAdCooldown = 0;
-        let energyAdWaiting = false;
+        // --- NEW FREE ENERGY AD LOGIC ---
+        let adCycleCount = parseInt(localStorage.getItem('hsEnergyAdCycleCount') || '0');
+        let adNextTime = parseInt(localStorage.getItem('hsEnergyAdNextTime') || '0');
+        let adSkipCount = parseInt(localStorage.getItem('hsEnergyAdSkipCount') || '0');
+        let isLongCooldown = localStorage.getItem('hsEnergyAdInLongCooldown') === 'true';
 
         function updateAdEnergyUI() {
             const btn = document.getElementById('btn-ad-energy');
@@ -719,77 +721,113 @@
             const desc = document.getElementById('ad-energy-desc');
             const now = Date.now();
 
-            energyAdCooldown = parseInt(localStorage.getItem('hsEnergyAdCooldown') || '0');
-            const waitingEnd = parseInt(localStorage.getItem('hsEnergyAdWaitingEnd') || '0');
-
-            if (now < waitingEnd) {
-                const diff = Math.ceil((waitingEnd - now) / 1000);
+            if (isLongCooldown) {
+                const diff = adNextTime - now;
+                if (diff > 0) {
+                    const mm = Math.floor(diff / 60000);
+                    const ss = Math.floor((diff % 60000) / 1000);
+                    btn.disabled = false;
+                    btn.innerText = "SKIP (2 ADS)";
+                    btn.style.background = "linear-gradient(90deg, #8e44ad, #ff64c8)"; // Purple/Pink for skip
+                    timerText.innerText = `${mm}:${ss.toString().padStart(2, '0')}`;
+                    desc.innerText = `Long Cooldown. Watch 2 ads to skip wait! (${adSkipCount}/2)`;
+                } else {
+                    // Long cooldown finished
+                    resetAdCycle();
+                }
+            } else if (now < adNextTime) {
+                const diff = Math.ceil((adNextTime - now) / 1000);
                 btn.disabled = true;
-                btn.innerText = "WAITING...";
+                btn.innerText = "WAITING";
+                btn.style.background = "var(--text2)";
                 timerText.innerText = `${diff}s`;
-                desc.innerText = "Processing reward... Please wait 20s.";
-                energyAdWaiting = true;
-            } else if (energyAdWaiting && now >= waitingEnd && waitingEnd !== 0) {
-                // Period finished, give reward
-                localStorage.setItem('hsEnergyAdWaitingEnd', '0');
-                energyAdWaiting = false;
-                giveEnergyReward();
-            } else if (now < energyAdCooldown) {
-                const diff = energyAdCooldown - now;
-                const hh = Math.floor(diff / 3600000);
-                const mm = Math.floor((diff % 3600000) / 60000);
-                const ss = Math.floor((diff % 60000) / 1000);
-                btn.disabled = true;
-                btn.innerText = "COOLDOWN";
-                timerText.innerText = `${hh}h ${mm}m`;
-                desc.innerText = `Come back in ${hh}h to claim again.`;
+                desc.innerText = `Wait 30s between ads. Ad ${adCycleCount}/10 in cycle.`;
             } else {
                 btn.disabled = false;
-                btn.innerText = "CLAIM";
+                btn.innerText = adSkipCount > 0 ? `CONTINUE SKIP (${adSkipCount}/2)` : "CLAIM";
+                btn.style.background = adSkipCount > 0 ? "linear-gradient(90deg, #8e44ad, #ff64c8)" : "var(--text)";
+                btn.style.color = adSkipCount > 0 ? "#fff" : "var(--bg)";
                 timerText.innerText = "READY";
-                desc.innerText = "Watch ad to get +10 Energy instantly!";
+                desc.innerText = isLongCooldown ? `Watch ${2 - adSkipCount} more for reset.` : `Watch ad for +10 Energy. (${adCycleCount}/10)`;
             }
+        }
+
+        function resetAdCycle() {
+            adCycleCount = 0;
+            adSkipCount = 0;
+            isLongCooldown = false;
+            adNextTime = 0;
+            localStorage.setItem('hsEnergyAdCycleCount', '0');
+            localStorage.setItem('hsEnergyAdSkipCount', '0');
+            localStorage.setItem('hsEnergyAdInLongCooldown', 'false');
+            localStorage.setItem('hsEnergyAdNextTime', '0');
+            updateAdEnergyUI();
         }
 
         function watchEnergyAd() {
             const btn = document.getElementById('btn-ad-energy');
+            const originalText = btn.innerText;
             btn.innerText = "LOADING...";
             btn.disabled = true;
 
             if (typeof show_10676091 === 'function') {
                 show_10676091().then(() => {
                     alert('You have seen an ad!');
-                    // Start 20s wait
-                    localStorage.setItem('hsEnergyAdWaitingEnd', Date.now() + 20000);
-                    energyAdWaiting = true;
+
+                    if (isLongCooldown) {
+                        // User is skipping the 5-min timer
+                        adSkipCount++;
+                        localStorage.setItem('hsEnergyAdSkipCount', adSkipCount);
+
+                        if (adSkipCount >= 2) {
+                            alert("Cooldown skipped! Ad cycle renewed.");
+                            resetAdCycle();
+                        }
+                    } else {
+                        // Regular cycle ad
+                        giveEnergyReward();
+                        adCycleCount++;
+                        localStorage.setItem('hsEnergyAdCycleCount', adCycleCount);
+
+                        if (adCycleCount >= 10) {
+                            // Start 5 min timer
+                            isLongCooldown = true;
+                            adNextTime = Date.now() + 5 * 60 * 1000;
+                            localStorage.setItem('hsEnergyAdInLongCooldown', 'true');
+                            localStorage.setItem('hsEnergyAdNextTime', adNextTime);
+                            alert("10 Ads reached! Entering 5-minute cooldown. Skip by watching 2 ads.");
+                        } else {
+                            // 30s timer
+                            adNextTime = Date.now() + 30 * 1000;
+                            localStorage.setItem('hsEnergyAdNextTime', adNextTime);
+                        }
+                    }
                     updateAdEnergyUI();
                 }).catch(err => {
-                    btn.innerText = "CLAIM";
+                    btn.innerText = originalText;
                     btn.disabled = false;
                     alert("Ad failed to load.");
                 });
             } else {
-                btn.innerText = "CLAIM";
+                btn.innerText = originalText;
                 btn.disabled = false;
                 alert("Ad provider not ready.");
             }
         }
 
         function giveEnergyReward() {
-            const data = JSON.parse(localStorage.getItem('hammerStrikeSave') || '{}');
-            data.energy = (data.energy || 0) + 10;
-            localStorage.setItem('hammerStrikeSave', JSON.stringify(data));
-
-            // 5 hour cooldown
-            const cooldown = Date.now() + 5 * 60 * 60 * 1000;
-            localStorage.setItem('hsEnergyAdCooldown', cooldown);
-
-            alert("Reward claimed! +10 Energy added.");
-            updateAdEnergyUI();
+            let savedData = localStorage.getItem('hammerStrikeSave');
+            if (savedData) {
+                let parsed = JSON.parse(savedData);
+                parsed.energy = (parsed.energy || 0) + 10;
+                localStorage.setItem('hammerStrikeSave', JSON.stringify(parsed));
+                alert("Reward claimed! +10 Energy added.");
+            }
         }
 
         setInterval(updateAdEnergyUI, 1000);
         updateAdEnergyUI();
+        // --- END AD LOGIC ---
 
         loadSave();
         setInterval(() => {

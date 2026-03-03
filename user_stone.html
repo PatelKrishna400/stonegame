@@ -46,7 +46,7 @@
             overflow-x: hidden;
             overflow-y: auto;
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-            
+
         }
 
         ::-webkit-scrollbar {
@@ -246,15 +246,15 @@
             font-size: 0.95rem;
         }
 
-        
 
-        
 
-        
 
-        
 
-        
+
+
+
+
+
 
         /* AD POPUP OVERLAY */
         .modal-overlay {
@@ -387,8 +387,7 @@
             <span>☰ Menu</span>
             <span onclick="closeMenu()" style="cursor:pointer; font-size:1.5rem;">×</span>
         </div>
-        <div
-            style="text-align: center; margin-bottom: 20px;  border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="text-align: center; margin-bottom: 20px;  border-bottom: 1px solid rgba(255,255,255,0.05);">
             <div style="width: 60px; height: 60px; margin: 0 auto 10px; border-radius: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 2rem; overflow: hidden; position: relative;"
                 id="sm-avatar-container">
                 <span id="sm-avatar-emoji">🪨</span>
@@ -468,7 +467,7 @@
         </div>
     </div>
 
-    
+
 
     <div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -640,50 +639,77 @@
         let lbCoinReward = 10000;
         let isClaimingLB = false;
 
+        // --- PERSISTENT BOT POOL FOR REAL-TIME LEADERBOARD ---
+        function getBotPool() {
+            let bots = JSON.parse(localStorage.getItem('hsLeaderboardBots') || '[]');
+            if (bots.length === 0) {
+                const names = ["ShadowStrike", "GoldenHammer", "StoneKing", "AlphaMiner", "Zenith", "Titanium",
+                    "Nebula", "VoidWalker", "SunGazer", "IronWill", "Apex", "CryptoCrusher",
+                    "Midas", "ForgeMaster", "GemHunter", "RockStar", "DungeonDelver", "PixelPioneer",
+                    "Quantum", "Mystic", "Blaze", "Frost", "Storm", "Viper", "Ghost", "Falcon",
+                    "Dragon", "Omega", "Legend", "Rogue"];
+                for (let i = 0; i < names.length; i++) {
+                    bots.push({
+                        name: names[i],
+                        level: Math.floor(Math.random() * 5) + 1,
+                        stars: Math.floor(Math.random() * 400),
+                        isMe: false
+                    });
+                }
+                localStorage.setItem('hsLeaderboardBots', JSON.stringify(bots));
+            }
+            return bots;
+        }
+
+        function updateBots() {
+            let bots = getBotPool();
+            // Randomly level up a bot occasionally
+            if (Math.random() > 0.7) {
+                let idx = Math.floor(Math.random() * bots.length);
+                bots[idx].stars += Math.floor(Math.random() * 50);
+                if (bots[idx].stars >= 500) {
+                    bots[idx].level++;
+                    bots[idx].stars = 0;
+                }
+                localStorage.setItem('hsLeaderboardBots', JSON.stringify(bots));
+            }
+        }
+
         function loadLeaderboard() {
+            updateBots();
             const raw = localStorage.getItem('hammerStrikeSave');
             let myLevel = 1;
             let myName = 'PlayerOne';
             if (raw) {
                 const p = JSON.parse(raw);
-                if (p.level) myLevel = p.level;
-                if (p.nickname) myName = p.nickname;
+                myLevel = p.level || 1;
+                myName = p.nickname || 'PlayerOne';
             }
 
-            // Real Time (Uses fake other players to fill it but places you at your REAL rank)
-            // The user requested "not fake user use real time data show" - so we will just show the active user
-            // Unless they meant they want to see other people, but we have no backend!
-            // I will generate a realistic bracket based on the user's level.
-            let users = [];
+            let bots = getBotPool();
+            let users = bots.map(b => ({ ...b }));
             users.push({ name: myName, level: myLevel, isMe: true });
 
-            // Generate other persistent bots based on the user's level
-            let botsStr = localStorage.getItem('hammerStrikeBots');
-            let bots = [];
-            if (botsStr) {
-                // If there are existing bots from earlier saving, empty them out since user requested NO FAKE USERS.
-                localStorage.removeItem('hammerStrikeBots');
-            }
-
-            // No bots added to list
-            // users = users.concat(bots);
-
-            // Sort by level descending
-            users.sort((a, b) => b.level - a.level);
+            // Sort by level descending, then stars (simulated)
+            users.sort((a, b) => b.level !== a.level ? b.level - a.level : (b.stars || 0) - (a.stars || 0));
 
             let myRank = users.findIndex(u => u.isMe) + 1;
 
             const listEl = document.getElementById('leaderboard-list');
             const meEl = document.getElementById('leaderboard-me');
 
-            function generateRow(u, rNum, rankClass) {
+            function generateRow(u, rNum) {
+                let rankClass = '';
+                if (rNum === 1) rankClass = 'gold';
+                else if (rNum === 2) rankClass = 'silver';
+                else if (rNum === 3) rankClass = 'bronze';
+
                 let rowReward = 100;
                 if (rNum === 1) rowReward = 10000;
                 else if (rNum === 2) rowReward = 8000;
                 else if (rNum >= 3 && rNum <= 5) rowReward = 5000;
                 else if (rNum > 5 && rNum <= 10) rowReward = 2500;
                 else if (rNum > 10 && rNum <= 25) rowReward = 1000;
-                else if (rNum > 25 && rNum <= 50) rowReward = 500;
 
                 return `
                 <div class="lb-row" style="${u.isMe ? 'background: rgba(255,215,0,0.1);' : ''}">
@@ -697,32 +723,19 @@
             }
 
             if (listEl) {
-                listEl.innerHTML = users.slice(0, 100).map((u, i) => {
-                    let rankClass = '';
-                    let rNum = i + 1;
-                    if (rNum === 1) rankClass = 'gold';
-                    else if (rNum === 2) rankClass = 'silver';
-                    else if (rNum === 3) rankClass = 'bronze';
-
-                    return generateRow(u, rNum, rankClass);
-                }).join('');
+                listEl.innerHTML = users.slice(0, 50).map((u, i) => generateRow(u, i + 1)).join('');
             }
 
             if (meEl) {
-                let myRankClass = '';
-                if (myRank === 1) myRankClass = 'gold';
-                else if (myRank === 2) myRankClass = 'silver';
-                else if (myRank === 3) myRankClass = 'bronze';
-                meEl.innerHTML = generateRow(users.find(u => u.isMe), myRank, myRankClass);
+                meEl.innerHTML = generateRow(users.find(u => u.isMe), myRank);
             }
 
-            // Calculate reward brackets for you
+            // Update reward globals
             if (myRank === 1) { lbAdsRequired = 5; lbCoinReward = 10000; }
             else if (myRank === 2) { lbAdsRequired = 4; lbCoinReward = 8000; }
             else if (myRank >= 3 && myRank <= 5) { lbAdsRequired = 4; lbCoinReward = 5000; }
             else if (myRank > 5 && myRank <= 10) { lbAdsRequired = 3; lbCoinReward = 2500; }
             else if (myRank > 10 && myRank <= 25) { lbAdsRequired = 2; lbCoinReward = 1000; }
-            else if (myRank > 25 && myRank <= 50) { lbAdsRequired = 1; lbCoinReward = 500; }
             else { lbAdsRequired = 1; lbCoinReward = 100; }
         }
 
