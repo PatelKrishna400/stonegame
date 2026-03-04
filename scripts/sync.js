@@ -4,10 +4,10 @@
 const API_CONFIG = {
     // REPLACE THIS URL with your actual Render Backend URL after deployment
     // Example: https://stone-game-backend.onrender.com
-    BASE_URL: "https://stone-game-backend.onrender.com" 
+    BASE_URL: "https://stone-game-backend.onrender.com"
 };
 
-window.saveToCloud = async function(username) {
+window.saveToCloud = async function (username) {
     const rawSave = localStorage.getItem('hammerStrikeSave');
     if (!rawSave || !username) return;
 
@@ -27,7 +27,7 @@ window.saveToCloud = async function(username) {
         });
 
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        
+
         const result = await response.json();
         console.log("✅ Cloud Sync Successful:", result);
     } catch (error) {
@@ -36,9 +36,16 @@ window.saveToCloud = async function(username) {
 };
 
 // Auto-sync function to be called from game/tasks
-window.triggerAutoSync = function() {
+window.triggerAutoSync = function () {
     const user = localStorage.getItem('hsGlobalUsername');
-    if (user) {
+    const rawSave = localStorage.getItem('hammerStrikeSave');
+    if (user && rawSave) {
+        // 1. Sync to Render Backend
         window.saveToCloud(user);
+
+        // 2. Sync to Supabase Direct (Fallback/Redundancy)
+        if (window.syncToSupabaseDirect) {
+            window.syncToSupabaseDirect(user, JSON.parse(rawSave));
+        }
     }
 };
