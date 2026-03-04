@@ -501,10 +501,16 @@
 
             function logoutAccount() {
                 sessionStorage.removeItem('hammerStrikeUserLoggedIn');
+                localStorage.removeItem('hammerStrikeSave');
+                localStorage.removeItem('hsGlobalUsername');
+                localStorage.removeItem('hsGlobalPassword');
+                localStorage.removeItem('hsGlobalEmail');
+                localStorage.removeItem('hsGlobalPhone');
+                localStorage.removeItem('hsGlobalUserId');
                 window.location.href = 'index.html';
             }
         </script>
-        
+
 </body>
 
 </html>
