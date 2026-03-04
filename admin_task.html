@@ -378,19 +378,11 @@
                                 </select>
                             </div>
                             <div style="flex:1;">
-                                <select id="task-verify-code"
+                                <label
+                                    style="font-size:0.8rem;color:var(--text2);display:block;margin-bottom:5px;">Verify
+                                    Code (Empty=None)</label>
+                                <input type="number" id="task-verify-code" placeholder="Enter Verify Code"
                                     style="width:100%; padding:10px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:white; outline:none;">
-                                    <option value="none">No Code</option>
-                                    <option value="11">11</option>
-                                    <option value="22">22</option>
-                                    <option value="33">33</option>
-                                    <option value="44">44</option>
-                                    <option value="55">55</option>
-                                    <option value="66">66</option>
-                                    <option value="77">77</option>
-                                    <option value="88">88</option>
-                                    <option value="99">99</option>
-                                </select>
                             </div>
                         </div>
 
@@ -498,7 +490,7 @@
                 link,
                 type,
                 timer: parseInt(timer),
-                verifyCode: verifyCode === 'none' ? '' : verifyCode,
+                verifyCode: verifyCode,
                 quiz: type === 'youtube' ? { q1, a1, q2, a2 } : null
             };
 
