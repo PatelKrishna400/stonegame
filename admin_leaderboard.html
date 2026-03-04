@@ -214,13 +214,7 @@
             Exit to Game</a>
     </div>
 
-    <!-- Supabase System -->
-    <script type="module">
-        import { fetchAllUsers } from './supabase-sync.js';
-        async function update() { await fetchAllUsers(); loadRankings(); }
-        update();
-        setInterval(update, 60000);
-    </script>
+    
 </body>
 
 </html>

@@ -200,12 +200,7 @@
         </div>
     </div>
 
-    <!-- Supabase System -->
-    <script type="module">
-        import { saveToCloud, loadFromCloud } from './supabase-sync.js';
-        window.saveToCloud = saveToCloud;
-        window.loadFromCloud = loadFromCloud;
-    </script>
+    
 
     <script>
         function checkAuth() {
@@ -391,13 +386,7 @@
             }
         }
     </script>
-    <!-- Supabase System -->
-    <script type="module">
-        import { loadFromCloud, fetchAllUsers } from './supabase-sync.js';
-        window.loadFromCloud = loadFromCloud;
-        // Fetch users on load to ensure uniqueness check works
-        fetchAllUsers();
-    </script>
+    
 </body>
 
 </html>

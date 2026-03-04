@@ -784,28 +784,7 @@
 
         setInterval(loadSave, 1000);
     </script>
-    <!-- Supabase System -->
-    <script type="module">
-        import { saveToCloud } from './supabase-sync.js';
-        window.saveToCloud = saveToCloud;
-
-        function sync() {
-            const username = localStorage.getItem('hsGlobalUsername');
-            if (username && window.saveToCloud) {
-                window.saveToCloud(username);
-            }
-        }
-
-        // Sync every 2 minutes
-        setInterval(sync, 120000);
-
-        // Sync on page hide/close
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden') {
-                sync();
-            }
-        });
-    </script>
+    
 </body>
 
 </html>
