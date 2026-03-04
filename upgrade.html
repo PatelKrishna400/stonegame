@@ -501,7 +501,6 @@
         let energyLevel = 1;
         let tapPowerLevel = 1;
         let rechargeLevel = 1;
-        let autoClickSeconds = 0;
         let bonusDropLevel = 1;
         let adEnergyLevel = 1;
         let adCooldownLevel = 1;
@@ -548,7 +547,6 @@
                     }
                     if (parsed.tapPowerLevel) tapPowerLevel = parsed.tapPowerLevel;
                     if (parsed.rechargeLevel) rechargeLevel = parsed.rechargeLevel;
-                    if (parsed.autoClickSeconds) autoClickSeconds = parsed.autoClickSeconds;
                     if (parsed.bonusDropLevel) bonusDropLevel = parsed.bonusDropLevel;
                     if (parsed.stars !== undefined) stars = parsed.stars;
                     if (parsed.starsRequired !== undefined) starsRequired = parsed.starsRequired;
@@ -563,7 +561,6 @@
             document.getElementById('multitap-level').innerText = `Lvl ${tapPowerLevel}`;
             document.getElementById('recharge-level').innerText = `Lvl ${rechargeLevel}`;
             document.getElementById('energy-level-text').innerText = `Lvl ${energyLevel}`;
-            // document.getElementById('auto-click-stock').innerText = `${autoClickSeconds}s Reserve`; // This element is not in upgrade.html
             document.getElementById('bonus-drop-level').innerText = `Lvl ${bonusDropLevel}`;
             document.getElementById('ad-energy-level').innerText = `Lvl ${adEnergyLevel}`;
             document.getElementById('ad-cooldown-level').innerText = `Lvl ${adCooldownLevel}`;

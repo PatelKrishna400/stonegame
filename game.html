@@ -452,16 +452,6 @@
             display: none;
         }
 
-        .btn-auto {
-            margin-left: 8px;
-            padding: 4px 8px;
-            font-size: 0.6rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            color: var(--text);
-            cursor: pointer;
-        }
 
         .btn-multiplier {
             margin-left: 4px;
@@ -761,7 +751,6 @@
         const tapEnergyCost = 1;
         let rechargeLevel = 1;
         let timerSeconds = 5;
-        let autoClickSeconds = 0;
         let adLimitLevel = 1;
         let adCooldownLevel = 1;
         let adEnergyLevel = 1;
@@ -772,14 +761,10 @@
         let multiplierIndex = 0;
         const multiplierValues = [1, 2, 3, 5, 10, 20];
         let adsWatched = 0; // Initialize adsWatched
-        let autoClickActive = false; // Missing definition fixed
         let energyAdsCount = 0; // Track ads in current cycle
         let energyAdNextReadyTime = 0; // Next time an ad can be watched
         let energyAdSkipCounter = 0; // Counter for ads watched to skip the 5h cooldown
 
-        function stopAutoClick() {
-            autoClickActive = false;
-        }
 
         function toggleMultiplier() {
             let available = [1, 2, 3, 5];
@@ -845,7 +830,6 @@
                 if (parsed.tapPowerLevel !== undefined) tapPower = parsed.tapPowerLevel;
                 if (parsed.rechargeLevel !== undefined) rechargeLevel = parsed.rechargeLevel;
                 if (parsed.bonusDropLevel !== undefined) bonusDropLevel = parsed.bonusDropLevel;
-                if (parsed.autoClickSeconds !== undefined) autoClickSeconds = parsed.autoClickSeconds;
                 if (parsed.adEnergyLevel !== undefined) adEnergyLevel = parsed.adEnergyLevel;
                 if (parsed.adCooldownLevel !== undefined) adCooldownLevel = parsed.adCooldownLevel;
                 if (parsed.adLimitLevel !== undefined) adLimitLevel = parsed.adLimitLevel;
@@ -967,9 +951,6 @@
                 updateUI();
                 saveGameState(); // Instant save for cross-tab sync
             } else {
-                if (autoClickActive) {
-                    stopAutoClick();
-                }
                 energy = 0; // Explicitly set to 0 to ensure precision
                 showAdModal();
             }
@@ -1116,7 +1097,6 @@
         let adPopupCooldown = 0;
         function showAdModal() {
             try {
-                if (autoClickActive) stopAutoClick();
                 const modal = document.getElementById('ad-modal');
                 const btn = document.getElementById('watch-ad-btn');
                 const now = Date.now();
@@ -1304,7 +1284,6 @@
                 tapPowerLevel: tapPower,
                 rechargeLevel: rechargeLevel,
                 bonusDropLevel: bonusDropLevel,
-                autoClickSeconds: autoClickSeconds,
                 stageIdx: existingData.stageIdx || 0,
                 autoExpiry: Date.now() + 60000,
                 timerSeconds: timerSeconds, // Save real-time sub-timer
@@ -1352,7 +1331,6 @@
             else if (lvl === 3) pendingLvlReward = 500;
             else pendingLvlReward = lvl * 200;
 
-            if (autoClickActive) stopAutoClick(); // Pause autoclicker when showing modal
             document.getElementById('lvlup-title').innerText = `Level ${lvl} Reached!`;
             document.getElementById('lvlup-desc').innerText = `You earned ${pendingLvlReward} Coins. Watch an ad to DOUBLE it (${pendingLvlReward * 2} Coins)!`;
             document.getElementById('levelup-modal').style.display = 'flex';
