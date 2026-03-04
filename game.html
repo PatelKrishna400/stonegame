@@ -974,10 +974,6 @@
 
         // Multi-touch handler via pointerdown
         clicker.addEventListener('pointerdown', (e) => {
-            if (Date.now() < breakTimeEnd) {
-                showBreakModal();
-                return;
-            }
             processClick(e.clientX, e.clientY);
         });
 
@@ -1234,21 +1230,6 @@
         const energyTimerEl = document.getElementById('energy-timer');
 
         setInterval(() => {
-            // Check break time
-            if (Date.now() < breakTimeEnd) {
-                showBreakModal();
-            } else {
-                document.getElementById('break-modal').style.display = 'none';
-                sessionPlayTime++;
-                if (sessionPlayTime >= 180) { // 3 minutes
-                    sessionPlayTime = 0;
-                    // Continuous break: set a 10-second break every 3 minutes
-                    breakTimeEnd = Date.now() + 10 * 1000;
-                    saveGameState();
-                    showBreakModal();
-                }
-            }
-
             // Recharge calculations
             const rTime = Math.max(1, 30 - (rechargeLevel - 1));
             const rAmt = 1 + (rechargeLevel - 1) * 0.1;
