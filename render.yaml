@@ -1,0 +1,18 @@
+services:
+  # Python Flask Backend
+  - type: web
+    name: stone-game-backend
+    runtime: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: gunicorn --chdir backend app:app
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+
+  # Static HTML Frontend
+  - type: static
+    name: stone-game-frontend
+    buildCommand: "" # Pure HTML/JS
+    publishPath: "."

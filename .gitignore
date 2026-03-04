@@ -1,0 +1,15 @@
+# Backend
+backend/.env
+backend/__pycache__/
+backend/*.pyc
+backend/venv/
+
+# Assets/Images (if any large ones are generated)
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# System
+.DS_Store
+Thumbs.db
