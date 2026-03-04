@@ -135,9 +135,17 @@
             <label>Password</label>
             <input type="password" id="password" placeholder="••••••••">
         </div>
+        <div id="reg-phone-group" style="display:none;" class="input-group">
+            <label>Phone Number (Unique ID)</label>
+            <input type="text" id="phone" placeholder="Enter phone number">
+        </div>
 
         <button class="btn btn-login" onclick="handleLogin()">Login</button>
-        <button class="btn btn-register" onclick="handleRegister()">Register</button>
+        <button class="btn btn-login" onclick="handleLogin()">Login</button>
+        <button id="btn-reg-toggle" class="btn btn-register" onclick="toggleRegisterMode()">New Player?
+            Register</button>
+        <button id="btn-reg-submit" class="btn btn-register" style="display:none; background:var(--gold); color:#000;"
+            onclick="handleRegister()">Complete Registration</button>
 
         <div style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
             <button
@@ -159,12 +167,20 @@
             document.getElementById('subtitle').innerText = "Please log in to continue.";
         }
 
+        function toggleRegisterMode() {
+            document.getElementById('reg-phone-group').style.display = 'block';
+            document.getElementById('btn-reg-toggle').style.display = 'none';
+            document.getElementById('btn-reg-submit').style.display = 'block';
+            document.getElementById('subtitle').innerText = "Create a new account with your phone number.";
+        }
+
         function handleRegister() {
             const u = document.getElementById('username').value.trim();
             const p = document.getElementById('password').value.trim();
+            const n = document.getElementById('phone').value.trim();
 
-            if (!u || !p) {
-                alert("Please enter both username and password.");
+            if (!u || !p || !n) {
+                alert("Please enter username, password, and phone number.");
                 return;
             }
 
@@ -173,9 +189,10 @@
                 return;
             }
 
-            const userId = Date.now();
+            const userId = n;
             localStorage.setItem('hsGlobalUsername', u);
             localStorage.setItem('hsGlobalPassword', p);
+            localStorage.setItem('hsGlobalPhone', n);
             localStorage.setItem('hsGlobalUserId', userId);
             localStorage.setItem('hammerStrikeUserRegistered', 'true');
             sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
@@ -189,8 +206,12 @@
             if (!existingSave.level) existingSave.level = 1;
 
             existingSave.nickname = u;
+            existingSave.phone = n;
             existingSave.userId = userId;
             localStorage.setItem('hammerStrikeSave', JSON.stringify(existingSave));
+
+            // Sync to cloud
+            if (window.saveToCloud) window.saveToCloud(u);
 
             alert("Registration successful! Welcome " + u);
             window.location.href = 'user_stone.html';

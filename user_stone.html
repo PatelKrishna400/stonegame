@@ -178,38 +178,41 @@
         }
 
         .leaderboard {
-            background: var(--surface);
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border);
-            border-radius: 20px;
+            border-radius: 16px;
             overflow: hidden;
         }
 
-        .lb-row {
+        .lb-item {
             display: flex;
             align-items: center;
-            padding: 15px;
+            padding: 12px 15px;
             border-bottom: 1px solid var(--border);
             transition: background 0.2s;
         }
 
-        .lb-row:last-child {
+        .lb-item:last-child {
             border-bottom: none;
         }
 
-        .lb-row:hover {
+        .lb-item:hover {
             background: rgba(255, 255, 255, 0.05);
         }
 
+        .lb-item.is-me {
+            background: rgba(255, 215, 0, 0.08);
+        }
+
         .lb-rank {
-            font-weight: 800;
-            font-size: 1.1rem;
             width: 30px;
-            text-align: center;
+            font-weight: 800;
+            font-size: 0.9rem;
             color: var(--text2);
         }
 
         .lb-rank.gold {
-            color: var(--gold);
+            color: #ffd700;
         }
 
         .lb-rank.silver {
@@ -220,7 +223,7 @@
             color: #cd7f32;
         }
 
-        .lb-user {
+        .lb-info {
             flex: 1;
             display: flex;
             align-items: center;
@@ -721,27 +724,40 @@
         }
 
         function loadLeaderboard() {
-            updateBots();
-            const raw = localStorage.getItem('hammerStrikeSave');
-            let myLevel = 1;
-            let myName = 'PlayerOne';
-            if (raw) {
-                const p = JSON.parse(raw);
-                myLevel = p.level || 1;
-                myName = p.nickname || 'PlayerOne';
-            }
-
-            let bots = getBotPool();
-            let users = bots.map(b => ({ ...b }));
-            users.push({ name: myName, level: myLevel, isMe: true });
-
-            // Sort by level descending, then stars (simulated)
-            users.sort((a, b) => b.level !== a.level ? b.level - a.level : (b.stars || 0) - (a.stars || 0));
-
-            let myRank = users.findIndex(u => u.isMe) + 1;
-
             const listEl = document.getElementById('leaderboard-list');
             const meEl = document.getElementById('leaderboard-me');
+
+            // Get all cloud users (registered accounts)
+            let users = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
+
+            // Handle local user
+            const raw = localStorage.getItem('hammerStrikeSave');
+            let myData = null;
+            if (raw) {
+                myData = JSON.parse(raw);
+            }
+
+            // If local user not in cloud list yet, add them for display
+            if (myData && !users.find(u => u.userId === myData.userId)) {
+                users.push({
+                    nickname: myData.nickname,
+                    level: myData.level || 1,
+                    coins: myData.coins || 0,
+                    userId: myData.userId,
+                    isMe: true
+                });
+            }
+
+            // Mark current user in the list
+            users.forEach(u => {
+                if (myData && u.userId === myData.userId) u.isMe = true;
+                else u.isMe = false;
+            });
+
+            // Sort by coins descending
+            users.sort((a, b) => b.coins - a.coins);
+
+            let myRank = users.findIndex(u => u.isMe) + 1;
 
             function generateRow(u, rNum) {
                 let rankClass = '';
@@ -757,22 +773,27 @@
                 else if (rNum > 10 && rNum <= 25) rowReward = 1000;
 
                 return `
-                <div class="lb-row" style="${u.isMe ? 'background: rgba(255,215,0,0.1);' : ''}">
-                    <div class="lb-rank ${rankClass}">#${rNum}</div>
-                    <div class="lb-user">
-                        <div class="lb-avatar" style="border-radius:6px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); width:auto; padding:0 8px; font-size:0.75rem; font-weight:800; display:flex; align-items:center; justify-content:center; color:var(--gold);">Lvl ${u.level}</div>
-                        <div class="lb-name">${u.name} ${u.isMe ? '(You)' : ''}</div>
+                <div class="lb-item ${u.isMe ? 'is-me' : ''}">
+                    <div class="lb-rank ${rankClass}">${rNum}</div>
+                    <div class="lb-info">
+                        <div class="lb-name">${u.nickname || u.username || 'Anonymous'} ${u.isMe ? '(You)' : ''}</div>
+                        <div class="lb-details">Lvl ${u.level || 1} • ${(u.coins || 0).toLocaleString()} 🪙</div>
                     </div>
-                    <div class="lb-score" style="color:#2ecc71;">+${rowReward.toLocaleString()} 🪙</div>
-                </div>`;
+                </div>
+                `;
             }
 
             if (listEl) {
                 listEl.innerHTML = users.slice(0, 50).map((u, i) => generateRow(u, i + 1)).join('');
             }
 
-            if (meEl) {
-                meEl.innerHTML = generateRow(users.find(u => u.isMe), myRank);
+            if (meEl && myData) {
+                meEl.innerHTML = generateRow({
+                    nickname: myData.nickname,
+                    level: myData.level || 1,
+                    coins: myData.coins || 0,
+                    isMe: true
+                }, myRank || '?');
             }
 
             // Update reward globals

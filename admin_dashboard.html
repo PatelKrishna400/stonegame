@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
@@ -59,10 +60,9 @@
             background: transparent;
         }
 
-        /* HEADER & BOTTOM NAV */
         header {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             padding: 15px 20px;
             background: rgba(20, 23, 39, 0.8);
@@ -71,18 +71,6 @@
             position: sticky;
             top: 0;
             z-index: 10;
-        }
-
-        .logout-btn {
-            background: rgba(231, 76, 60, 0.1);
-            border: 1px solid rgba(231, 76, 60, 0.35);
-            padding: 6px 12px;
-            border-radius: 8px;
-            color: #e74c3c;
-            font-size: 0.8rem;
-            font-weight: 700;
-            cursor: pointer;
-            text-decoration: none;
         }
 
         .logo {
@@ -100,24 +88,6 @@
             flex-direction: column;
             gap: 20px;
             padding-bottom: 20px;
-        }
-
-
-
-
-
-
-
-
-
-
-
-        .page {
-            display: none;
-        }
-
-        .page.active {
-            display: block;
         }
 
         .page-header {
@@ -138,7 +108,6 @@
             margin-top: 2px;
         }
 
-        /* COMPONENTS */
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -160,17 +129,6 @@
         .stat-card:hover {
             transform: translateY(-2px);
             border-color: rgba(255, 215, 0, 0.2);
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 80px;
-            height: 80px;
-            background: radial-gradient(circle, var(--card-accent, rgba(255, 215, 0, 0.08)), transparent 70%);
-            border-radius: 50%;
         }
 
         .stat-label {
@@ -221,55 +179,6 @@
             gap: 8px;
         }
 
-        .grid-2 {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .detail-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .detail-table tr {
-            border-bottom: 1px solid var(--border);
-        }
-
-        .detail-table tr:last-child {
-            border-bottom: none;
-        }
-
-        .detail-table td,
-        .detail-table th {
-            padding: 11px 0;
-            font-size: 0.83rem;
-            color: white;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 700;
-        }
-
-        .badge-green {
-            background: rgba(39, 174, 96, 0.2);
-            color: #2ecc71;
-        }
-
-        .badge-red {
-            background: rgba(231, 76, 60, 0.2);
-            color: #e74c3c;
-        }
-
-        .badge-gray {
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--text2);
-        }
-
         .danger-btn {
             background: rgba(231, 76, 60, 0.1);
             border: 1px solid rgba(231, 76, 60, 0.35);
@@ -281,53 +190,15 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-
-        .danger-btn:hover {
-            background: rgba(231, 76, 60, 0.25);
-        }
-
-        .quest-row {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .quest-row:last-child {
-            border-bottom: none;
-        }
-
-        .quest-icon {
-            font-size: 1.3rem;
-        }
-
-        .quest-name {
-            font-size: 0.83rem;
-            font-weight: 600;
-            margin-bottom: 4px;
-            color: var(--gold);
-        }
-
-        .quest-pct {
-            font-size: 0.72rem;
-            color: var(--text2);
-        }
-
-        input {
-            font-family: 'Inter', sans-serif;
-        }
     </style>
+    <meta name="monetag" content="f15c9aa6cd721474b07b0a0f974d06b8">
 </head>
 
 <body>
 
-
     <header
         style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: rgba(20, 23, 39, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.07); position: sticky; top: 0; z-index: 2000;">
-        <div class="logo"
-            style="font-size: 1.2rem; font-weight: 800; color: #ffd700; letter-spacing: 2px; text-transform: uppercase;">
-            Admin Admin</div>
+        <div class="logo">Admin Dashboard</div>
         <div class="header-right" style="display:flex; align-items:center; gap:10px;">
             <button class="logout-btn" onclick="adminLogout()"
                 style="background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.35); padding: 6px 12px; border-radius: 8px; color: #e74c3c; font-size: 0.8rem; font-weight: 700; cursor: pointer; text-decoration: none;">Logout</button>
@@ -337,14 +208,12 @@
         </div>
     </header>
 
-
-
     <main class="main">
         <div class="page active">
             <div class="page-header">
                 <div>
-                    <div class="page-title">📊 Dashboard</div>
-                    <div class="page-subtitle">Global real-time overview of Stone Game live statistics</div>
+                    <div class="page-title">📊 Overview</div>
+                    <div class="page-subtitle" id="lastSyncText">Real-time cloud data statistics</div>
                 </div>
             </div>
 
@@ -359,227 +228,96 @@
                     <div class="stat-icon">🪙</div>
                     <div class="stat-label">Coins Mined</div>
                     <div class="stat-value" id="dash-coins" style="color:#64c8ff;">0</div>
-                    <div class="stat-sub">From local save</div>
+                    <div class="stat-sub">Across all accounts</div>
                 </div>
                 <div class="stat-card" style="--card-accent:rgba(231,76,60,0.08);">
                     <div class="stat-icon">💸</div>
-                    <div class="stat-label">Pending Withdrawals</div>
+                    <div class="stat-label">Withdrawals</div>
                     <div class="stat-value" id="dash-withdraws" style="color:#e74c3c;">0</div>
-                    <div class="stat-sub">Requires action</div>
+                    <div class="stat-sub">Pending requests</div>
                 </div>
                 <div class="stat-card" style="--card-accent:rgba(155,89,182,0.08);">
                     <div class="stat-icon">📺</div>
-                    <div class="stat-label">Total Ads Viewed</div>
+                    <div class="stat-label">Total Ads</div>
                     <div class="stat-value" id="dash-ads" style="color:#9b59b6;">0</div>
-                    <div class="stat-sub">Across all players</div>
-                </div>
-            </div>
-            <div class="grid-2">
-                <div class="section-card">
-                    <div class="section-title">📈 Server Status</div>
-                    <div
-                        style="height:150px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:rgba(255,255,255,0.4);">
-                        <div style="font-size:3rem; margin-bottom:10px;">🟢</div>
-                        <div style="font-size:0.9rem; color:var(--text2);">Everything is running perfectly</div>
-                    </div>
-                </div>
-                <div class="section-card">
-                    <div class="section-title">🔔 Recent Local Events</div>
-                    <table class="detail-table" id="events-table">
-                        <tr>
-                            <td style="color:var(--text2);text-align:center;padding:20px;">Waiting for events...</td>
-                        </tr>
-                    </table>
+                    <div class="stat-sub">Cumulative views</div>
                 </div>
             </div>
 
+            <div class="section-card">
+                <div class="section-title">📅 Monthly User Activity</div>
+                <div style="height:250px; position:relative;">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
         </div>
     </main>
 
     <script>
-        function loadSave() {
-            const raw = localStorage.getItem('hammerStrikeSave');
-            if (!raw) return null;
-            try { return JSON.parse(raw); } catch (e) { return null; }
-        }
         function fmt(n) { return Number(n || 0).toLocaleString(); }
-
-        function loadTasks() {
-            const raw = localStorage.getItem('hammerStrikeAdminTasks');
-            if (!raw) return [];
-            try { return JSON.parse(raw); } catch (e) { return []; }
-        }
-        function saveTasks(tasks) {
-            localStorage.setItem('hammerStrikeAdminTasks', JSON.stringify(tasks));
-        }
-
         function loadWithdrawals() {
             const raw = localStorage.getItem('hammerStrikeWithdrawals');
             if (!raw) return [];
             try { return JSON.parse(raw); } catch (e) { return []; }
         }
-        function saveWithdrawals(reqs) {
-            localStorage.setItem('hammerStrikeWithdrawals', JSON.stringify(reqs));
-        }
 
-        let isRenderedOnce = false;
+        let myChart = null;
 
         function render() {
-            const data = loadSave();
-            const timeEl = document.getElementById('lastSyncTime');
-            if (timeEl) timeEl.textContent = new Date().toLocaleTimeString();
-
-            // Dash
+            const allUsers = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
             const du = document.getElementById('dash-users');
-            if (du) du.textContent = data ? '1' : '0';
+            if (du) du.textContent = allUsers.length.toString();
+
+            const totalCoins = allUsers.reduce((sum, u) => sum + (u.coins || 0), 0);
             const dc = document.getElementById('dash-coins');
-            if (dc) dc.textContent = data ? fmt(data.coins || 0) : '0';
+            if (dc) dc.textContent = fmt(totalCoins);
+
+            const totalAds = allUsers.reduce((sum, u) => sum + (u.allData?.adsWatched || 0), 0);
+            const da = document.getElementById('dash-ads');
+            if (da) da.textContent = fmt(totalAds);
 
             const reqs = loadWithdrawals();
             const dw = document.getElementById('dash-withdraws');
             if (dw) dw.textContent = reqs.filter(r => r.status === 'pending').length.toString();
 
-            const adsCount = parseInt(localStorage.getItem('hammerStrikeAdsWatched') || '0');
-            const da = document.getElementById('dash-ads');
-            if (da) da.textContent = fmt(adsCount);
+            renderChart(allUsers);
+        }
 
-            const eventsTable = document.getElementById('events-table');
-            if (eventsTable && data && !isRenderedOnce) {
-                eventsTable.innerHTML = `
-                    <tr><td>Player save found in localStorage</td><td style="color:#2ecc71;">Online</td></tr>
-                    ${autoActive ? '<tr><td>User PlayerOne auto-click active</td><td style="color:#2ecc71;">Live</td></tr>' : ''}
-                    ${data.stageIdx !== undefined ? `<tr><td>User PlayerOne current stage is ${(data.stageIdx || 0) + 1}</td><td style="color:var(--gold);">Recently</td></tr>` : ''}
-                `;
-                isRenderedOnce = true;
-            }
+        function renderChart(users) {
+            const ctx = document.getElementById('monthlyChart').getContext('2d');
+            const days = Array.from({ length: 30 }, (_, i) => i + 1);
+            const counts = Array(30).fill(0);
 
-            // User Data Table
-            const usersTbody = document.getElementById('users-tbody');
-            if (usersTbody) {
-                if (!data) {
-                    if (!isRenderedOnce) usersTbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:20px;">No registered users yet. Play the game first.</td></tr>';
-                } else {
-                    const id = data.id || '#1001';
-                    const nickname = data.nickname || 'PlayerOne';
-                    const lvl = data.level || 1;
-                    const stg = (data.stageIdx || 0) + 1;
-                    const c = fmt(data.coins || 0);
-
-                    usersTbody.innerHTML = `
-                        <tr id="user-row">
-                            <td style="padding:10px;">${id}</td>
-                            <td>${nickname}</td>
-                            <td>Lv ${lvl} / Stg ${stg}</td>
-                            <td style="color:var(--gold);">${c} 🪙</td>
-                            <td><span class="badge badge-green">Online</span></td>
-                            <td style="text-align:right;"><button class="danger-btn" onclick="deleteUser()" style="padding:4px 10px;">Delete Save</button></td>
-                        </tr>
-                    `;
+            users.forEach(u => {
+                if (u.lastSave) {
+                    const d = new Date(u.lastSave).getDate();
+                    if (d > 0 && d <= 30) counts[d - 1]++;
                 }
-            }
-
-            // Tasks 
-            renderTasks();
-
-            // Withdrawals
-            renderWithdrawals();
-        }
-
-        window.deleteUser = function () {
-            if (confirm("Are you sure you want to permanently delete the player save data?")) {
-                localStorage.removeItem('hammerStrikeSave');
-                render();
-            }
-        }
-
-        // Task Management
-        window.uploadTask = function () {
-            const title = document.getElementById('task-title').value;
-            const reward = document.getElementById('task-reward').value;
-            const link = document.getElementById('task-link').value;
-            if (!title || !reward || !link) return alert("Please fill all fields");
-
-            const tasks = loadTasks();
-            tasks.push({ id: Date.now(), title, reward: parseInt(reward), link });
-            saveTasks(tasks);
-
-            document.getElementById('task-title').value = '';
-            document.getElementById('task-reward').value = '';
-            document.getElementById('task-link').value = '';
-            renderTasks();
-        }
-
-        window.removeTask = function (id) {
-            let tasks = loadTasks();
-            tasks = tasks.filter(t => t.id !== id);
-            saveTasks(tasks);
-            renderTasks();
-        }
-
-        function renderTasks() {
-            const tb = document.getElementById('tasks-container');
-            if (!tb) return;
-            const tasks = loadTasks();
-            if (tasks.length === 0) {
-                tb.innerHTML = '<div style="color:var(--text2);text-align:center;padding:20px;">No active tasks uploaded yet.</div>';
-            } else {
-                tb.innerHTML = tasks.map(t => `
-                    <div class="quest-row">
-                        <div class="quest-icon">📝</div>
-                        <div class="quest-info">
-                            <div class="quest-name">${t.title}</div>
-                            <div class="quest-pct" style="color:var(--gold);">Reward: ${t.reward} 🪙 | <a href="${t.link}" style="color:var(--blue);" target="_blank">Link</a></div>
-                        </div>
-                        <div><button class="danger-btn" onclick="removeTask(${t.id})" style="padding:5px 10px;">Remove</button></div>
-                    </div>
-                `).join('');
-            }
-        }
-
-        // Withdrawals Management
-        window.handleWithdrawAction = function (id, action) {
-            let reqs = loadWithdrawals();
-            reqs = reqs.map(r => {
-                if (r.id === id) r.status = action;
-                return r;
             });
-            saveWithdrawals(reqs);
-            renderWithdrawals();
-        }
 
-        function renderWithdrawals() {
-            const wtb = document.getElementById('withdrew-tbody');
-            if (!wtb) return;
-            const reqs = loadWithdrawals();
-
-            if (reqs.length === 0) {
-                wtb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:20px;">No withdrawal requests found. Submit a request from the game to test.</td></tr>';
-            } else {
-                wtb.innerHTML = reqs.map(r => {
-                    let actions = '';
-                    if (r.status === 'pending') {
-                        actions = `
-                            <button class="danger-btn" onclick="handleWithdrawAction(${r.id}, 'approved')" style="background:#2ecc71; color:#fff; border:none; padding:5px 10px; margin-right:5px;">Approve</button>
-                            <button class="danger-btn" onclick="handleWithdrawAction(${r.id}, 'rejected')" style="padding:5px 10px;">Reject</button>
-                        `;
-                    } else if (r.status === 'approved') {
-                        actions = '<span class="badge badge-green">Approved</span>';
-                    } else if (r.status === 'rejected') {
-                        actions = '<span class="badge badge-red">Rejected</span>';
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: days,
+                    datasets: [{
+                        label: 'Active Users',
+                        data: counts,
+                        borderColor: '#ffd700',
+                        backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                        fill: true, tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)', stepSize: 1 } },
+                        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)' } }
                     }
-
-                    return `
-                    <tr>
-                        <td style="padding:10px;">#REQ-${r.id.toString().slice(-4)}</td>
-                        <td>#1001</td>
-                        <td>${r.upi || 'user@upi'}</td>
-                        <td style="color:var(--gold);">${fmt(r.amount)}</td>
-                        <td style="color:#2ecc71;">₹${(r.amount / 10).toFixed(2)}</td>
-                        <td style="text-align:right;">${actions}</td>
-                    </tr>
-                `;
-                }).join('');
-            }
+                }
+            });
         }
 
         function adminLogout() {
@@ -587,82 +325,46 @@
             window.location.href = 'index.html';
         }
 
-        setInterval(render, 3000);
-        render(); // Initial call
+        function openMenu() { document.getElementById('side-menu').style.transform = 'translateX(0)'; document.getElementById('menu-overlay').style.display = 'block'; }
+        function closeMenu() { document.getElementById('side-menu').style.transform = 'translateX(100%)'; document.getElementById('menu-overlay').style.display = 'none'; }
+
+        render();
+        setInterval(render, 5000);
     </script>
-
-    <script>
-        if (window.Telegram && window.Telegram.WebApp) {
-            window.Telegram.WebApp.expand();
-            window.Telegram.WebApp.ready();
-        }
-
-        function openMenu() {
-            var menu = document.getElementById('side-menu');
-            var overlay = document.getElementById('menu-overlay');
-            if (menu && overlay) {
-                menu.style.transform = 'translateX(0)';
-                overlay.style.display = 'block';
-            }
-        }
-        function closeMenu() {
-            var menu = document.getElementById('side-menu');
-            var overlay = document.getElementById('menu-overlay');
-            if (menu && overlay) {
-                menu.style.transform = 'translateX(100%)';
-                overlay.style.display = 'none';
-            }
-        }
-        function adminLogout() {
-            localStorage.removeItem('hammerStrikeAdminLoggedIn');
-            window.location.href = 'index.html';
-        }
-    </script>
-    </main>
-
 
     <div class="menu-overlay" id="menu-overlay" onclick="closeMenu()"
         style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); z-index: 2900; display: none;">
     </div>
     <div class="side-menu" id="side-menu"
-        style="position: fixed; top: 0; right: 0; width: 250px; height: 100%; background: #141727; border-left: 1px solid rgba(255, 255, 255, 0.07); box-shadow: -5px 0 20px rgba(0,0,0,0.5); z-index: 3000; padding: 20px; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: #ffffff; font-family: 'Inter', sans-serif;">
+        style="position: fixed; top: 0; right: 0; width: 250px; height: 100%; background: #141727; border-left: 1px solid rgba(255, 255, 255, 0.07); box-shadow: -5px 0 20px rgba(0,0,0,0.5); z-index: 3000; padding: 20px; transform: translateX(100%); transition: transform 0.3s; color: #ffffff; font-family: 'Inter', sans-serif;">
         <div
             style="font-size: 1.2rem; font-weight: 800; color: #ffd700; margin-bottom: 20px; display:flex; justify-content:space-between; align-items:center;">
             <span>☰ Menu</span>
             <span onclick="closeMenu()" style="cursor:pointer; font-size:1.5rem;">×</span>
         </div>
-        <a href="admin_dashboard.html" class="menu-item"
-            style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 5px;">📊
+        <a href="admin_dashboard.html"
+            style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07);">📊
             Dashboard</a>
-        <a href="admin_usersdata.html" class="menu-item"
-            style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 5px;">👥
+        <a href="admin_usersdata.html"
+            style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07);">👥
             Users</a>
-        <a href="admin_task.html" class="menu-item"
-            style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 5px;">📋
+        <a href="admin_task.html"
+            style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07);">📋
             Tasks</a>
-        <a href="admin_leaderboard.html" class="menu-item"
-            style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 5px;">🏆
+        <a href="admin_leaderboard.html"
+            style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07);">🏆
             Rankings</a>
-        <a href="admin_withdraw.html" class="menu-item"
-            style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 5px;">💸
-            Funds</a>
-        <a href="user_stone.html" class="menu-item"
+        <a href="user_stone.html"
             style="display: block; padding: 12px 10px; color: #ffd700; text-decoration: none; font-weight: 700; margin-top: 20px;">🎮
             Exit to Game</a>
     </div>
+
     <!-- Supabase System -->
     <script type="module">
         import { fetchAllUsers } from './supabase-sync.js';
-
-        async function updateAdminFromCloud() {
-            await fetchAllUsers();
-            if (typeof render === 'function') {
-                render();
-            }
-        }
-
-        updateAdminFromCloud();
-        setInterval(updateAdminFromCloud, 300000);
+        async function update() { await fetchAllUsers(); render(); }
+        update();
+        setInterval(update, 60000);
     </script>
 </body>
 

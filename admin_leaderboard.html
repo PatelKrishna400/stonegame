@@ -99,36 +99,48 @@
             font-size: 0.95rem;
         }
 
+        .rank-details {
+            font-size: 0.75rem;
+            color: var(--text2);
+            margin-top: 2px;
+        }
+
         .rank-score {
             font-size: 0.85rem;
             color: var(--gold);
             font-weight: 700;
         }
+
+        .danger-btn {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.35);
+            border-radius: 8px;
+            color: #e74c3c;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
     </style>
+    <meta name="monetag" content="f15c9aa6cd721474b07b0a0f974d06b8">
 </head>
 
 <body>
 
     <header
         style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: rgba(20, 23, 39, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.07); position: sticky; top: 0; z-index: 2000;">
-        <div class="logo"
-            style="font-size: 1.2rem; font-weight: 800; color: #ffd700; letter-spacing: 2px; text-transform: uppercase;">
-            Leaderboard Admin</div>
+        <div class="logo">Admin Rankings</div>
         <div class="header-right" style="display:flex; align-items:center; gap:10px;">
-            <button class="logout-btn" onclick="adminLogout()"
-                style="background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.35); padding: 6px 12px; border-radius: 8px; color: #e74c3c; font-size: 0.8rem; font-weight: 700; cursor: pointer; text-decoration: none;">Logout</button>
+            <button class="logout-btn" onclick="adminLogout()">Logout</button>
             <div class="menu-btn" onclick="openMenu()"
                 style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; color: #ffd700;">
                 ☰</div>
         </div>
     </header>
 
-
-
-
     <main class="main">
         <div class="section-card">
-            <div class="section-title">🏆 Top Players</div>
+            <div class="section-title">🏆 Cloud Leaderboard</div>
             <div id="leaderboard-list">
                 <div style="text-align:center; padding:20px; color:var(--text2);">Loading rankings...</div>
             </div>
@@ -138,112 +150,73 @@
     <script>
         function loadRankings() {
             const list = document.getElementById('leaderboard-list');
-            const rawAll = localStorage.getItem('hammerStrikeAllUsers');
-            let users = [];
-
-            if (rawAll) {
-                try {
-                    const parsed = JSON.parse(rawAll);
-                    if (Array.isArray(parsed)) users = parsed;
-                } catch (e) { }
-            }
-
-            // Fallback to single user if all users empty but current user exists
-            if (users.length === 0) {
-                const rawSave = localStorage.getItem('hammerStrikeSave');
-                if (rawSave) {
-                    try {
-                        const s = JSON.parse(rawSave);
-                        users.push({ nickname: s.nickname || 'PlayerOne', coins: s.coins || 0, level: s.level || 1 });
-                    } catch (e) { }
-                }
-            }
+            const users = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
 
             if (users.length === 0) {
-                list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text2);">Leaderboard is empty. No users found.</div>';
+                list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text2);">Leaderboard is empty. No users found in cloud.</div>';
                 return;
             }
 
-            users.sort((a, b) => b.coins - a.coins);
+            // Sort by coins descending
+            users.sort((a, b) => (b.coins || 0) - (a.coins || 0));
 
             list.innerHTML = users.map((u, i) => `
                 <div class="rank-item">
                     <div class="rank-num">#${i + 1}</div>
                     <div class="rank-info">
-                        <div class="rank-name">${u.nickname}</div>
-                        <div style="font-size:0.75rem; color:var(--text2);">Level ${u.level}</div>
+                        <div class="rank-name">${u.nickname || u.username} <span style="font-size:0.7rem; color:var(--text2);">(ID: ${u.userId})</span></div>
+                        <div class="rank-details">Level ${u.level || 1} • ${u.allData?.adsWatched || 0} Ads</div>
                     </div>
-                    <div class="rank-score">${u.coins.toLocaleString()} 🪙</div>
+                    <div class="rank-score">${(u.coins || 0).toLocaleString()} 🪙</div>
                 </div>
             `).join('');
         }
-        loadRankings();
-        setInterval(loadRankings, 5000);
 
-        function openMenu() {
-            var menu = document.getElementById('side-menu');
-            var overlay = document.getElementById('menu-overlay');
-            if (menu && overlay) {
-                menu.style.transform = 'translateX(0)';
-                overlay.style.display = 'block';
-            }
-        }
-        function closeMenu() {
-            var menu = document.getElementById('side-menu');
-            var overlay = document.getElementById('menu-overlay');
-            if (menu && overlay) {
-                menu.style.transform = 'translateX(100%)';
-                overlay.style.display = 'none';
-            }
-        }
         function adminLogout() {
             localStorage.removeItem('hammerStrikeAdminLoggedIn');
             window.location.href = 'index.html';
         }
+
+        function openMenu() { document.getElementById('side-menu').style.transform = 'translateX(0)'; document.getElementById('menu-overlay').style.display = 'block'; }
+        function closeMenu() { document.getElementById('side-menu').style.transform = 'translateX(100%)'; document.getElementById('menu-overlay').style.display = 'none'; }
+
+        loadRankings();
+        setInterval(loadRankings, 5000);
     </script>
 
     <div class="menu-overlay" id="menu-overlay" onclick="closeMenu()"
         style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); z-index: 2900; display: none;">
     </div>
     <div class="side-menu" id="side-menu"
-        style="position: fixed; top: 0; right: 0; width: 250px; height: 100%; background: #141727; border-left: 1px solid rgba(255, 255, 255, 0.07); box-shadow: -5px 0 20px rgba(0,0,0,0.5); z-index: 3000; padding: 20px; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: #ffffff; font-family: 'Inter', sans-serif;">
+        style="position: fixed; top: 0; right: 0; width: 250px; height: 100%; background: #141727; border-left: 1px solid rgba(255, 255, 255, 0.07); box-shadow: -5px 0 20px rgba(0,0,0,0.5); z-index: 3000; padding: 20px; transform: translateX(100%); transition: transform 0.3s; color: #ffffff; font-family: 'Inter', sans-serif;">
         <div
             style="font-size: 1.2rem; font-weight: 800; color: #ffd700; margin-bottom: 20px; display:flex; justify-content:space-between; align-items:center;">
             <span>☰ Menu</span>
             <span onclick="closeMenu()" style="cursor:pointer; font-size:1.5rem;">×</span>
         </div>
-        <a href="admin_dashboard.html" class="menu-item"
-            style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 5px;">📊
+        <a href="admin_dashboard.html"
+            style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07);">📊
             Dashboard</a>
-        <a href="admin_usersdata.html" class="menu-item"
-            style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 5px;">👥
+        <a href="admin_usersdata.html"
+            style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07);">👥
             Users</a>
-        <a href="admin_task.html" class="menu-item"
-            style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 5px;">📋
+        <a href="admin_task.html"
+            style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07);">📋
             Tasks</a>
-        <a href="admin_leaderboard.html" class="menu-item"
-            style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 5px;">🏆
+        <a href="admin_leaderboard.html"
+            style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07);">🏆
             Rankings</a>
-        <a href="admin_withdraw.html" class="menu-item"
-            style="display: block; padding: 12px 10px; color: #ffffff; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.07); margin-bottom: 5px;">💸
-            Funds</a>
-        <a href="user_stone.html" class="menu-item"
+        <a href="user_stone.html"
             style="display: block; padding: 12px 10px; color: #ffd700; text-decoration: none; font-weight: 700; margin-top: 20px;">🎮
             Exit to Game</a>
     </div>
+
     <!-- Supabase System -->
     <script type="module">
         import { fetchAllUsers } from './supabase-sync.js';
-
-        async function updateAdminFromCloud() {
-            await fetchAllUsers();
-            if (typeof loadRankings === 'function') {
-                loadRankings();
-            }
-        }
-
-        updateAdminFromCloud();
-        setInterval(updateAdminFromCloud, 300000);
+        async function update() { await fetchAllUsers(); loadRankings(); }
+        update();
+        setInterval(update, 60000);
     </script>
 </body>
 

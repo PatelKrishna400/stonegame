@@ -277,8 +277,8 @@
                 return;
             }
 
-            // Generate a unique numerical ID
-            const userId = Date.now();
+            // Use phone number as unique ID
+            const userId = n;
 
             // Save user global credentials
             localStorage.setItem('hsGlobalUsername', u);

@@ -516,9 +516,30 @@
                 try {
                     let parsed = JSON.parse(savedData);
 
-                    // Data persistence ensured (Removed 30-day reset)
+                    // 30-Day Upgrade Degradation Logic
+                    const upgradesKeys = ['tapPowerLevel', 'rechargeLevel', 'bonusDropLevel', 'adEnergyLevel', 'adCooldownLevel', 'adLimitLevel'];
+                    const currentEnergyLvl = (((parsed.maxEnergy || 100) - 100) / 100) + 1;
+                    const hasAnyUpgrade = upgradesKeys.some(k => (parsed[k] || 1) > 1) || currentEnergyLvl > 1;
 
-                    // Data persistence ensured (Removed Hourly Degradation)
+                    if (!hasAnyUpgrade) {
+                        parsed.lastDegradeCheck = Date.now();
+                    } else if (parsed.lastDegradeCheck) {
+                        const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+                        if (Date.now() - parsed.lastDegradeCheck >= thirtyDays) {
+                            upgradesKeys.forEach(k => {
+                                if (parsed[k] && parsed[k] > 1) parsed[k] = Math.max(1, parsed[k] - 5);
+                            });
+                            if (currentEnergyLvl > 1) {
+                                const newEnergyLvl = Math.max(1, currentEnergyLvl - 5);
+                                parsed.maxEnergy = (newEnergyLvl - 1) * 100 + 100;
+                            }
+                            parsed.lastDegradeCheck = Date.now();
+                            localStorage.setItem('hammerStrikeSave', JSON.stringify(parsed));
+                            console.log("[Degradation] 30 days passed. Upgrades reduced.");
+                        }
+                    } else {
+                        parsed.lastDegradeCheck = Date.now();
+                    }
 
                     if (typeof parsed.coins === 'number') balance = parsed.coins;
                     if (typeof parsed.maxEnergy === 'number') {

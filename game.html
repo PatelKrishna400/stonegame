@@ -136,6 +136,8 @@
             align-items: center;
             justify-content: center;
             position: relative;
+            perspective: 1000px;
+            /* Added for 3D effect */
         }
 
         .clicker-btn {
@@ -155,6 +157,9 @@
             cursor: pointer;
             transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(15deg) rotateY(-5deg);
+            /* Base 3D tilt */
         }
 
         .clicker-btn::after {
@@ -607,7 +612,7 @@
 
     <div class="clicker-area" id="clicker-container">
         <div class="clicker-btn" id="clicker"
-            style="background: url('premium_stone_clicker_1772542669340.png'); background-size: cover; display: flex; align-items: center; justify-content: center; font-size: 0; box-shadow: 0 0 50px rgba(100, 200, 255, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.1);">
+            style="background: url('stone_level_1.png'); background-size: cover; display: flex; align-items: center; justify-content: center; font-size: 0; box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 0 20px rgba(255,255,255,0.2); border: 4px solid rgba(255,255,255,0.1);">
             Rock
         </div>
     </div>
@@ -636,8 +641,9 @@
             <h3 class="modal-title">Out of Energy!</h3>
             <p class="modal-desc">Watch a short ad to refill <strong class="ad-modal-text">&nbsp;10
                     Energy&nbsp;</strong> instantly and keep striking!</p>
-            <button class="btn-watch-ad" onclick="watchAd()">
-                ▶ Watch Ad (Buy 10 Energy)
+            <button class="btn-watch-ad" id="watch-ad-btn" onclick="watchAdReward()"
+                style="background: linear-gradient(135deg, #f1c40f, #f39c12); color: #000;">
+                ▶ Watch Ad (Get +10 Energy)
             </button>
             <button class="btn-close-modal" onclick="closeAdModal()">Maybe Later</button>
         </div>
@@ -713,7 +719,8 @@
                     lastEnergy: 500,
                     maxEnergy: 500,
                     lastRefresh: Date.now(),
-                    upgrades: { power: 1, eLimit: 1, eSpeed: 1, bonus: 0 }
+                    upgrades: { power: 1, eLimit: 1, eSpeed: 1, bonus: 0 },
+                    adsWatched: 0
                 }));
             }
         }
@@ -764,6 +771,14 @@
         let pendingBonusStars = 0;
         let multiplierIndex = 0;
         const multiplierValues = [1, 2, 3, 5, 10, 20];
+        let adsWatched = 0; // Initialize adsWatched
+        let autoClickActive = false; // Missing definition fixed
+        let energyAdsCount = 0; // Track ads in current cycle
+        let energyAdNextReadyTime = 0; // Next time an ad can be watched
+
+        function stopAutoClick() {
+            autoClickActive = false;
+        }
 
         function toggleMultiplier() {
             let available = [1, 2, 3, 5];
@@ -791,7 +806,33 @@
             const savedData = localStorage.getItem('hammerStrikeSave');
             if (!savedData) return;
             try {
-                const parsed = JSON.parse(savedData);
+                let parsed = JSON.parse(savedData);
+
+                // 30-Day Upgrade Degradation Logic
+                const upgradesKeys = ['tapPowerLevel', 'rechargeLevel', 'bonusDropLevel', 'adEnergyLevel', 'adCooldownLevel', 'adLimitLevel'];
+                const currentEnergyLvl = (((parsed.maxEnergy || 100) - 100) / 100) + 1;
+                const hasAnyUpgrade = upgradesKeys.some(k => (parsed[k] || 1) > 1) || currentEnergyLvl > 1;
+
+                if (!hasAnyUpgrade) {
+                    parsed.lastDegradeCheck = Date.now();
+                } else if (parsed.lastDegradeCheck) {
+                    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+                    if (Date.now() - parsed.lastDegradeCheck >= thirtyDays) {
+                        upgradesKeys.forEach(k => {
+                            if (parsed[k] && parsed[k] > 1) parsed[k] = Math.max(1, parsed[k] - 5);
+                        });
+                        if (currentEnergyLvl > 1) {
+                            const newEnergyLvl = Math.max(1, currentEnergyLvl - 5);
+                            parsed.maxEnergy = (newEnergyLvl - 1) * 100 + 100;
+                        }
+                        parsed.lastDegradeCheck = Date.now();
+                        localStorage.setItem('hammerStrikeSave', JSON.stringify(parsed));
+                        console.log("[Degradation] 30 days passed. Upgrades reduced.");
+                    }
+                } else {
+                    parsed.lastDegradeCheck = Date.now();
+                }
+
                 if (parsed.coins !== undefined) balance = parsed.coins;
                 if (parsed.clickCount !== undefined) clickCount = parsed.clickCount;
                 if (parsed.clicksSinceLastBonus !== undefined) clicksSinceLastBonus = parsed.clicksSinceLastBonus;
@@ -808,6 +849,8 @@
                 if (parsed.adCooldownLevel !== undefined) adCooldownLevel = parsed.adCooldownLevel;
                 if (parsed.adLimitLevel !== undefined) adLimitLevel = parsed.adLimitLevel;
                 if (parsed.breakTimeEnd !== undefined) breakTimeEnd = parsed.breakTimeEnd;
+                if (parsed.energyAdsCount !== undefined) energyAdsCount = parsed.energyAdsCount;
+                if (parsed.energyAdNextReadyTime !== undefined) energyAdNextReadyTime = parsed.energyAdNextReadyTime;
 
                 // Offline Energy recharge on first load
                 if (parsed.lastSave && !window.initialLoadDone) {
@@ -856,15 +899,16 @@
             if (document.getElementById('energy-max')) document.getElementById('energy-max').innerText = maxEnergy;
         }
 
-        updateUI();        // Dynamic Stone Image Logic
-        // Mapping: 1-5 -> 1, 6-10 -> 5, 11-15 -> 10, 16-20 -> 15, 21-25 -> 20, ..., 51+ -> 50
-        let stoneImgNum = playerLevel <= 5 ? 1 : (Math.floor((playerLevel - 1) / 5) * 5);
-        if (stoneImgNum > 50) stoneImgNum = 50;
+        updateUI(); function updateStoneImage() {
+            let stoneImgNum = playerLevel <= 5 ? 1 : (Math.floor((playerLevel - 1) / 5) * 5);
+            if (stoneImgNum > 50) stoneImgNum = 50;
 
-        if (clicker) {
-            const imgUrl = `stone_level_${stoneImgNum}.png`;
-            clicker.style.backgroundImage = `url('${imgUrl}')`;
+            if (clicker) {
+                const imgUrl = `stone_level_${stoneImgNum}.png`;
+                clicker.style.backgroundImage = `url('${imgUrl}')`;
+            }
         }
+        updateStoneImage();
 
 
 
@@ -883,10 +927,10 @@
                     navigator.vibrate(10);
                 }
 
-                // Temporary shrink effect for the main container if touched
-                clicker.style.transform = 'scale(0.95)';
+                // 3D Tilt effect on click
+                clicker.style.transform = 'scale(0.95) rotateX(25deg) rotateY(10deg)';
                 setTimeout(() => {
-                    clicker.style.transform = 'scale(1)';
+                    clicker.style.transform = 'rotateX(15deg) rotateY(-5deg)';
                 }, 100);
 
                 balance += currentPower;
@@ -995,6 +1039,7 @@
             const finish = () => {
                 breakTimeEnd = 0;
                 sessionPlayTime = 0;
+                adsWatched++; // Increment adsWatched
                 saveGameState();
                 document.getElementById('break-modal').style.display = 'none';
                 btn.innerHTML = '▶ Watch Ad (Skip Break)';
@@ -1050,6 +1095,7 @@
 
             const finish = () => {
                 collectBonus(2);
+                adsWatched++; // Increment adsWatched
                 btn.innerHTML = 'Watch Ad (*2)';
                 btn.disabled = false;
             };
@@ -1066,25 +1112,67 @@
 
         let adPopupCooldown = 0;
         function showAdModal() {
-            if (autoClickActive) stopAutoClick();
-            const now = Date.now();
-            const btn = document.getElementById('watch-ad-btn');
+            try {
+                if (autoClickActive) stopAutoClick();
+                const modal = document.getElementById('ad-modal');
+                const btn = document.getElementById('watch-ad-btn');
+                const now = Date.now();
 
-            btn.innerText = "▶ Watch Ad for +10 Energy";
-            btn.disabled = false;
-            document.getElementById('ad-modal').style.display = 'flex';
+                if (modal) {
+                    modal.style.display = 'flex';
+                }
+
+                if (btn) {
+                    if (now < energyAdNextReadyTime) {
+                        btn.disabled = true;
+                        updateAdModalTimer();
+                    } else {
+                        btn.disabled = false;
+                        btn.innerText = "▶ Watch Ad for +10 Energy";
+                    }
+                }
+            } catch (err) {
+                console.error("Error showing ad modal:", err);
+            }
         }
 
-        // Timer for popup
+        function updateAdModalTimer() {
+            const btn = document.getElementById('watch-ad-btn');
+            if (!btn) return;
+
+            const now = Date.now();
+            const diff = energyAdNextReadyTime - now;
+
+            if (diff > 0) {
+                btn.disabled = true;
+                const hh = Math.floor(diff / 3600000);
+                const mm = Math.floor((diff % 3600000) / 60000);
+                const ss = Math.floor((diff % 60000) / 1000);
+
+                if (hh > 0) {
+                    btn.innerText = `⏱ Wait ${hh}h ${mm}m ${ss}s`;
+                } else if (mm > 0) {
+                    btn.innerText = `⏱ Wait ${mm}m ${ss}s`;
+                } else {
+                    btn.innerText = `⏱ Wait ${ss}s`;
+                }
+                setTimeout(updateAdModalTimer, 1000);
+            } else {
+                btn.disabled = false;
+                btn.innerText = "▶ Watch Ad for +10 Energy";
+            }
+        }
+
+        // Timer to ensure UI consistency
         setInterval(() => {
             const modal = document.getElementById('ad-modal');
-            if (modal.style.display === 'flex') {
-                const now = Date.now();
+            if (modal && modal.style.display === 'flex') {
                 const btn = document.getElementById('watch-ad-btn');
-                btn.innerText = "▶ Watch Ad for +10 Energy";
-                btn.disabled = false;
+                if (btn && !btn.disabled && btn.innerText.includes("Loading")) {
+                    btn.innerText = "▶ Watch Ad for +10 Energy";
+                }
             }
-        }, 1000);
+        }, 2000);
 
         function closeAdModal() {
             document.getElementById('ad-modal').style.display = 'none';
@@ -1212,6 +1300,8 @@
                 autoExpiry: Date.now() + 60000,
                 timerSeconds: timerSeconds, // Save real-time sub-timer
                 breakTimeEnd: breakTimeEnd,
+                energyAdsCount: energyAdsCount,
+                energyAdNextReadyTime: energyAdNextReadyTime,
                 lastSave: Date.now(),
                 lastUpgradeDegrade: Date.now() // Optional: keep it updated or just rely on the load save
             };
@@ -1246,6 +1336,7 @@
         let pendingLvlReward = 0;
 
         function showLevelUpModal(lvl) {
+            updateStoneImage(); // Ensure stone visual matches new level
             if (lvl === 1) pendingLvlReward = 100;
             else if (lvl === 2) pendingLvlReward = 200;
             else if (lvl === 3) pendingLvlReward = 500;
@@ -1273,10 +1364,25 @@
             const finish = () => {
                 const bonus = (adEnergyLevel - 1) * 10;
                 energy = Math.min(maxEnergy, energy + 10 + bonus);
+                adsWatched = (adsWatched || 0) + 1; // Track total ad view
+
+                // Cycle logic
+                energyAdsCount++;
+                const maxInCycle = 5 + (adLimitLevel - 1);
+                const shortCooldown = Math.max(5, 30 - (adCooldownLevel - 1)) * 1000;
+                const longCooldown = 5 * 60 * 60 * 1000; // 5 Hours
+
+                if (energyAdsCount < maxInCycle) {
+                    energyAdNextReadyTime = Date.now() + shortCooldown;
+                } else {
+                    energyAdsCount = 0; // Reset cycle
+                    energyAdNextReadyTime = Date.now() + longCooldown;
+                    alert("Daily ad limit reached! Next cycle in 5 hours.");
+                }
+
                 document.getElementById('ad-modal').style.display = 'none';
                 btn.innerText = "▶ Watch Ad for +10 Energy";
                 btn.disabled = false;
-                adPopupCooldown = 0; // No cooldown
                 updateUI();
                 saveGameState();
                 alert(`Energy received! +${10 + bonus} Energy.`);
@@ -1298,9 +1404,9 @@
             btn.disabled = true;
 
             const finish = () => {
-                const bonusCoins = pendingLvlReward * 2;
                 balance += bonusCoins;
-                stars += 20; // Star x2 / Bonus win stars
+                stars += 20;
+                adsWatched = (adsWatched || 0) + 1; // Track ad view
                 document.getElementById('levelup-modal').style.display = 'none';
                 btn.innerText = "▶ Watch Ad (*2)";
                 btn.disabled = false;
