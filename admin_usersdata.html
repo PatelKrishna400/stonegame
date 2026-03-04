@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
+    <script src="scripts/sync.js"></script>
     <style>
         * {
             margin: 0;
@@ -395,15 +396,36 @@
 
         let isRenderedOnce = false;
 
-        function render() {
-            // Load cloud-synced users or fallback to local
-            const cloudUsers = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
+        async function render() {
+            let allUsers = [];
+            const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://stone-game-backend.onrender.com';
+
+            try {
+                const response = await fetch(`${baseUrl}/api/admin/users`);
+                if (response.ok) {
+                    const data = await response.json();
+                    allUsers = data.map(u => ({
+                        username: u.username,
+                        nickname: u.nickname || u.username,
+                        userId: u.userId || 'N/A',
+                        coins: u.hammer_strike_save?.coins || 0,
+                        level: u.hammer_strike_save?.level || 1,
+                        allData: u.hammer_strike_save,
+                        lastSave: u.last_updated
+                    }));
+                    localStorage.setItem('hsAdminUsersList', JSON.stringify(allUsers));
+                } else {
+                    allUsers = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
+                }
+            } catch (e) {
+                console.warn("Backend fetch failed, using local cache:", e);
+                allUsers = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
+            }
+
             const localData = loadSave();
 
-            let allUsers = [...cloudUsers];
-
             // If local player isn't in cloud yet, add them (if registered)
-            if (localData && localData.userId && !allUsers.some(u => u.nickname === localData.nickname)) {
+            if (localData && localData.userId && !allUsers.some(u => u.username === localData.nickname)) {
                 allUsers.push({
                     username: localData.nickname,
                     nickname: localData.nickname,
