@@ -775,6 +775,7 @@
         let autoClickActive = false; // Missing definition fixed
         let energyAdsCount = 0; // Track ads in current cycle
         let energyAdNextReadyTime = 0; // Next time an ad can be watched
+        let energyAdSkipCounter = 0; // Counter for ads watched to skip the 5h cooldown
 
         function stopAutoClick() {
             autoClickActive = false;
@@ -851,6 +852,7 @@
                 if (parsed.breakTimeEnd !== undefined) breakTimeEnd = parsed.breakTimeEnd;
                 if (parsed.energyAdsCount !== undefined) energyAdsCount = parsed.energyAdsCount;
                 if (parsed.energyAdNextReadyTime !== undefined) energyAdNextReadyTime = parsed.energyAdNextReadyTime;
+                if (parsed.energyAdSkipCounter !== undefined) energyAdSkipCounter = parsed.energyAdSkipCounter;
 
                 // Offline Energy recharge on first load
                 if (parsed.lastSave && !window.initialLoadDone) {
@@ -968,12 +970,17 @@
                 if (autoClickActive) {
                     stopAutoClick();
                 }
+                energy = 0; // Explicitly set to 0 to ensure precision
                 showAdModal();
             }
         }
 
         // Multi-touch handler via pointerdown
         clicker.addEventListener('pointerdown', (e) => {
+            if (Date.now() < breakTimeEnd) {
+                showBreakModal();
+                return;
+            }
             processClick(e.clientX, e.clientY);
         });
 
@@ -1120,8 +1127,14 @@
 
                 if (btn) {
                     if (now < energyAdNextReadyTime) {
-                        btn.disabled = true;
-                        updateAdModalTimer();
+                        const diff = energyAdNextReadyTime - now;
+                        if (diff > 600000) { // If wait is > 10 mins (means we are in the 5h long cooldown)
+                            btn.innerHTML = `⏱ Cycle Wait...<br><small>Watch 2 Ads to Skip! (${energyAdSkipCounter}/2)</small>`;
+                            btn.disabled = false; // Allow click to watch skip ads
+                        } else {
+                            btn.disabled = true;
+                            updateAdModalTimer();
+                        }
                     } else {
                         btn.disabled = false;
                         btn.innerText = "▶ Watch Ad for +10 Energy";
@@ -1230,6 +1243,21 @@
         const energyTimerEl = document.getElementById('energy-timer');
 
         setInterval(() => {
+            // Check break time
+            if (Date.now() < breakTimeEnd) {
+                showBreakModal();
+            } else {
+                document.getElementById('break-modal').style.display = 'none';
+                sessionPlayTime++;
+                if (sessionPlayTime >= 180) { // 3 minutes
+                    sessionPlayTime = 0;
+                    // Break triggered: 30 minutes
+                    breakTimeEnd = Date.now() + 30 * 60 * 1000;
+                    saveGameState();
+                    showBreakModal();
+                }
+            }
+
             // Recharge calculations
             const rTime = Math.max(1, 30 - (rechargeLevel - 1));
             const rAmt = 1 + (rechargeLevel - 1) * 0.1;
@@ -1283,6 +1311,7 @@
                 breakTimeEnd: breakTimeEnd,
                 energyAdsCount: energyAdsCount,
                 energyAdNextReadyTime: energyAdNextReadyTime,
+                energyAdSkipCounter: energyAdSkipCounter,
                 lastSave: Date.now(),
                 lastUpgradeDegrade: Date.now() // Optional: keep it updated or just rely on the load save
             };
@@ -1339,6 +1368,36 @@
 
         function watchAdReward() {
             const btn = document.getElementById('watch-ad-btn');
+            const now = Date.now();
+
+            // Handle Cooldown Skip Logic
+            if (now < energyAdNextReadyTime && (energyAdNextReadyTime - now) > 600000) {
+                btn.innerText = "⏱ Loading Skip Ad...";
+                btn.disabled = true;
+
+                const finishSkip = () => {
+                    energyAdSkipCounter++;
+                    adsWatched++;
+                    if (energyAdSkipCounter >= 2) {
+                        energyAdSkipCounter = 0;
+                        energyAdNextReadyTime = 0; // Cycle Renewed!
+                        energyAdsCount = 0;
+                        alert("Cycle Renewed! You can watch 5 more ads for energy now.");
+                    } else {
+                        alert("Skip progress: 1/2 ads watched.");
+                    }
+                    showAdModal(); // Refresh button state
+                    saveGameState();
+                };
+
+                if (typeof show_10676091 === 'function') {
+                    show_10676091().then(finishSkip).catch(finishSkip);
+                } else {
+                    finishSkip();
+                }
+                return;
+            }
+
             btn.innerText = "⏱ Loading Ad...";
             btn.disabled = true;
 
@@ -1356,9 +1415,9 @@
                 if (energyAdsCount < maxInCycle) {
                     energyAdNextReadyTime = Date.now() + shortCooldown;
                 } else {
-                    energyAdsCount = 0; // Reset cycle
+                    energyAdsCount = 0; // Reset cycle tracker
                     energyAdNextReadyTime = Date.now() + longCooldown;
-                    alert("Daily ad limit reached! Next cycle in 5 hours.");
+                    alert("Daily ad limit reached! Next cycle in 5 hours or watch 2 ads to skip wait.");
                 }
 
                 document.getElementById('ad-modal').style.display = 'none';
