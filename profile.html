@@ -430,6 +430,15 @@
             }
 
             loadProfile();
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'hammerStrikeSave') {
+                    if (e.newValue === null) {
+                        window.location.href = 'index.html';
+                    } else {
+                        loadProfile();
+                    }
+                }
+            });
             setInterval(loadProfile, 1000);
 
             function handleAvatarUpload(e) {
