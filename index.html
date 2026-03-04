@@ -277,12 +277,17 @@
                 return;
             }
 
+            // Generate a unique numerical ID
+            const userId = Date.now();
+
             // Save user global credentials
             localStorage.setItem('hsGlobalUsername', u);
             localStorage.setItem('hsGlobalPassword', p1);
             localStorage.setItem('hsGlobalEmail', e);
             localStorage.setItem('hsGlobalPhone', n);
+            localStorage.setItem('hsGlobalUserId', userId);
             localStorage.setItem('hammerStrikeUserRegistered', 'true');
+            sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
 
             // Sync internal save nickname (Preserving existing data)
             let existingSave = null;
@@ -293,6 +298,7 @@
             if (!existingSave.level) existingSave.level = 1;
 
             existingSave.nickname = u;
+            existingSave.userId = userId;
             localStorage.setItem('hammerStrikeSave', JSON.stringify(existingSave));
 
             // Push to Supabase

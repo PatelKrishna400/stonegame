@@ -485,17 +485,6 @@
             </div>
         </div>
 
-        <div class="upgrade-card">
-            <div class="u-icon" id="ad-energy-icon">⚡</div>
-            <div class="u-info">
-                <div class="u-title">Free Energy Ad</div>
-                <div class="u-desc" id="ad-energy-desc">Watch ad to get +10 Energy instantly!</div>
-            </div>
-            <div class="u-action">
-                <div class="u-cost" id="ad-energy-timer">READY</div>
-                <button class="btn-upgrade" id="btn-ad-energy" onclick="watchEnergyAd()">CLAIM</button>
-            </div>
-        </div>
     </div>
     </div>
 
@@ -775,15 +764,7 @@
         }
 
         function resetAdCycle() {
-            adCycleCount = 0;
-            adSkipCount = 0;
-            isLongCooldown = false;
-            adNextTime = 0;
-            localStorage.setItem('hsEnergyAdCycleCount', '0');
-            localStorage.setItem('hsEnergyAdSkipCount', '0');
-            localStorage.setItem('hsEnergyAdInLongCooldown', 'false');
-            localStorage.setItem('hsEnergyAdNextTime', '0');
-            updateAdEnergyUI();
+            // Unused
         }
 
         window.addEventListener('storage', (e) => {
@@ -811,48 +792,8 @@
                 } catch (e) { }
             }
         })();
-        function watchEnergyAd() {
-            const btn = document.getElementById('btn-ad-energy');
-            const originalText = btn.innerText;
-            btn.innerText = "LOADING...";
-            btn.disabled = true;
-
-            const finish = () => {
-                if (isLongCooldown) {
-                    adSkipCount++;
-                    localStorage.setItem('hsEnergyAdSkipCount', adSkipCount);
-                    if (adSkipCount >= 2) {
-                        alert("Cooldown skipped! Ad cycle renewed.");
-                        resetAdCycle();
-                    } else {
-                        alert("Ad watched (Skip progress: 1/2)");
-                    }
-                } else {
-                    giveEnergyReward();
-                    adCycleCount++;
-                    localStorage.setItem('hsEnergyAdCycleCount', adCycleCount);
-                    if (adCycleCount >= 10) {
-                        isLongCooldown = true;
-                        adNextTime = Date.now() + 5 * 60 * 1000;
-                        localStorage.setItem('hsEnergyAdInLongCooldown', 'true');
-                        localStorage.setItem('hsEnergyAdNextTime', adNextTime);
-                        alert("10 Ads reached! 5-minute cooldown started.");
-                    } else {
-                        adNextTime = Date.now() + 30 * 1000;
-                        localStorage.setItem('hsEnergyAdNextTime', adNextTime);
-                    }
-                }
-                updateAdEnergyUI();
-            };
-
-            if (typeof show_10676091 === 'function') {
-                show_10676091().then(finish).catch(() => {
-                    console.log("Ad failed, but granting reward");
-                    finish();
-                });
-            } else {
-                finish();
-            }
+        function giveEnergyReward() {
+            // Unused here, centralized in game.html
         }
 
         function giveEnergyReward() {

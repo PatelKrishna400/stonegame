@@ -173,8 +173,10 @@
                 return;
             }
 
+            const userId = Date.now();
             localStorage.setItem('hsGlobalUsername', u);
             localStorage.setItem('hsGlobalPassword', p);
+            localStorage.setItem('hsGlobalUserId', userId);
             localStorage.setItem('hammerStrikeUserRegistered', 'true');
             sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
 
@@ -187,6 +189,7 @@
             if (!existingSave.level) existingSave.level = 1;
 
             existingSave.nickname = u;
+            existingSave.userId = userId;
             localStorage.setItem('hammerStrikeSave', JSON.stringify(existingSave));
 
             alert("Registration successful! Welcome " + u);

@@ -1202,9 +1202,10 @@
             } else {
                 document.getElementById('break-modal').style.display = 'none';
                 sessionPlayTime++;
-                if (sessionPlayTime >= 300) { // 5 minutes
+                if (sessionPlayTime >= 180) { // 3 minutes
                     sessionPlayTime = 0;
-                    breakTimeEnd = Date.now() + 30 * 60 * 1000; // 30 mins
+                    // Continuous break: set a 10-second break every 3 minutes
+                    breakTimeEnd = Date.now() + 10 * 1000;
                     saveGameState();
                     showBreakModal();
                 }
@@ -1312,6 +1313,33 @@
             updateUI();
             saveGameState();
             alert(`Level Up! You collected ${pendingLvlReward} coins.`);
+        }
+
+        function watchAdReward() {
+            const btn = document.getElementById('watch-ad-btn');
+            btn.innerText = "⏱ Loading Ad...";
+            btn.disabled = true;
+
+            const finish = () => {
+                const bonus = (adEnergyLevel - 1) * 10;
+                energy = Math.min(maxEnergy, energy + 10 + bonus);
+                document.getElementById('ad-modal').style.display = 'none';
+                btn.innerText = "▶ Watch Ad for +10 Energy";
+                btn.disabled = false;
+                adPopupCooldown = Date.now() + (30 * 1000); // 30s cooldown
+                updateUI();
+                saveGameState();
+                alert(`Energy received! +${10 + bonus} Energy.`);
+            };
+
+            if (typeof show_10676091 === 'function') {
+                show_10676091().then(finish).catch(() => {
+                    console.log("Ad failed, but granting reward");
+                    finish();
+                });
+            } else {
+                finish();
+            }
         }
 
         function adDoubleLvlReward() {

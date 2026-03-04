@@ -396,65 +396,59 @@
         let isRenderedOnce = false;
 
         function render() {
-            const data = loadSave();
+            // Load cloud-synced users or fallback to local
+            const cloudUsers = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
+            const localData = loadSave();
 
-            // Sync to Global Users list
-            if (data) {
-                let allUsers = JSON.parse(localStorage.getItem('hammerStrikeAllUsers') || '[]');
-                const idx = allUsers.findIndex(u => u.nickname === data.nickname);
-                const uData = { nickname: data.nickname, coins: data.coins, level: data.level };
-                if (idx > -1) allUsers[idx] = uData;
-                else allUsers.push(uData);
-                localStorage.setItem('hammerStrikeAllUsers', JSON.stringify(allUsers));
+            let allUsers = [...cloudUsers];
+
+            // If local player isn't in cloud yet, add them (if registered)
+            if (localData && localData.userId && !allUsers.some(u => u.nickname === localData.nickname)) {
+                allUsers.push({
+                    username: localData.nickname,
+                    nickname: localData.nickname,
+                    userId: localData.userId,
+                    coins: localData.coins,
+                    level: localData.level,
+                    lastSave: new Date().toISOString()
+                });
             }
+
+            // Exclude guests
+            allUsers = allUsers.filter(u => u.nickname && u.nickname !== 'Guest Player');
 
             const timeEl = document.getElementById('lastSyncTime');
             if (timeEl) timeEl.textContent = new Date().toLocaleTimeString();
 
-            // Dash
+            // Dash stats
             const du = document.getElementById('dash-users');
-            if (du) du.textContent = data ? '1' : '0';
+            if (du) du.textContent = allUsers.length.toString();
+
+            const totalCoins = allUsers.reduce((sum, u) => sum + (u.coins || 0), 0);
             const dc = document.getElementById('dash-coins');
-            if (dc) dc.textContent = data ? fmt(data.coins || 0) : '0';
+            if (dc) dc.textContent = fmt(totalCoins);
 
             const reqs = loadWithdrawals();
             const dw = document.getElementById('dash-withdraws');
             if (dw) dw.textContent = reqs.filter(r => r.status === 'pending').length.toString();
 
-            const autoActive = data && data.autoExpiry && data.autoExpiry > Date.now();
-            const da = document.getElementById('dash-auto');
-            if (da) da.textContent = autoActive ? '1' : '0';
-
-            const eventsTable = document.getElementById('events-table');
-            if (eventsTable && data && !isRenderedOnce) {
-                eventsTable.innerHTML = `
-                    <tr><td>Player save found in localStorage</td><td style="color:#2ecc71;">Online</td></tr>
-                    ${autoActive ? '<tr><td>User PlayerOne auto-click active</td><td style="color:#2ecc71;">Live</td></tr>' : ''}
-                    ${data.stageIdx !== undefined ? `<tr><td>User PlayerOne current stage is ${(data.stageIdx || 0) + 1}</td><td style="color:var(--gold);">Recently</td></tr>` : ''}
-                `;
-                isRenderedOnce = true;
-            }
-
             // User Data Table
             const usersTbody = document.getElementById('users-tbody');
             if (usersTbody) {
-                if (!data) {
-                    if (!isRenderedOnce) usersTbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:20px;">No registered users yet. Play the game first.</td></tr>';
+                if (allUsers.length === 0) {
+                    usersTbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:20px;">No registered users found. Only logged-in users are stored.</td></tr>';
                 } else {
-                    const nickname = data.nickname || 'PlayerOne';
-                    const lvl = data.level || 1;
-                    const stg = (data.stageIdx || 0) + 1;
-                    const c = fmt(data.coins || 0);
-
-                    usersTbody.innerHTML = `
-                        <tr id="user-row">
-                            <td style="padding:10px;">1</td>
-                            <td>Lv ${lvl} / Stg ${stg}</td>
-                            <td>${nickname}</td>
-                            <td style="color:var(--gold);">${c} 🪙</td>
-                            <td style="text-align:right;"><button class="danger-btn" onclick="deleteUser()" style="padding:4px 10px; font-size:1.2rem;">✖</button></td>
+                    usersTbody.innerHTML = allUsers.map((u, i) => `
+                        <tr id="user-row-${u.userId || i}">
+                            <td style="padding:10px;">${i + 1}</td>
+                            <td>Lvl ${u.level || 1} <span style="font-size:0.7rem; color:var(--text3);">(ID: ${u.userId || 'N/A'})</span></td>
+                            <td>${u.nickname || u.username}</td>
+                            <td style="color:var(--gold); font-weight:800;">${fmt(u.coins)}</td>
+                            <td style="text-align:right;">
+                                <button class="danger-btn" onclick="alert('Delete is disabled for cloud users')" style="padding:4px 8px; font-size:0.75rem;">Manage</button>
+                            </td>
                         </tr>
-                    `;
+                    `).join('');
                 }
             }
 
@@ -525,15 +519,15 @@
                 tb.innerHTML = '<div style="color:var(--text2);text-align:center;padding:20px;">No active tasks uploaded yet.</div>';
             } else {
                 tb.innerHTML = tasks.map(t => `
-                    <div class="quest-row">
+            < div class="quest-row" >
                         <div class="quest-icon">📝</div>
                         <div class="quest-info">
                             <div class="quest-name">${t.title}</div>
                             <div class="quest-pct" style="color:var(--gold);">Reward: ${t.reward} 🪙 | <a href="${t.link}" style="color:var(--blue);" target="_blank">Link</a></div>
                         </div>
                         <div><button class="danger-btn" onclick="removeTask(${t.id})" style="padding:5px 10px;">Remove</button></div>
-                    </div>
-                `).join('');
+                    </div >
+            `).join('');
             }
         }
 
@@ -560,9 +554,9 @@
                     let actions = '';
                     if (r.status === 'pending') {
                         actions = `
-                            <button class="danger-btn" onclick="handleWithdrawAction(${r.id}, 'approved')" style="background:#2ecc71; color:#fff; border:none; padding:5px 10px; margin-right:5px;">Approve</button>
-                            <button class="danger-btn" onclick="handleWithdrawAction(${r.id}, 'rejected')" style="padding:5px 10px;">Reject</button>
-                        `;
+            < button class="danger-btn" onclick = "handleWithdrawAction(${r.id}, 'approved')" style = "background:#2ecc71; color:#fff; border:none; padding:5px 10px; margin-right:5px;" > Approve</button >
+                <button class="danger-btn" onclick="handleWithdrawAction(${r.id}, 'rejected')" style="padding:5px 10px;">Reject</button>
+        `;
                     } else if (r.status === 'approved') {
                         actions = '<span class="badge badge-green">Approved</span>';
                     } else if (r.status === 'rejected') {
@@ -570,14 +564,14 @@
                     }
 
                     return `
-                    <tr>
+            < tr >
                         <td style="padding:10px;">#REQ-${r.id.toString().slice(-4)}</td>
                         <td>#1001</td>
                         <td>${r.upi || 'user@upi'}</td>
                         <td style="color:var(--gold);">${fmt(r.amount)}</td>
                         <td style="color:#2ecc71;">₹${(r.amount / 10).toFixed(2)}</td>
                         <td style="text-align:right;">${actions}</td>
-                    </tr>
+                    </tr >
                 `;
                 }).join('');
             }
