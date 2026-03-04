@@ -527,8 +527,12 @@
     <header>
         <div class="user-info">
             <div class="avatar" onclick="exitGame()" title="Back to Home"
-                style="cursor: pointer; border-radius: 50%; width: 45px; height: 45px; background: rgba(255, 215, 0, 0.1); border: 2px solid var(--gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
-                🪙</div>
+                style="cursor: pointer; border-radius: 50%; width: 45px; height: 45px; background: rgba(255, 215, 0, 0.1); border: 2px solid var(--gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; overflow: hidden; position: relative;"
+                id="header-avatar-container">
+                <span id="header-avatar-emoji">🪙</span>
+                <img id="header-avatar-img" src=""
+                    style="display:none; width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0;">
+            </div>
             <div class="username" style="margin-left: 5px;">
                 <span id="user-name-header"
                     style="font-size: 0.85rem; color: var(--text2); display: block;">Player</span>
@@ -1441,18 +1445,38 @@
                 const raw = localStorage.getItem('hammerStrikeSave');
                 if (raw) {
                     const parsed = JSON.parse(raw);
-                    document.getElementById('sm-name').innerText = parsed.nickname || 'PlayerOne';
+                    const nick = parsed.nickname || 'PlayerOne';
+
+                    // Update Sidebar
+                    document.getElementById('sm-name').innerText = nick;
                     document.getElementById('sm-level').innerText = `Level ${parsed.level || 1}`;
                     document.getElementById('sm-coins').innerText = `🪙 ${(parsed.coins || 0).toLocaleString()}`;
+
+                    // Update Header
+                    document.getElementById('user-name-header').innerText = nick;
+
                     const customPfp = localStorage.getItem('hsCustomAvatar');
                     if (customPfp) {
+                        // Sidebar avatar
                         document.getElementById('sm-avatar-img').src = customPfp;
                         document.getElementById('sm-avatar-img').style.display = 'block';
                         document.getElementById('sm-avatar-emoji').style.display = 'none';
+
+                        // Header avatar
+                        document.getElementById('header-avatar-img').src = customPfp;
+                        document.getElementById('header-avatar-img').style.display = 'block';
+                        document.getElementById('header-avatar-emoji').style.display = 'none';
+                    } else {
+                        document.getElementById('sm-avatar-img').style.display = 'none';
+                        document.getElementById('sm-avatar-emoji').style.display = 'block';
+
+                        document.getElementById('header-avatar-img').style.display = 'none';
+                        document.getElementById('header-avatar-emoji').style.display = 'block';
                     }
                 }
             } catch (e) { }
         }
+        updateSideMenu(); // Initial call to sync header on load
         function openMenu() {
             document.getElementById('side-menu').style.transform = 'translateX(0)';
             document.getElementById('menu-overlay').style.display = 'block';

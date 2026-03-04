@@ -361,7 +361,12 @@
 <body>
     <header>
         <div class="user-info">
-            <div class="avatar" style="display:flex; align-items:center; justify-content:center; cursor:default;">🪨
+            <div class="avatar"
+                style="display:flex; align-items:center; justify-content:center; cursor:default; overflow:hidden; position:relative; width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);"
+                id="hdr-avatar-container">
+                <span id="hdr-avatar-emoji">🪨</span>
+                <img id="hdr-avatar-img" src=""
+                    style="display:none; width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0;">
             </div>
             <div class="username"><span id="user-name">PlayerOne</span> <span id="user-level"
                     class="user-level-badge">Lvl 1</span></div>
@@ -562,6 +567,7 @@
             if (savedData) {
                 try {
                     const parsed = JSON.parse(savedData);
+                    const nick = parsed.nickname || 'PlayerOne';
                     if (parsed && typeof parsed.coins === 'number') {
                         document.getElementById('user-balance').innerText = '🪙 ' + parsed.coins.toLocaleString();
                     }
@@ -569,7 +575,18 @@
                         document.getElementById('user-level').innerText = 'Lvl ' + parsed.level;
                     }
                     if (parsed && parsed.nickname) {
-                        document.getElementById('user-name').innerText = parsed.nickname;
+                        document.getElementById('user-name').innerText = nick;
+                    }
+
+                    // Avatar Sync
+                    const customPfp = localStorage.getItem('hsCustomAvatar');
+                    if (customPfp) {
+                        document.getElementById('hdr-avatar-img').src = customPfp;
+                        document.getElementById('hdr-avatar-img').style.display = 'block';
+                        document.getElementById('hdr-avatar-emoji').style.display = 'none';
+                    } else {
+                        document.getElementById('hdr-avatar-img').style.display = 'none';
+                        document.getElementById('hdr-avatar-emoji').style.display = 'block';
                     }
 
                     // Show claim button only if 30 days passed
