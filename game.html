@@ -1111,38 +1111,8 @@
         }
 
         function watchAd() {
-            const btn = document.querySelector('.btn-watch-ad');
-            const energyReward = 10 + (adEnergyLevel - 1) * 10;
-            btn.innerHTML = '⏱ Loading Ad...';
-            btn.disabled = true;
-
-            if (typeof show_10676091 === 'function') {
-                show_10676091().then(() => {
-                    alert('You have seen an ad!');
-                    alert(`Ad watched successfully! You got ${energyReward} Energy.`);
-                    energy = Math.min(energy + energyReward, maxEnergy);
-                    updateUI();
-                    closeAdModal();
-                    btn.innerHTML = `▶ Watch Ad (Buy ${energyReward} Energy)`;
-                    btn.disabled = false;
-
-                    // Save ad usage stats
-                    const todayStr = new Date().toDateString();
-                    const adsData = JSON.parse(localStorage.getItem('hammerStrikeAds') || '{"date":"","count":0,"lastTick":0}');
-                    adsData.date = todayStr;
-                    adsData.count += 1;
-                    adsData.lastTick = Date.now();
-                    localStorage.setItem('hammerStrikeAds', JSON.stringify(adsData));
-                }).catch(err => {
-                    btn.innerHTML = `▶ Watch Ad (Buy ${energyReward} Energy)`;
-                    btn.disabled = false;
-                    alert("Ad failed to load.");
-                });
-            } else {
-                btn.innerHTML = `▶ Watch Ad (Buy ${energyReward} Energy)`;
-                btn.disabled = false;
-                alert("Ad provider not ready.");
-            }
+            // Consolidated into watchAdReward for energy and adDoubleLvlReward for bonuses
+            showAdModal();
         }
 
         // Prevent dragging/zooming problems on the main clicker
@@ -1348,13 +1318,15 @@
             btn.disabled = true;
 
             const finish = () => {
-                balance += pendingLvlReward * 2;
+                const bonusCoins = pendingLvlReward * 2;
+                balance += bonusCoins;
+                stars += 20; // Star x2 / Bonus win stars
                 document.getElementById('levelup-modal').style.display = 'none';
                 btn.innerText = "▶ Watch Ad (*2)";
                 btn.disabled = false;
                 updateUI();
                 saveGameState();
-                alert(`Level Up Bonus! You collected ${pendingLvlReward * 2} bonus coins.`);
+                alert(`Level Up Bonus! You collected ${bonusCoins} coins and +20 bonus Stars!`);
             };
 
             if (typeof show_10676091 === 'function') {
