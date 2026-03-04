@@ -1107,14 +1107,7 @@
 
                 if (btn) {
                     if (now < energyAdNextReadyTime) {
-                        const diff = energyAdNextReadyTime - now;
-                        if (diff > 600000) { // If wait is > 10 mins (means we are in the 5h long cooldown)
-                            btn.innerHTML = `⏱ Cycle Wait...<br><small>Watch 2 Ads to Skip! (${energyAdSkipCounter}/2)</small>`;
-                            btn.disabled = false; // Allow click to watch skip ads
-                        } else {
-                            btn.disabled = true;
-                            updateAdModalTimer();
-                        }
+                        updateAdModalTimer(); // Let this handle logic
                     } else {
                         btn.disabled = false;
                         btn.innerText = "▶ Watch Ad for +10 Energy";
@@ -1133,17 +1126,24 @@
             const diff = energyAdNextReadyTime - now;
 
             if (diff > 0) {
-                btn.disabled = true;
-                const hh = Math.floor(diff / 3600000);
-                const mm = Math.floor((diff % 3600000) / 60000);
-                const ss = Math.floor((diff % 60000) / 1000);
-
-                if (hh > 0) {
-                    btn.innerText = `⏱ Wait ${hh}h ${mm}m ${ss}s`;
-                } else if (mm > 0) {
-                    btn.innerText = `⏱ Wait ${mm}m ${ss}s`;
+                // If wait is > 10 mins, we are in the 5h long cooldown skip phase
+                if (diff > 600000) {
+                    btn.innerHTML = `⏱ Cycle Wait...<br><small>Watch 2 Ads to Skip! (${energyAdSkipCounter}/2)</small>`;
+                    btn.disabled = false;
+                    // We still want to refresh the text if we want, but let's keep it steady
                 } else {
-                    btn.innerText = `⏱ Wait ${ss}s`;
+                    btn.disabled = true;
+                    const hh = Math.floor(diff / 3600000);
+                    const mm = Math.floor((diff % 3600000) / 60000);
+                    const ss = Math.floor((diff % 60000) / 1000);
+
+                    if (hh > 0) {
+                        btn.innerText = `⏱ Wait ${hh}h ${mm}m ${ss}s`;
+                    } else if (mm > 0) {
+                        btn.innerText = `⏱ Wait ${mm}m ${ss}s`;
+                    } else {
+                        btn.innerText = `⏱ Wait ${ss}s`;
+                    }
                 }
                 setTimeout(updateAdModalTimer, 1000);
             } else {
