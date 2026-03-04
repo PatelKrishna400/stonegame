@@ -12,7 +12,7 @@
     <script src="scripts/supabase-config.js"></script>
     <script src="scripts/sync.js"></script>
     <script>
-        if (localStorage.getItem('hsMaintenanceMode') === 'true') {
+        if (localStorage.getItem('hsMaintenanceMode') === 'true' && localStorage.getItem('hammerStrikeAdminLoggedIn') !== 'true') {
             window.location.href = 'maintenance.html';
         }
     </script>

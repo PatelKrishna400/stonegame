@@ -11,9 +11,8 @@
     <script src="scripts/supabase-config.js"></script>
     <script src="scripts/sync.js"></script>
     <script>
-        if (localStorage.getItem('hsMaintenanceMode') === 'true') {
-            window.location.href = 'maintenance.html';
-        }
+        // No immediate redirect on portal page to allow Admin login
+        window.isMaintenance = localStorage.getItem('hsMaintenanceMode') === 'true';
     </script>
     <style>
         * {
@@ -357,6 +356,11 @@
             }
 
             // 2. Check Standard User Credentials
+            if (window.isMaintenance) {
+                alert("🛠️ Information: The game is currently under maintenance. Regular player access is temporarily disabled. Please try again later!");
+                return;
+            }
+
             const cloudUsers = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
             const userAccount = cloudUsers.find(cu => cu.username === u && cu.password === p);
 
