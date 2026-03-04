@@ -445,7 +445,7 @@
                             <td>${u.nickname || u.username}</td>
                             <td style="color:var(--gold); font-weight:800;">${fmt(u.coins)}</td>
                             <td style="text-align:right;">
-                                <button class="danger-btn" onclick="alert('Delete is disabled for cloud users')" style="padding:4px 8px; font-size:0.75rem;">Manage</button>
+                                <button class="danger-btn" onclick="removeUser('${u.username}')" style="padding:4px 8px; font-size:0.75rem;">Delete</button>
                             </td>
                         </tr>
                     `).join('');
@@ -459,8 +459,29 @@
             renderWithdrawals();
         }
 
+        window.removeUser = function (username) {
+            if (confirm("Delete this user?")) {
+                let cloudUsers = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
+                cloudUsers = cloudUsers.filter(u => u.username !== username);
+                localStorage.setItem('hsAdminUsersList', JSON.stringify(cloudUsers));
+
+                // If it's the currently logged-in user locally, log them out
+                if (localStorage.getItem('hsGlobalUsername') === username) {
+                    localStorage.removeItem('hammerStrikeSave');
+                    localStorage.removeItem('hsGlobalUsername');
+                    localStorage.removeItem('hsGlobalPassword');
+                    localStorage.removeItem('hsGlobalEmail');
+                    localStorage.removeItem('hsGlobalPhone');
+                    localStorage.removeItem('hammerStrikeUserRegistered');
+                    sessionStorage.removeItem('hammerStrikeUserLoggedIn');
+                }
+
+                render();
+            }
+        };
+
         window.deleteUser = function () {
-            const pass = prompt("Enter Password to delete user data:");
+            const pass = prompt("Enter Password to delete ALL user data:");
             if (pass === '0911') {
                 if (confirm("Are you sure you want to permanently delete ALL player save data?")) {
                     localStorage.removeItem('hammerStrikeSave');
@@ -472,7 +493,8 @@
                     localStorage.removeItem('hsCustomAvatar');
                     localStorage.removeItem('hammerStrikeAds');
                     localStorage.removeItem('hammerStrikeRefsDaily');
-                    localStorage.removeItem('hammerStrikeAllUsers'); // Clear simulated user list
+                    localStorage.removeItem('hammerStrikeAllUsers');
+                    localStorage.removeItem('hsAdminUsersList'); // Clear simulated list
                     sessionStorage.removeItem('hammerStrikeUserLoggedIn');
                     render();
                     alert('User data has been completely erased! A new user can now register.');
@@ -641,7 +663,7 @@
             Exit to Game</a>
     </div>
     <!-- Firebase System -->
-    
+
 </body>
 
 </html>
