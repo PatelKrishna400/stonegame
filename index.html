@@ -160,10 +160,13 @@
                 Account</button>
             <button class="btn btn-login" onclick="handleLogin()">Login</button>
 
-            <div style="margin-top: 15px; text-align: center;">
-                <span onclick="window.location.href='user_stone.html'" id="skip-link"
-                    style="font-size: 0.85rem; color: var(--text2); display: inline-block; cursor: pointer;">Free Play
-                    Game &rarr;</span>
+            <div style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 15px;">
+                <button onclick="window.location.href='user_stone.html'" class="btn btn-secondary"
+                    style="background: rgba(39, 174, 96, 0.1); border: 1px solid rgba(39, 174, 96, 0.3); color: #2ecc71; margin-bottom: 5px;">
+                    🎮 Play Game (Home)
+                </button>
+                <div style="color: var(--text2); font-size: 0.75rem; margin-top: 5px;">Admin? Use Admin Creds to log in.
+                </div>
             </div>
         </div>
 
@@ -228,7 +231,6 @@
         // Check if user is forced to login (already registered)
         if (localStorage.getItem('hammerStrikeUserRegistered') === 'true') {
             document.getElementById('btn-new-player').style.display = 'none';
-            document.getElementById('skip-link').style.display = 'none';
             document.getElementById('form-subtitle').innerText = "Please log in to continue to the game.";
         }
 

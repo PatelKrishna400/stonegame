@@ -139,7 +139,14 @@
         <button class="btn btn-login" onclick="handleLogin()">Login</button>
         <button class="btn btn-register" onclick="handleRegister()">Register</button>
 
-        <a href="user_stone.html" class="skip-link" id="skip-link">Skip & Play as Guest &rarr;</a>
+        <div style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+            <button onclick="window.location.href='user_stone.html'" class="btn btn-secondary"
+                style="background: rgba(39, 174, 96, 0.1); border: 1px solid rgba(39, 174, 96, 0.3); color: #2ecc71; margin-bottom: 5px;">
+                🎮 Play Game (Home)
+            </button>
+            <div style="color: var(--text2); font-size: 0.75rem; margin-top: 5px;">Admin? Use Admin Creds to log in.
+            </div>
+        </div>
     </div>
 
     <script>
@@ -192,11 +199,12 @@
             const customAdminPass = localStorage.getItem('hsAdminPass');
 
             if (!customAdminUser && u === 'admin' && p === 'admin@123') {
+                localStorage.setItem('hsFirstTimeAdmin', 'true');
                 window.location.href = 'admin.html';
                 return;
             } else if (customAdminUser && u === customAdminUser && p === customAdminPass) {
                 localStorage.setItem('hammerStrikeAdminLoggedIn', 'true');
-                window.location.href = 'admin.html';
+                window.location.href = 'admin_dashboard.html';
                 return;
             }
 
