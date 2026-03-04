@@ -527,9 +527,24 @@
 
         // Load sync data
         function checkAuth() {
-            if (sessionStorage.getItem('hammerStrikeUserLoggedIn') !== 'true' || !localStorage.getItem('hammerStrikeSave')) {
-                window.location.href = 'index.html';
-                return false;
+            // Ensure session flag is set for guests to prevent redirect loops
+            if (sessionStorage.getItem('hammerStrikeUserLoggedIn') !== 'true') {
+                sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
+            }
+
+            // Auto-initialize save data for guests
+            if (!localStorage.getItem('hammerStrikeSave')) {
+                localStorage.setItem('hammerStrikeSave', JSON.stringify({
+                    coins: 0,
+                    stars: 0,
+                    level: 1,
+                    nickname: 'Guest Player',
+                    tapsPerHour: 100,
+                    lastEnergy: 500,
+                    maxEnergy: 500,
+                    lastRefresh: Date.now(),
+                    upgrades: { power: 1, eLimit: 1, eSpeed: 1, bonus: 0 }
+                }));
             }
             return true;
         }

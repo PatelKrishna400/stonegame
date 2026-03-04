@@ -140,7 +140,9 @@
         <button class="btn btn-register" onclick="handleRegister()">Register</button>
 
         <div style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
-            <button onclick="window.location.href='user_stone.html'" class="btn btn-secondary"
+            <button
+                onclick="sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true'); window.location.href='user_stone.html'"
+                class="btn btn-secondary"
                 style="background: rgba(39, 174, 96, 0.1); border: 1px solid rgba(39, 174, 96, 0.3); color: #2ecc71; margin-bottom: 5px;">
                 🎮 Play Game (Home)
             </button>
@@ -177,9 +179,15 @@
             sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
 
             // Sync internal save nickname
-            const save = JSON.parse(localStorage.getItem('hammerStrikeSave') || '{}');
-            save.nickname = u;
-            localStorage.setItem('hammerStrikeSave', JSON.stringify(save));
+            let existingSave = null;
+            try { existingSave = JSON.parse(localStorage.getItem('hammerStrikeSave') || '{}'); } catch (e) { existingSave = {}; }
+
+            // Ensure basic stats exist
+            if (typeof existingSave.coins !== 'number') existingSave.coins = 0;
+            if (!existingSave.level) existingSave.level = 1;
+
+            existingSave.nickname = u;
+            localStorage.setItem('hammerStrikeSave', JSON.stringify(existingSave));
 
             alert("Registration successful! Welcome " + u);
             window.location.href = 'user_stone.html';
@@ -219,6 +227,20 @@
 
             if (u === storedU && p === storedP) {
                 sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
+
+                // Merge Guest data into User data if applicable
+                let currentSave = null;
+                try { currentSave = JSON.parse(localStorage.getItem('hammerStrikeSave') || '{}'); } catch (e) { currentSave = {}; }
+
+                if (!currentSave.nickname || currentSave.nickname === 'Guest Player') {
+                    currentSave.nickname = u;
+                    localStorage.setItem('hammerStrikeSave', JSON.stringify(currentSave));
+                } else if (!localStorage.getItem('hammerStrikeSave')) {
+                    // Fallback for empty state
+                    localStorage.setItem('hammerStrikeSave', JSON.stringify({
+                        coins: 0, level: 1, nickname: u, tapsPerHour: 100, lastEnergy: 500, maxEnergy: 500, lastRefresh: Date.now()
+                    }));
+                }
                 window.location.href = 'user_stone.html';
             } else {
                 alert("Invalid username or password!");

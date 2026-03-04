@@ -693,18 +693,24 @@
 
     <script>
         function checkAuth() {
-            const isIndex = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/');
-            const loggedIn = sessionStorage.getItem('hammerStrikeUserLoggedIn') === 'true';
-            const hasData = localStorage.getItem('hammerStrikeSave') !== null;
+            // Ensure session flag is set for guests to prevent redirect loops
+            if (sessionStorage.getItem('hammerStrikeUserLoggedIn') !== 'true') {
+                sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
+            }
 
-            if (isIndex) {
-                if (loggedIn && hasData) {
-                    window.location.href = 'user_stone.html';
-                }
-            } else {
-                if (!loggedIn || !hasData) {
-                    window.location.href = 'index.html';
-                }
+            // Auto-initialize save data for guests so their progress counts
+            if (!localStorage.getItem('hammerStrikeSave')) {
+                localStorage.setItem('hammerStrikeSave', JSON.stringify({
+                    coins: 0,
+                    stars: 0,
+                    level: 1,
+                    nickname: 'Guest Player',
+                    tapsPerHour: 100,
+                    lastEnergy: 500,
+                    maxEnergy: 500,
+                    lastRefresh: Date.now(),
+                    upgrades: { power: 1, eLimit: 1, eSpeed: 1, bonus: 0 }
+                }));
             }
         }
         checkAuth();
