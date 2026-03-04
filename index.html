@@ -304,24 +304,27 @@
 
             existingSave.nickname = u;
             existingSave.userId = userId;
+            existingSave.password = p1; // Crucial for cloud login
             localStorage.setItem('hammerStrikeSave', JSON.stringify(existingSave));
 
-            // Append to Simulated Admin List (since no cloud sync exists)
-            cloudUsers.push({
-                username: u,
-                nickname: u,
-                phone: n,
-                userId: userId,
-                email: e,
-                password: p1,
-                coins: existingSave.coins || 0,
-                level: existingSave.level || 1,
-                allData: existingSave,
-                lastSave: new Date().toISOString()
-            });
-            localStorage.setItem('hsAdminUsersList', JSON.stringify(cloudUsers));
-
-            alert("Registration successful! You can now log in.");
+            // Sync to Supabase
+            if (window.syncToSupabaseDirect) {
+                window.syncToSupabaseDirect(u, existingSave).then(() => {
+                    alert("Registration successful! Your account is now secured in the cloud.");
+                    // Switch back to login page and fill username
+                    document.getElementById('log-username').value = u;
+                    document.getElementById('log-password').value = "";
+                    document.getElementById('skip-link').style.display = 'none';
+                    document.getElementById('btn-new-player').style.display = 'none';
+                    toggleView('login');
+                }).catch(err => {
+                    console.error("Cloud registration failed:", err);
+                    alert("Account created locally, but cloud sync failed. Check your internet.");
+                });
+            } else {
+                alert("Registration successful locally! Cloud sync script not ready yet.");
+                toggleView('login');
+            }
 
             // Switch back to login page and fill username
             document.getElementById('log-username').value = u;
@@ -361,33 +364,48 @@
                 return;
             }
 
-            const cloudUsers = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
-            const userAccount = cloudUsers.find(cu => cu.username === u && cu.password === p);
+            // TRY CLOUD LOGIN FIRST
+            const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://stone-game-backend.onrender.com';
 
-            // Backwards compatibility for the very first single user if they aren't in the list
-            const storedU = localStorage.getItem('hsGlobalUsername');
-            const storedP = localStorage.getItem('hsGlobalPassword');
+            fetch(`${baseUrl}/api/admin/users`) // Fetch all users to verify simple login (since we don't have a secure login API yet)
+                .then(res => res.json())
+                .then(users => {
+                    const userAccount = users.find(cu => cu.username === u && cu.hammer_strike_save?.password === p);
 
-            if (userAccount) {
-                sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
-                localStorage.setItem('hsGlobalUsername', userAccount.username);
-                localStorage.setItem('hsGlobalPassword', userAccount.password);
-                localStorage.setItem('hsGlobalEmail', userAccount.email || '');
-                localStorage.setItem('hsGlobalPhone', userAccount.phone || '');
-                localStorage.setItem('hsGlobalUserId', userAccount.userId || '');
+                    if (userAccount) {
+                        sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
+                        localStorage.setItem('hsGlobalUsername', userAccount.username);
+                        localStorage.setItem('hsGlobalPassword', p);
+                        localStorage.setItem('hsGlobalUserId', userAccount.userId || '');
 
-                if (userAccount.allData) {
-                    localStorage.setItem('hammerStrikeSave', JSON.stringify(userAccount.allData));
-                }
+                        if (userAccount.hammer_strike_save) {
+                            localStorage.setItem('hammerStrikeSave', JSON.stringify(userAccount.hammer_strike_save));
+                        }
 
-                window.location.href = 'user_stone.html';
-            } else if (u === storedU && p === storedP) {
-                // Fallback for an old registered single user
-                sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
-                window.location.href = 'user_stone.html';
-            } else {
-                alert("Invalid username or password! Or account not registered.");
-            }
+                        window.location.href = 'user_stone.html';
+                    } else {
+                        // LOCAL FALLBACK
+                        const storedU = localStorage.getItem('hsGlobalUsername');
+                        const storedP = localStorage.getItem('hsGlobalPassword');
+                        if (u === storedU && p === storedP) {
+                            sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
+                            window.location.href = 'user_stone.html';
+                        } else {
+                            alert("Invalid username or password! Please check your credentials.");
+                        }
+                    }
+                }).catch(err => {
+                    console.error("Cloud login error:", err);
+                    // Fallback to local
+                    const storedU = localStorage.getItem('hsGlobalUsername');
+                    const storedP = localStorage.getItem('hsGlobalPassword');
+                    if (u === storedU && p === storedP) {
+                        sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
+                        window.location.href = 'user_stone.html';
+                    } else {
+                        alert("Connection error and local login failed.");
+                    }
+                });
         }
     </script>
 
