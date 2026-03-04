@@ -315,7 +315,7 @@
         style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: rgba(20, 23, 39, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.07); position: sticky; top: 0; z-index: 2000;">
         <div class="logo"
             style="font-size: 1.2rem; font-weight: 800; color: #ffd700; letter-spacing: 2px; text-transform: uppercase;">
-            Admin Admin</div>
+            Krishna Admin</div>
         <div class="header-right" style="display:flex; align-items:center; gap:10px;">
             <button class="logout-btn" onclick="adminLogout()"
                 style="background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.35); padding: 6px 12px; border-radius: 8px; color: #e74c3c; font-size: 0.8rem; font-weight: 700; cursor: pointer; text-decoration: none;">Logout</button>
@@ -567,15 +567,40 @@
             renderTasks();
         }
 
+        window.resetTaskProgress = function (id) {
+            if (confirm("Reset completion progress for ALL users for this task? Users will be able to complete it again.")) {
+                let cloudUsers = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
+                cloudUsers = cloudUsers.map(u => {
+                    if (u.allData && u.allData.completedTasks) {
+                        u.allData.completedTasks = u.allData.completedTasks.filter(tid => tid !== id);
+                    }
+                    return u;
+                });
+                localStorage.setItem('hsAdminUsersList', JSON.stringify(cloudUsers));
+                alert("Progress reset for all users!");
+                renderTasks();
+            }
+        }
+
         function renderTasks() {
             const tb = document.getElementById('tasks-container');
             if (!tb) return;
             const tasks = loadTasks();
+            const cloudUsers = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
+
             if (tasks.length === 0) {
                 tb.innerHTML = '<div style="color:var(--text2);text-align:center;padding:20px;">No active tasks uploaded yet.</div>';
             } else {
                 tb.innerHTML = tasks.map(t => {
                     const typeLabel = (t.type === 'youtube' ? '📺 YouTube' : '🌐 Website');
+
+                    // Calculation for how many users completed this task
+                    const completedCount = cloudUsers.filter(u =>
+                        u.allData &&
+                        u.allData.completedTasks &&
+                        u.allData.completedTasks.includes(t.id)
+                    ).length;
+
                     return `
                     <div class="quest-row">
                         <div class="quest-icon">${t.type === 'youtube' ? '🎬' : '📝'}</div>
@@ -583,9 +608,11 @@
                             <div class="quest-name">${t.title}</div>
                             <div style="font-size:0.7rem; color:var(--text2); margin-top:-2px; margin-bottom:4px;">${typeLabel} • ${t.timer || 0}s</div>
                             <div class="quest-pct" style="color:var(--gold);">Reward: ${t.reward} ⚡ | <a href="${t.link}" style="color:var(--blue);" target="_blank">Link</a></div>
+                            <div style="font-size:0.7rem; color: #2ecc71; font-weight: bold; margin-top:4px;">Completed by: ${completedCount} users</div>
                         </div>
                         <div style="display:flex; flex-direction:column; gap:5px;">
                             <button class="danger-btn" onclick="editTask(${t.id})" style="padding:5px 10px; background:#f39c12; border:none; color:white;">Edit</button>
+                            <button class="danger-btn" onclick="resetTaskProgress(${t.id})" style="padding:5px 10px; background:#3498db; border:none; color:white;">Reupload</button>
                             <button class="danger-btn" onclick="removeTask(${t.id})" style="padding:5px 10px;">Remove</button>
                         </div>
                     </div>

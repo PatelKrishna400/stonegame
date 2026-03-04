@@ -198,8 +198,12 @@
 
     <header
         style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: rgba(20, 23, 39, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.07); position: sticky; top: 0; z-index: 2000;">
-        <div class="logo">Admin Dashboard</div>
+        <div class="logo">Krishna Admin</div>
         <div class="header-right" style="display:flex; align-items:center; gap:10px;">
+            <button id="maint-btn" onclick="toggleMaintenance()"
+                style="background:rgba(255,215,0,0.1); border:1px solid var(--gold); color:var(--gold); padding:6px 12px; border-radius:8px; font-size:0.75rem; font-weight:700; cursor:pointer;">
+                🛠️ Maintenance: OFF
+            </button>
             <button class="logout-btn" onclick="adminLogout()"
                 style="background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.35); padding: 6px 12px; border-radius: 8px; color: #e74c3c; font-size: 0.8rem; font-weight: 700; cursor: pointer; text-decoration: none;">Logout</button>
             <div class="menu-btn" onclick="openMenu()"
@@ -281,6 +285,23 @@
             if (dw) dw.textContent = reqs.filter(r => r.status === 'pending').length.toString();
 
             renderChart(allUsers);
+            updateMaintenanceBtn();
+        }
+
+        function toggleMaintenance() {
+            const current = localStorage.getItem('hsMaintenanceMode') === 'true';
+            localStorage.setItem('hsMaintenanceMode', !current);
+            updateMaintenanceBtn();
+            alert(`Maintenance Mode is now ${!current ? 'ON' : 'OFF'}`);
+        }
+
+        function updateMaintenanceBtn() {
+            const btn = document.getElementById('maint-btn');
+            if (!btn) return;
+            const isOn = localStorage.getItem('hsMaintenanceMode') === 'true';
+            btn.innerText = `🛠️ Maintenance: ${isOn ? 'ON' : 'OFF'}`;
+            btn.style.borderColor = isOn ? '#e74c3c' : '#ffd700';
+            btn.style.color = isOn ? '#e74c3c' : '#ffd700';
         }
 
         function renderChart(users) {
@@ -362,7 +383,7 @@
             Exit to Game</a>
     </div>
 
-    
+
 </body>
 
 </html>

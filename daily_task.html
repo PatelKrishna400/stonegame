@@ -8,6 +8,11 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script>
+        if (localStorage.getItem('hsMaintenanceMode') === 'true') {
+            window.location.href = 'maintenance.html';
+        }
+    </script>
     <style>
         * {
             margin: 0;
@@ -762,6 +767,17 @@
             completed.push(activeTask.id);
             localStorage.setItem('hammerStrikeCompletedTasks', JSON.stringify(completed));
 
+            // Sync to main save for admin tracking
+            const savedData = localStorage.getItem('hammerStrikeSave');
+            if (savedData) {
+                let data = JSON.parse(savedData);
+                if (!data.completedTasks) data.completedTasks = [];
+                if (!data.completedTasks.includes(activeTask.id)) {
+                    data.completedTasks.push(activeTask.id);
+                }
+                localStorage.setItem('hammerStrikeSave', JSON.stringify(data));
+            }
+
             document.getElementById('task-overlay').style.display = 'none';
             alert(`Collected ${energyReward} Energy!`);
 
@@ -784,7 +800,7 @@
 
         setInterval(loadSave, 1000);
     </script>
-    
+
 </body>
 
 </html>

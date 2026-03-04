@@ -8,6 +8,11 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script>
+        if (localStorage.getItem('hsMaintenanceMode') === 'true') {
+            window.location.href = 'maintenance.html';
+        }
+    </script>
     <style>
         * {
             margin: 0;
@@ -913,6 +918,7 @@
             const currentPower = tapPower * currentMultiplier;
 
             if (energy >= currentCost) {
+                playSound(clickSound);
                 // Haptic feedback if in TMA
                 if (window.Telegram && window.Telegram.WebApp.HapticFeedback) {
                     window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
@@ -951,6 +957,7 @@
                     playerLevel++;
                     starsRequired = Math.floor(500 * Math.pow(1.5, playerLevel - 1));
 
+                    playSound(winSound);
                     showLevelUpModal(playerLevel);
                 }
 
@@ -1524,6 +1531,44 @@
             document.getElementById('side-menu').style.transform = 'translateX(100%)';
             document.getElementById('menu-overlay').style.display = 'none';
         }
+    </script>
+    <!-- Audio Assets -->
+    <audio id="bgMusic" loop src="https://assets.mixkit.co/music/preview/mixkit-game-level-music-689.mp3"></audio>
+    <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-block-hit-in-a-video-game-2044.mp3"></audio>
+    <audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-an-extra-bonus-2098.mp3"></audio>
+    <audio id="coinSound" src="https://assets.mixkit.co/sfx/preview/mixkit-clinking-coins-752.mp3"></audio>
+
+    <script>
+        let isMuted = false;
+        const bgMusic = document.getElementById('bgMusic');
+        const clickSound = document.getElementById('clickSound');
+        const winSound = document.getElementById('winSound');
+        const coinSound = document.getElementById('coinSound');
+
+        function playSound(sound) {
+            if (!isMuted && sound) {
+                sound.currentTime = 0;
+                sound.play().catch(e => console.log("Sound play blocked"));
+            }
+        }
+
+        function toggleSound() {
+            isMuted = !isMuted;
+            if (isMuted) {
+                bgMusic.pause();
+                document.getElementById('sound-toggle-btn').innerText = '🔇';
+            } else {
+                bgMusic.play().catch(e => console.log("Interaction needed"));
+                document.getElementById('sound-toggle-btn').innerText = '🔊';
+            }
+        }
+
+        // Start BG music on first tap
+        document.body.addEventListener('click', () => {
+            if (!isMuted && bgMusic.paused) {
+                bgMusic.play().catch(e => { });
+            }
+        }, { once: true });
     </script>
 </body>
 

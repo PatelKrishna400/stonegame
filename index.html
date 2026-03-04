@@ -7,6 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stone Game — Portal</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script>
+        if (localStorage.getItem('hsMaintenanceMode') === 'true') {
+            window.location.href = 'maintenance.html';
+        }
+    </script>
     <style>
         * {
             margin: 0;
@@ -338,7 +343,7 @@
             const customAdminPass = localStorage.getItem('hsAdminPass');
 
             // Default fallback config
-            if (!customAdminUser && u === 'admin' && p === 'admin@123') {
+            if (!customAdminUser && u === 'krishna' && p === 'krishna@123') {
                 localStorage.setItem('hsFirstTimeAdmin', 'true');
                 window.location.href = 'admin.html';
                 return;

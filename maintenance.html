@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Under Maintenance — Stone Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d0f1a;
+            --surface: #141727;
+            --gold: #ffd700;
+            --text: #ffffff;
+            --text2: rgba(255, 255, 255, 0.6);
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            background: var(--surface);
+            padding: 40px 30px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--gold);
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+
+        p {
+            color: var(--text2);
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            background: var(--gold);
+            color: #000;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 800;
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="icon">🛠️</div>
+        <h1>Under Maintenance</h1>
+        <p>We are currently updating the Krishna Stone Game to bring you better features and performance. Please check
+            back later!</p>
+        <div style="font-size: 0.8rem; color: var(--gold); font-weight: bold; opacity: 0.8;">Admin: Krishna</div>
+    </div>
+
+    <script>
+        // Check if maintenance is still on
+        setInterval(() => {
+            if (localStorage.getItem('hsMaintenanceMode') !== 'true') {
+                window.location.href = 'index.html';
+            }
+        }, 5000);
+    </script>
+</body>
+
+</html>
