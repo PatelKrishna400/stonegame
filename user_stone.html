@@ -555,8 +555,14 @@
         }
 
         window.addEventListener('storage', (e) => {
-            if (e.key === 'hammerStrikeSave' && e.newValue === null) {
-                window.location.href = 'index.html';
+            if (e.key === 'hammerStrikeSave') {
+                if (e.newValue === null) {
+                    window.location.href = 'index.html';
+                } else {
+                    // Immediate UI update across tabs
+                    loadDashboardData();
+                    updateTicker();
+                }
             }
         });
 
@@ -600,7 +606,9 @@
                         }
                         document.getElementById('btn-claim-rank').style.display = 'none';
                     }
-                } catch (e) { }
+                } catch (e) {
+                    console.error("Load state error", e); // Changed to console.error for better debugging
+                }
             }
         }
 

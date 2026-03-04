@@ -584,7 +584,7 @@
             document.getElementById('multitap-level').innerText = `Lvl ${tapPowerLevel}`;
             document.getElementById('recharge-level').innerText = `Lvl ${rechargeLevel}`;
             document.getElementById('energy-level-text').innerText = `Lvl ${energyLevel}`;
-            document.getElementById('auto-click-stock').innerText = `${autoClickSeconds}s Reserve`;
+            // document.getElementById('auto-click-stock').innerText = `${autoClickSeconds}s Reserve`; // This element is not in upgrade.html
             document.getElementById('bonus-drop-level').innerText = `Lvl ${bonusDropLevel}`;
             document.getElementById('ad-energy-level').innerText = `Lvl ${adEnergyLevel}`;
             document.getElementById('ad-cooldown-level').innerText = `Lvl ${adCooldownLevel}`;
@@ -786,6 +786,31 @@
             updateAdEnergyUI();
         }
 
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'hammerStrikeSave') {
+                if (e.newValue === null) {
+                    window.location.href = 'index.html';
+                } else {
+                    const parsed = JSON.parse(e.newValue);
+                    if (parsed && typeof parsed.coins === 'number') {
+                        balance = parsed.coins;
+                        document.getElementById('upgrade-balance').innerText = balance.toLocaleString();
+                    }
+                }
+            }
+        });
+
+        // Initialize from local
+        (function init() {
+            const raw = localStorage.getItem('hammerStrikeSave');
+            if (raw) {
+                try {
+                    const parsed = JSON.parse(raw);
+                    balance = parsed.coins || 0;
+                    document.getElementById('upgrade-balance').innerText = balance.toLocaleString();
+                } catch (e) { }
+            }
+        })();
         function watchEnergyAd() {
             const btn = document.getElementById('btn-ad-energy');
             const originalText = btn.innerText;

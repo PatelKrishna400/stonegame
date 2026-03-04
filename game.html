@@ -719,8 +719,14 @@
         }
         checkAuth();
         window.addEventListener('storage', (e) => {
-            if (e.key === 'hammerStrikeSave' && e.newValue === null) {
-                window.location.href = 'index.html';
+            if (e.key === 'hammerStrikeSave') {
+                if (e.newValue === null) {
+                    window.location.href = 'index.html';
+                } else {
+                    loadGameState();
+                    updateUI();
+                    updateSideMenu();
+                }
             }
         });
 
@@ -748,15 +754,14 @@
         const tapEnergyCost = 1;
         let rechargeLevel = 1;
         let timerSeconds = 5;
+        let autoClickSeconds = 0;
+        let adLimitLevel = 1;
+        let adCooldownLevel = 1;
+        let adEnergyLevel = 1;
         let bonusDropLevel = 1;
-
-
-        let pendingBonusStars = 10;
-
-        // Break variables
         let breakTimeEnd = 0;
         let sessionPlayTime = 0;
-
+        let pendingBonusStars = 0;
         let multiplierIndex = 0;
         const multiplierValues = [1, 2, 3, 5, 10, 20];
 
@@ -767,8 +772,6 @@
 
             let currentVal = multiplierValues[multiplierIndex];
             let nextIdx = (multiplierIndex + 1) % multiplierValues.length;
-
-            // Ensure the next value is within unlocked range
             while (!available.includes(multiplierValues[nextIdx])) {
                 nextIdx = (nextIdx + 1) % multiplierValues.length;
             }
@@ -777,7 +780,6 @@
             const m = multiplierValues[multiplierIndex];
             document.getElementById('btn-multiplier').innerText = `x${m}`;
 
-            // Haptic
             if (window.Telegram && window.Telegram.WebApp.HapticFeedback) {
                 window.Telegram.WebApp.HapticFeedback.selectionChanged();
             } else if (navigator.vibrate) {
@@ -785,134 +787,55 @@
             }
         }
 
-        // Load balance from localStorage if available
-        const savedData = localStorage.getItem('hammerStrikeSave');
-        if (savedData) {
+        function loadGameState() {
+            const savedData = localStorage.getItem('hammerStrikeSave');
+            if (!savedData) return;
             try {
                 const parsed = JSON.parse(savedData);
-                if (parsed && typeof parsed.coins === 'number') {
-                    balance = parsed.coins;
-                }
-                if (parsed && typeof parsed.clickCount === 'number') {
-                    clickCount = parsed.clickCount;
-                }
-                if (parsed && typeof parsed.clicksSinceLastBonus === 'number') {
-                    clicksSinceLastBonus = parsed.clicksSinceLastBonus;
-                }
-                if (parsed && typeof parsed.maxEnergy === 'number') {
-                    maxEnergy = parsed.maxEnergy;
-                }
-                if (parsed && typeof parsed.energy === 'number') {
-                    energy = parsed.energy;
-                } else {
-                    energy = maxEnergy;
-                }
-                if (parsed && typeof parsed.stars === 'number') {
-                    stars = parsed.stars;
-                }
-                if (parsed && typeof parsed.starsRequired === 'number') {
-                    starsRequired = parsed.starsRequired;
-                }
-                if (parsed && typeof parsed.levelReductionDate === 'number') {
-                    levelReductionDate = parsed.levelReductionDate;
-                }
-                if (parsed && typeof parsed.tapPowerLevel === 'number') {
-                    tapPower = parsed.tapPowerLevel;
-                }
-                if (parsed && typeof parsed.rechargeLevel === 'number') {
-                    rechargeLevel = parsed.rechargeLevel;
-                }
-                if (parsed && typeof parsed.bonusDropLevel === 'number') {
-                    bonusDropLevel = parsed.bonusDropLevel;
-                }
-                if (parsed && typeof parsed.adEnergyLevel === 'number') {
-                    adEnergyLevel = parsed.adEnergyLevel;
-                }
-                if (parsed && typeof parsed.adCooldownLevel === 'number') {
-                    adCooldownLevel = parsed.adCooldownLevel;
-                }
-                if (parsed && typeof parsed.adLimitLevel === 'number') {
-                    adLimitLevel = parsed.adLimitLevel;
-                }
-                if (parsed && typeof parsed.breakTimeEnd === 'number') {
-                    breakTimeEnd = parsed.breakTimeEnd;
-                }
+                if (parsed.coins !== undefined) balance = parsed.coins;
+                if (parsed.clickCount !== undefined) clickCount = parsed.clickCount;
+                if (parsed.clicksSinceLastBonus !== undefined) clicksSinceLastBonus = parsed.clicksSinceLastBonus;
+                if (parsed.maxEnergy !== undefined) maxEnergy = parsed.maxEnergy;
+                if (parsed.energy !== undefined) energy = parsed.energy;
+                if (parsed.stars !== undefined) stars = parsed.stars;
+                if (parsed.starsRequired !== undefined) starsRequired = parsed.starsRequired;
+                if (parsed.levelReductionDate !== undefined) levelReductionDate = parsed.levelReductionDate;
+                if (parsed.tapPowerLevel !== undefined) tapPower = parsed.tapPowerLevel;
+                if (parsed.rechargeLevel !== undefined) rechargeLevel = parsed.rechargeLevel;
+                if (parsed.bonusDropLevel !== undefined) bonusDropLevel = parsed.bonusDropLevel;
+                if (parsed.autoClickSeconds !== undefined) autoClickSeconds = parsed.autoClickSeconds;
+                if (parsed.adEnergyLevel !== undefined) adEnergyLevel = parsed.adEnergyLevel;
+                if (parsed.adCooldownLevel !== undefined) adCooldownLevel = parsed.adCooldownLevel;
+                if (parsed.adLimitLevel !== undefined) adLimitLevel = parsed.adLimitLevel;
+                if (parsed.breakTimeEnd !== undefined) breakTimeEnd = parsed.breakTimeEnd;
 
-                // Offline Energy Recharge Logic
-                if (parsed && parsed.lastSave) {
-                    const elapsedSecs = Math.floor((Date.now() - parsed.lastSave) / 1000);
-                    if (elapsedSecs > 0) {
+                // Offline Energy recharge on first load
+                if (parsed.lastSave && !window.initialLoadDone) {
+                    const elapsed = Math.floor((Date.now() - parsed.lastSave) / 1000);
+                    if (elapsed > 0) {
                         const rTime = Math.max(1, 30 - (rechargeLevel - 1));
                         const rAmt = 1 + (rechargeLevel - 1) * 0.1;
-
-                        const intervals = Math.floor(elapsedSecs / rTime);
-                        const remainder = elapsedSecs % rTime;
-                        const energyToAdd = intervals * rAmt;
-                        energy = Math.min(maxEnergy, energy + energyToAdd);
-
-                        // Prevent the timer from artificially resetting out of bounds
-                        if (parsed.timerSeconds !== undefined && !isNaN(parsed.timerSeconds)) {
-                            timerSeconds = parsed.timerSeconds - (elapsedSecs % rTime);
-                            if (timerSeconds <= 0) timerSeconds += rTime;
-                            if (timerSeconds > rTime) timerSeconds = rTime;
-                        } else {
-                            timerSeconds = rTime - remainder;
-                        }
+                        const intervals = Math.floor(elapsed / rTime);
+                        energy = Math.min(maxEnergy, energy + (intervals * rAmt));
                     }
+                    window.initialLoadDone = true;
                 }
-
-                if (parsed && typeof parsed.autoClickSeconds === 'number') {
-                    autoClickSeconds = parsed.autoClickSeconds;
-                    document.getElementById('btn-auto-click').innerText = `🤖 Auto: ${autoClickSeconds > 0 ? autoClickSeconds + 's' : 'Off'}`;
-                }
-
-                // Hourly Degradation Logic
-                if (!parsed.lastUpgradeDegrade) {
-                    parsed.lastUpgradeDegrade = Date.now();
-                }
-                const HR_MS = 60 * 60 * 1000;
-                const elapsedDegrade = Date.now() - parsed.lastUpgradeDegrade;
-                if (elapsedDegrade >= HR_MS) {
-                    const hrsPassed = Math.floor(elapsedDegrade / HR_MS);
-
-                    let eLvl = ((parsed.maxEnergy || 100) - 100) / 100 + 1;
-                    let tLvl = parsed.tapPowerLevel || 1;
-                    let rLvl = parsed.rechargeLevel || 1;
-                    let bLvl = parsed.bonusDropLevel || 1;
-
-                    maxEnergy = Math.max(100, (Math.max(1, eLvl - hrsPassed) - 1) * 100 + 100);
-                    tapPower = Math.max(1, tLvl - hrsPassed);
-                    rechargeLevel = Math.max(1, rLvl - hrsPassed);
-                    bonusDropLevel = Math.max(1, bLvl - hrsPassed);
-
-                    if (energy > maxEnergy) energy = maxEnergy;
-
-                    levelReductionDate = parsed.levelReductionDate; // keep existing logic
-                    // Update the saved degradation timestamp
-                    const updatedDataToSave = {
-                        ...parsed,
-                        maxEnergy: maxEnergy,
-                        tapPowerLevel: tapPower,
-                        rechargeLevel: rechargeLevel,
-                        bonusDropLevel: bonusDropLevel,
-                        lastUpgradeDegrade: parsed.lastUpgradeDegrade + (hrsPassed * HR_MS)
-                    };
-                    localStorage.setItem('hammerStrikeSave', JSON.stringify(updatedDataToSave));
-                }
-
-            } catch (e) { }
+            } catch (e) {
+                console.error("Load state error", e);
+            }
         }
+
+        loadGameState();
 
         // 30-day cycle level reduction logic
         const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
         if (Date.now() - levelReductionDate >= THIRTY_DAYS) {
             playerLevel = 1;
-            stars = 0; // reset XP for the new cycle
+            stars = 0;
             starsRequired = 500;
             levelReductionDate = Date.now();
             alert(`30-Day Cycle Complete! Your Level has been renewed to Level 1.`);
         }
-        document.getElementById('energy-max').innerText = maxEnergy;
 
         const balanceDisplay = document.getElementById('balance-display');
         const energyCurrent = document.getElementById('energy-current');
@@ -925,30 +848,30 @@
         const starFill = document.getElementById('star-fill');
 
         function updateUI() {
-            balanceDisplay.innerText = balance.toLocaleString();
-            energyCurrent.innerText = Math.floor(energy);
-            const pct = (energy / maxEnergy) * 100;
-            energyFill.style.width = Math.min(100, pct) + '%';
-
-            starCurrent.innerText = Math.floor(stars);
-            starMax.innerText = starsRequired;
-            const starPct = (stars / starsRequired) * 100;
-            starFill.style.width = Math.min(100, starPct) + '%';
-
-            // Level formula based on stars required
-            if (playerLevelSpan) {
-                playerLevelSpan.innerText = 'Level ' + playerLevel;
+            if (balanceDisplay) balanceDisplay.innerText = Math.floor(balance).toLocaleString();
+            if (energyCurrent) energyCurrent.innerText = Math.floor(energy);
+            if (energyFill) {
+                const pct = (energy / maxEnergy) * 100;
+                energyFill.style.width = Math.min(100, pct) + '%';
             }
-
-            // Dynamic Stone Image Logic
-            // Mapping: 1-5 -> 1, 6-10 -> 5, 11-15 -> 10, 16-20 -> 15, 21-25 -> 20, ..., 51+ -> 50
-            let stoneImgNum = playerLevel <= 5 ? 1 : (Math.floor((playerLevel - 1) / 5) * 5);
-            if (stoneImgNum > 50) stoneImgNum = 50;
-
-            if (clicker) {
-                const imgUrl = `stone_level_${stoneImgNum}.png`;
-                clicker.style.backgroundImage = `url('${imgUrl}')`;
+            if (starCurrent) starCurrent.innerText = Math.floor(stars);
+            if (starMax) starMax.innerText = starsRequired;
+            if (starFill) {
+                const starPct = (stars / starsRequired) * 100;
+                starFill.style.width = Math.min(100, starPct) + '%';
             }
+            if (playerLevelSpan) playerLevelSpan.innerText = 'Level ' + playerLevel;
+            if (document.getElementById('energy-max')) document.getElementById('energy-max').innerText = maxEnergy;
+        }
+
+        updateUI();        // Dynamic Stone Image Logic
+        // Mapping: 1-5 -> 1, 6-10 -> 5, 11-15 -> 10, 16-20 -> 15, 21-25 -> 20, ..., 51+ -> 50
+        let stoneImgNum = playerLevel <= 5 ? 1 : (Math.floor((playerLevel - 1) / 5) * 5);
+        if (stoneImgNum > 50) stoneImgNum = 50;
+
+        if (clicker) {
+            const imgUrl = `stone_level_${stoneImgNum}.png`;
+            clicker.style.backgroundImage = `url('${imgUrl}')`;
         }
 
 
@@ -1004,6 +927,7 @@
 
                 createFloatingNumber(clientX, clientY, addedAmount, false);
                 updateUI();
+                saveGameState(); // Instant save for cross-tab sync
             } else {
                 if (autoClickActive) {
                     stopAutoClick();
