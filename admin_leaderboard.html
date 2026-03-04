@@ -8,6 +8,9 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="scripts/supabase-config.js"></script>
+    <script src="scripts/sync.js"></script>
     <style>
         * {
             margin: 0;
@@ -148,9 +151,29 @@
     </main>
 
     <script>
-        function loadRankings() {
+        async function loadRankings() {
             const list = document.getElementById('leaderboard-list');
-            const users = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
+            let users = [];
+            const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://stone-game-backend.onrender.com';
+
+            try {
+                const response = await fetch(`${baseUrl}/api/admin/users`);
+                if (response.ok) {
+                    const data = await response.json();
+                    users = data.map(u => ({
+                        username: u.username,
+                        nickname: u.nickname || u.username,
+                        userId: u.userId || 'N/A',
+                        coins: u.hammer_strike_save?.coins || 0,
+                        level: u.hammer_strike_save?.level || 1,
+                        allData: u.hammer_strike_save
+                    }));
+                } else {
+                    users = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
+                }
+            } catch (e) {
+                users = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
+            }
 
             if (users.length === 0) {
                 list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text2);">Leaderboard is empty. No users found in cloud.</div>';

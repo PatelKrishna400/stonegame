@@ -9,6 +9,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="scripts/supabase-config.js"></script>
+    <script src="scripts/sync.js"></script>
     <style>
         * {
             margin: 0;
@@ -567,26 +570,62 @@
             renderTasks();
         }
 
-        window.resetTaskProgress = function (id) {
-            if (confirm("Reset completion progress for ALL users for this task? Users will be able to complete it again.")) {
-                let cloudUsers = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
-                cloudUsers = cloudUsers.map(u => {
-                    if (u.allData && u.allData.completedTasks) {
-                        u.allData.completedTasks = u.allData.completedTasks.filter(tid => tid !== id);
+        window.resetTaskProgress = async function (id) {
+            if (confirm("Reset completion progress for ALL users for this task? This will update the CLOUD database.")) {
+                let allUsers = [];
+                const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://stone-game-backend.onrender.com';
+
+                try {
+                    const response = await fetch(`${baseUrl}/api/admin/users`);
+                    if (response.ok) {
+                        const cloudData = await response.json();
+                        // Reset progress locally in the fetched list
+                        const updatedUsers = cloudData.map(u => {
+                            if (u.hammer_strike_save && u.hammer_strike_save.completedTasks) {
+                                u.hammer_strike_save.completedTasks = u.hammer_strike_save.completedTasks.filter(tid => tid !== id);
+                            }
+                            return u;
+                        });
+
+                        // Now we need to update each user in Supabase
+                        // (Ideally a bulk update endpoint or direct loop if small)
+                        if (window.supabaseClient) {
+                            for (const user of updatedUsers) {
+                                await window.supabaseClient.from('users').update({
+                                    hammer_strike_save: user.hammer_strike_save
+                                }).eq('username', user.username);
+                            }
+                            alert("Progress reset completed for all users in Cloud!");
+                        } else {
+                            alert("Direct Supabase client not found. Local cache updated, but cloud update failed.");
+                        }
                     }
-                    return u;
-                });
-                localStorage.setItem('hsAdminUsersList', JSON.stringify(cloudUsers));
-                alert("Progress reset for all users!");
+                } catch (e) {
+                    console.error("Reset progress failed:", e);
+                    alert("Error resetting progress.");
+                }
                 renderTasks();
             }
         }
 
-        function renderTasks() {
+        async function renderTasks() {
             const tb = document.getElementById('tasks-container');
             if (!tb) return;
             const tasks = loadTasks();
-            const cloudUsers = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
+
+            let cloudUsers = [];
+            const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://stone-game-backend.onrender.com';
+
+            try {
+                const response = await fetch(`${baseUrl}/api/admin/users`);
+                if (response.ok) {
+                    const data = await response.json();
+                    cloudUsers = data.map(u => ({
+                        username: u.username,
+                        allData: u.hammer_strike_save
+                    }));
+                }
+            } catch (e) { console.warn("Task render cloud fetch failed"); }
 
             if (tasks.length === 0) {
                 tb.innerHTML = '<div style="color:var(--text2);text-align:center;padding:20px;">No active tasks uploaded yet.</div>';
