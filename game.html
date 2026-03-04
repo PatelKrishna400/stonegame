@@ -1308,6 +1308,24 @@
             }
 
             localStorage.setItem('hammerStrikeSave', JSON.stringify(data));
+
+            // Sync to simulated cloud users list for admin dashboard
+            try {
+                const globalUser = localStorage.getItem('hsGlobalUsername') || data.nickname;
+                if (globalUser) {
+                    let cloudUsers = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
+                    let idx = cloudUsers.findIndex(u => u.username === globalUser || u.nickname === globalUser);
+                    if (idx > -1) {
+                        cloudUsers[idx].coins = data.coins;
+                        cloudUsers[idx].level = data.level;
+                        cloudUsers[idx].allData = data;
+                        cloudUsers[idx].lastSave = new Date().toISOString();
+                        localStorage.setItem('hsAdminUsersList', JSON.stringify(cloudUsers));
+                    }
+                }
+            } catch (e) {
+                console.warn(e);
+            }
         }
 
         // Save progress to local storage periodically
@@ -1451,7 +1469,7 @@
         }
     </script>
 
-    
+
 
     <script>
         function updateSideMenu() {

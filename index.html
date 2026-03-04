@@ -200,7 +200,7 @@
         </div>
     </div>
 
-    
+
 
     <script>
         function checkAuth() {
@@ -299,17 +299,22 @@
             existingSave.userId = userId;
             localStorage.setItem('hammerStrikeSave', JSON.stringify(existingSave));
 
-            // Push to Supabase
-            if (window.saveToCloud) {
-                window.saveToCloud(u).then(() => {
-                    alert("Registration successful and synced to cloud! You can now log in.");
-                }).catch(err => {
-                    console.error("Cloud sync failed:", err);
-                    alert("Registration successful! (Sync failed, data saved locally)");
-                });
-            } else {
-                alert("Registration successful! You can now log in.");
-            }
+            // Append to Simulated Admin List (since no cloud sync exists)
+            cloudUsers.push({
+                username: u,
+                nickname: u,
+                phone: n,
+                userId: userId,
+                email: e,
+                password: p1,
+                coins: existingSave.coins || 0,
+                level: existingSave.level || 1,
+                allData: existingSave,
+                lastSave: new Date().toISOString()
+            });
+            localStorage.setItem('hsAdminUsersList', JSON.stringify(cloudUsers));
+
+            alert("Registration successful! You can now log in.");
 
             // Switch back to login page and fill username
             document.getElementById('log-username').value = u;
@@ -344,49 +349,36 @@
             }
 
             // 2. Check Standard User Credentials
+            const cloudUsers = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
+            const userAccount = cloudUsers.find(cu => cu.username === u && cu.password === p);
+
+            // Backwards compatibility for the very first single user if they aren't in the list
             const storedU = localStorage.getItem('hsGlobalUsername');
             const storedP = localStorage.getItem('hsGlobalPassword');
 
-            if (!storedU) {
-                alert("No registered account found. Please register first by clicking 'New Player'.");
-                return;
-            }
-
-            if (u === storedU && p === storedP) {
+            if (userAccount) {
                 sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
+                localStorage.setItem('hsGlobalUsername', userAccount.username);
+                localStorage.setItem('hsGlobalPassword', userAccount.password);
+                localStorage.setItem('hsGlobalEmail', userAccount.email || '');
+                localStorage.setItem('hsGlobalPhone', userAccount.phone || '');
+                localStorage.setItem('hsGlobalUserId', userAccount.userId || '');
 
-                // Merge Guest data into User data if applicable
-                let currentSave = null;
-                try { currentSave = JSON.parse(localStorage.getItem('hammerStrikeSave') || '{}'); } catch (e) { currentSave = {}; }
-
-                if (!currentSave.nickname || currentSave.nickname === 'Guest Player') {
-                    currentSave.nickname = u;
-                    localStorage.setItem('hammerStrikeSave', JSON.stringify(currentSave));
-                } else if (!localStorage.getItem('hammerStrikeSave')) {
-                    // Fallback for empty state
-                    localStorage.setItem('hammerStrikeSave', JSON.stringify({
-                        coins: 0, level: 1, nickname: u, tapsPerHour: 100, lastEnergy: 500, maxEnergy: 500, lastRefresh: Date.now()
-                    }));
+                if (userAccount.allData) {
+                    localStorage.setItem('hammerStrikeSave', JSON.stringify(userAccount.allData));
                 }
 
-                // Optional Cloud Sync on login
-                if (window.loadFromCloud) {
-                    const btn = document.querySelector('.btn-login');
-                    btn.innerText = "Syncing...";
-                    btn.disabled = true;
-
-                    window.loadFromCloud(u).finally(() => {
-                        window.location.href = 'user_stone.html';
-                    });
-                } else {
-                    window.location.href = 'user_stone.html';
-                }
+                window.location.href = 'user_stone.html';
+            } else if (u === storedU && p === storedP) {
+                // Fallback for an old registered single user
+                sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
+                window.location.href = 'user_stone.html';
             } else {
-                alert("Invalid username or password!");
+                alert("Invalid username or password! Or account not registered.");
             }
         }
     </script>
-    
+
 </body>
 
 </html>
