@@ -827,15 +827,7 @@
 
         loadGameState();
 
-        // 30-day cycle level reduction logic
-        const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
-        if (Date.now() - levelReductionDate >= THIRTY_DAYS) {
-            playerLevel = 1;
-            stars = 0;
-            starsRequired = 500;
-            levelReductionDate = Date.now();
-            alert(`30-Day Cycle Complete! Your Level has been renewed to Level 1.`);
-        }
+        // Data persistence ensured (Removed 30-day reset)
 
         const balanceDisplay = document.getElementById('balance-display');
         const energyCurrent = document.getElementById('energy-current');
@@ -1078,14 +1070,8 @@
             const now = Date.now();
             const btn = document.getElementById('watch-ad-btn');
 
-            if (now < adPopupCooldown) {
-                const diff = Math.ceil((adPopupCooldown - now) / 1000);
-                btn.innerText = `Wait ${diff}s...`;
-                btn.disabled = true;
-            } else {
-                btn.innerText = "▶ Watch Ad for +10 Energy";
-                btn.disabled = false;
-            }
+            btn.innerText = "▶ Watch Ad for +10 Energy";
+            btn.disabled = false;
             document.getElementById('ad-modal').style.display = 'flex';
         }
 
@@ -1095,14 +1081,8 @@
             if (modal.style.display === 'flex') {
                 const now = Date.now();
                 const btn = document.getElementById('watch-ad-btn');
-                if (now < adPopupCooldown) {
-                    const diff = Math.ceil((adPopupCooldown - now) / 1000);
-                    btn.innerText = `Wait ${diff}s...`;
-                    btn.disabled = true;
-                } else if (btn.disabled && btn.innerText.includes('Wait')) {
-                    btn.innerText = "▶ Watch Ad for +10 Energy";
-                    btn.disabled = false;
-                }
+                btn.innerText = "▶ Watch Ad for +10 Energy";
+                btn.disabled = false;
             }
         }, 1000);
 
@@ -1296,7 +1276,7 @@
                 document.getElementById('ad-modal').style.display = 'none';
                 btn.innerText = "▶ Watch Ad for +10 Energy";
                 btn.disabled = false;
-                adPopupCooldown = Date.now() + (30 * 1000); // 30s cooldown
+                adPopupCooldown = 0; // No cooldown
                 updateUI();
                 saveGameState();
                 alert(`Energy received! +${10 + bonus} Energy.`);

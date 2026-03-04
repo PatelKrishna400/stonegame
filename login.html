@@ -244,11 +244,27 @@
                         coins: 0, level: 1, nickname: u, tapsPerHour: 100, lastEnergy: 500, maxEnergy: 500, lastRefresh: Date.now()
                     }));
                 }
-                window.location.href = 'user_stone.html';
+                // Optional Cloud Sync on login
+                if (window.loadFromCloud) {
+                    const btn = document.querySelector('.btn-login');
+                    btn.innerText = "Syncing...";
+                    btn.disabled = true;
+
+                    window.loadFromCloud(u).finally(() => {
+                        window.location.href = 'user_stone.html';
+                    });
+                } else {
+                    window.location.href = 'user_stone.html';
+                }
             } else {
                 alert("Invalid username or password!");
             }
         }
+    </script>
+    <!-- Supabase System -->
+    <script type="module">
+        import { loadFromCloud } from './supabase-sync.js';
+        window.loadFromCloud = loadFromCloud;
     </script>
 </body>
 

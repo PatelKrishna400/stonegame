@@ -595,17 +595,8 @@
                         document.getElementById('hdr-avatar-emoji').style.display = 'block';
                     }
 
-                    // Show claim button only if 30 days passed
-                    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
-                    if (parsed.levelReductionDate && Date.now() - parsed.levelReductionDate >= THIRTY_DAYS) {
-                        document.getElementById('btn-claim-rank').style.display = 'inline-block';
-                    } else {
-                        if (!parsed.levelReductionDate) {
-                            parsed.levelReductionDate = Date.now();
-                            localStorage.setItem('hammerStrikeSave', JSON.stringify(parsed));
-                        }
-                        document.getElementById('btn-claim-rank').style.display = 'none';
-                    }
+                    // Data persistence ensured (Removed 30-day reset)
+                    document.getElementById('btn-claim-rank').style.display = 'none';
                 } catch (e) {
                     console.error("Load state error", e); // Changed to console.error for better debugging
                 }

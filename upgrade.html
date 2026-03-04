@@ -516,40 +516,9 @@
                 try {
                     let parsed = JSON.parse(savedData);
 
-                    // 30-day Cycle Reset Logic
-                    if (!parsed.levelReductionDate) parsed.levelReductionDate = Date.now();
-                    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
-                    if (Date.now() - parsed.levelReductionDate >= THIRTY_DAYS) {
-                        parsed.level = 1;
-                        parsed.stars = 0;
-                        parsed.starsRequired = 500;
-                        parsed.levelReductionDate = Date.now();
-                        localStorage.setItem('hammerStrikeSave', JSON.stringify(parsed));
-                        alert(`30-Day Cycle Complete! Your Level has been renewed to Level 1.`);
-                    }
+                    // Data persistence ensured (Removed 30-day reset)
 
-                    // Hourly Degradation Logic
-                    if (!parsed.lastUpgradeDegrade) {
-                        parsed.lastUpgradeDegrade = Date.now();
-                    }
-                    const HR_MS = 60 * 60 * 1000;
-                    const elapsed = Date.now() - parsed.lastUpgradeDegrade;
-                    if (elapsed >= HR_MS) {
-                        const hrsPassed = Math.floor(elapsed / HR_MS);
-
-                        let eLvl = ((parsed.maxEnergy || 100) - 100) / 100 + 1;
-                        let tLvl = parsed.tapPowerLevel || 1;
-                        let rLvl = parsed.rechargeLevel || 1;
-                        let bLvl = parsed.bonusDropLevel || 1;
-
-                        parsed.maxEnergy = Math.max(100, (Math.max(1, eLvl - hrsPassed) - 1) * 100 + 100);
-                        parsed.tapPowerLevel = Math.max(1, tLvl - hrsPassed);
-                        parsed.rechargeLevel = Math.max(1, rLvl - hrsPassed);
-                        parsed.bonusDropLevel = Math.max(1, bLvl - hrsPassed);
-
-                        parsed.lastUpgradeDegrade += hrsPassed * HR_MS;
-                        localStorage.setItem('hammerStrikeSave', JSON.stringify(parsed));
-                    }
+                    // Data persistence ensured (Removed Hourly Degradation)
 
                     if (typeof parsed.coins === 'number') balance = parsed.coins;
                     if (typeof parsed.maxEnergy === 'number') {

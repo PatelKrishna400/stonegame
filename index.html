@@ -388,6 +388,11 @@
             }
         }
     </script>
+    <!-- Supabase System -->
+    <script type="module">
+        import { loadFromCloud } from './supabase-sync.js';
+        window.loadFromCloud = loadFromCloud;
+    </script>
 </body>
 
 </html>
