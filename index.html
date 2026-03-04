@@ -272,8 +272,11 @@
                 return;
             }
 
-            if (localStorage.getItem('hammerStrikeUserRegistered') === 'true') {
-                alert("This device is already registered. Please login or edit from profile.");
+            // Ensure phone number/username is unique by checking cloud list
+            const cloudUsers = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
+            const exists = cloudUsers.find(cu => cu.phone === n || cu.username === u || cu.nickname === u);
+            if (exists) {
+                alert("An account with this phone number or username already exists. Please login.");
                 return;
             }
 
@@ -390,8 +393,10 @@
     </script>
     <!-- Supabase System -->
     <script type="module">
-        import { loadFromCloud } from './supabase-sync.js';
+        import { loadFromCloud, fetchAllUsers } from './supabase-sync.js';
         window.loadFromCloud = loadFromCloud;
+        // Fetch users on load to ensure uniqueness check works
+        fetchAllUsers();
     </script>
 </body>
 

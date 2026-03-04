@@ -498,7 +498,7 @@
                 link,
                 type,
                 timer: parseInt(timer),
-                verifyCode: verifyCode,
+                verifyCode: verifyCode === 'none' ? '' : verifyCode,
                 quiz: type === 'youtube' ? { q1, a1, q2, a2 } : null
             };
 

@@ -425,6 +425,13 @@
         <a href="withdraw.html" class="menu-item"
             style="display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 5px;">💳
             Wallet</a>
+
+        <!-- Admin Only -->
+        <div id="admin-menu-link" style="display:none;">
+            <a href="admin_dashboard.html" class="menu-item"
+                style="display: block; padding: 12px 10px; color: var(--gold); text-decoration: none; font-weight: 800; border-top: 1px solid var(--border); margin-top: 15px;">⚙️
+                Admin Panel</a>
+        </div>
     </div>
     <script>
         function updateSideMenu() {
@@ -443,6 +450,12 @@
                     }
                 }
             } catch (e) { }
+
+            // Admin Logic
+            if (localStorage.getItem('hammerStrikeAdminLoggedIn') === 'true') {
+                const al = document.getElementById('admin-menu-link');
+                if (al) al.style.display = 'block';
+            }
         }
         function openMenu() {
             document.getElementById('side-menu').style.transform = 'translateX(0)';
