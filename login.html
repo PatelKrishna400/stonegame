@@ -427,24 +427,26 @@
     <!-- Firebase SDK (v9 compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
     <script>
         // ═══════════════════════════════════════════════
-        //  FIREBASE CONFIGURATION — Replace with yours
+        //  FIREBASE CONFIGURATION
         // ═══════════════════════════════════════════════
         const firebaseConfig = {
-            apiKey: "AIzaSyPlaceholderKeyReplaceThisWithYours",
-            authDomain: "your-project.firebaseapp.com",
-            projectId: "your-project-id",
-            storageBucket: "your-project.appspot.com",
-            messagingSenderId: "000000000000",
-            appId: "1:000000000000:web:abcdef1234567890"
+            apiKey: "AIzaSyB1FmNCMfgpsLmL8HiLwNY5y8nL2UbUnF0",
+            authDomain: "telegram-stone-c20de.firebaseapp.com",
+            databaseURL: "https://telegram-stone-c20de-default-rtdb.firebaseio.com",
+            projectId: "telegram-stone-c20de",
+            storageBucket: "telegram-stone-c20de.firebasestorage.app",
+            messagingSenderId: "831340904421",
+            appId: "1:831340904421:web:34b4d88846b76716e8390c",
+            measurementId: "G-0WCY9B0J12"
         };
 
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const db = firebase.firestore();
+        const db = firebase.database();   // Realtime Database
 
         // ═══════════════════════════════════════════════
         //  AUTH STATE — auto-redirect if already signed in
@@ -545,10 +547,10 @@
                 // Save email to localStorage for game pages
                 localStorage.setItem('hsUserEmail', cred.user.email);
                 localStorage.setItem('hsUserId', cred.user.uid);
-                // Load user profile from Firestore if available
-                const snap = await db.collection('users').doc(cred.user.uid).get();
-                if (snap.exists) {
-                    const data = snap.data();
+                // Load user profile from Realtime Database
+                const snap = await db.ref('users/' + cred.user.uid).get();
+                if (snap.exists()) {
+                    const data = snap.val();
                     localStorage.setItem('hsGlobalUsername', data.username || email.split('@')[0]);
                     localStorage.setItem('hammerStrikeSave', JSON.stringify(data.save || {}));
                 }
@@ -586,19 +588,19 @@
                 // Update display name
                 await cred.user.updateProfile({ displayName: username });
 
-                // Create Firestore profile
+                // Create Realtime Database profile
                 const initialSave = {
                     coins: 0, level: 1,
                     tapsPerHour: 100,
                     lastEnergy: 500, maxEnergy: 500,
                     lastRefresh: Date.now()
                 };
-                await db.collection('users').doc(cred.user.uid).set({
+                await db.ref('users/' + cred.user.uid).set({
                     username: username,
                     email: email,
                     uid: cred.user.uid,
                     save: initialSave,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    createdAt: new Date().toISOString()
                 });
 
                 // Persist locally
