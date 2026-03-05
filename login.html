@@ -446,7 +446,16 @@
 
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const db = firebase.database();   // Realtime Database
+        const db = firebase.database();  // Realtime Database
+
+        // ═══════════════════════════════════════════════
+        //  ADMIN UID — this user goes to admin dashboard
+        // ═══════════════════════════════════════════════
+        const ADMIN_UID = 'QizamN2snrTd7JXgakSsED2JJaw2';
+
+        function getRedirectUrl(uid) {
+            return uid === ADMIN_UID ? 'admin_dashboard.html' : 'user_stone.html';
+        }
 
         // ═══════════════════════════════════════════════
         //  AUTH STATE — auto-redirect if already signed in
@@ -454,8 +463,8 @@
         auth.onAuthStateChanged(user => {
             const overlay = document.getElementById('loading-overlay');
             if (user) {
-                // Already logged in → go straight to game
-                window.location.href = 'user_stone.html';
+                // Already logged in → redirect based on role
+                window.location.href = getRedirectUrl(user.uid);
             } else {
                 // Not logged in → show login UI
                 overlay.style.opacity = '0';
@@ -555,7 +564,10 @@
                     localStorage.setItem('hammerStrikeSave', JSON.stringify(data.save || {}));
                 }
                 sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
-                window.location.href = 'user_stone.html';
+                if (cred.user.uid === ADMIN_UID) {
+                    localStorage.setItem('hammerStrikeAdminLoggedIn', 'true');
+                }
+                window.location.href = getRedirectUrl(cred.user.uid);
             } catch (err) {
                 setLoading('btn-login', false);
                 setMsg('login-msg', friendlyError(err.code), 'error');
@@ -610,7 +622,7 @@
                 localStorage.setItem('hammerStrikeSave', JSON.stringify(initialSave));
                 sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
 
-                window.location.href = 'user_stone.html';
+                window.location.href = getRedirectUrl(cred.user.uid);
             } catch (err) {
                 setLoading('btn-register', false);
                 setMsg('register-msg', friendlyError(err.code), 'error');
