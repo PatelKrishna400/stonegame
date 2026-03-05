@@ -2,86 +2,264 @@
 <html lang="en">
 
 <head>
-    <meta name="monetag" content="f15c9aa6cd721474b07b0a0f974d06b8">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stone Game — Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="scripts/supabase-config.js"></script>
-    <script src="scripts/sync.js"></script>
-    <script>
-        // No immediate redirect on portal page to allow Admin login
-        window.isMaintenance = localStorage.getItem('hsMaintenanceMode') === 'true';
-    </script>
+    <title>Hammer Strike — Pro Edition</title>
+    <!-- External APIs -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Monetag/Ad APIs -->
+    <meta name="monetag" content="f15c9aa6cd721474b07b0a0f974d06b8">
+    <script src='//libtl.com/sdk.js' data-zone='10676091' data-sdk='show_10676091'></script>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Firebase SDK (v9 compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
     <style>
+        /* --- CORE STYLES --- */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         :root {
             --bg: #0d0f1a;
             --surface: #141727;
+            --surface2: #1c2136;
             --border: rgba(255, 255, 255, 0.07);
             --gold: #ffd700;
             --gold2: #ff8c00;
+            --blue: #64c8ff;
+            --blue2: #0088cc;
+            --green: #2ecc71;
+            --red: #e74c3c;
             --text: #ffffff;
             --text2: rgba(255, 255, 255, 0.5);
-            --primary: #27ae60;
-            --primary-dark: #2ecc71;
+            --text3: rgba(255, 255, 255, 0.2);
+        }
+
+        html {
+            background: #0d0f1a;
+            scroll-behavior: smooth;
         }
 
         body {
-            background: radial-gradient(circle at 50% 50%, #1a1e36, #0d0f1a);
+            background: var(--bg);
             color: var(--text);
             font-family: 'Inter', sans-serif;
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        ::-webkit-scrollbar {
+            width: 0px;
+        }
+
+        /* --- NAVIGATION --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(20, 23, 39, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold), var(--gold2));
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
+            font-weight: 800;
+            color: #141727;
+            cursor: pointer;
+            border: 2px solid var(--gold);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .header-user-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .header-balance {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-weight: 800;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: rgba(20, 23, 39, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0 25px;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text2);
+            text-decoration: none;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1;
+            transition: 0.2s;
+        }
+
+        .nav-item.active {
+            color: var(--gold);
+        }
+
+        .nav-icon {
+            font-size: 1.4rem;
+            transition: transform 0.2s;
+        }
+
+        .nav-item.active .nav-icon {
+            transform: scale(1.2);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+        }
+
+        /* --- VIEWS --- */
+        .view {
+            display: none;
+            padding-bottom: 90px;
+            flex: 1;
+        }
+
+        .view.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* --- AUTH VIEW --- */
+        .auth-view {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: radial-gradient(circle at 50% 50%, #1a1e36, #0d0f1a);
+        }
+
+        .maintenance-view {
+            position: fixed;
+            inset: 0;
+            z-index: 2500;
+            background: var(--bg);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
             padding: 20px;
         }
 
-        .portal-card {
+        .m-card {
+            max-width: 400px;
+            background: var(--surface);
+            padding: 40px 30px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .m-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 380px;
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(10px);
             border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 40px 30px;
-            width: 100%;
-            max-width: 400px;
+            border-radius: 20px;
+            padding: 35px;
             text-align: center;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
         }
 
-        .logo {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-
-        .title {
+        .auth-card h1 {
             color: var(--gold);
             font-size: 1.8rem;
             font-weight: 800;
-            margin-bottom: 5px;
-        }
-
-        .subtitle {
-            color: var(--text2);
-            font-size: 0.85rem;
             margin-bottom: 25px;
         }
 
         .input-group {
-            text-align: left;
             margin-bottom: 15px;
+            text-align: left;
         }
 
         .input-group label {
             display: block;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--text2);
             margin-bottom: 5px;
             font-weight: 600;
@@ -90,325 +268,1142 @@
         .input-group input {
             width: 100%;
             padding: 12px;
-            border-radius: 8px;
+            border-radius: 10px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border);
             color: white;
             outline: none;
-            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
         }
 
-        .btn {
+        .btn-primary {
             width: 100%;
             padding: 14px;
-            border-radius: 8px;
-            font-weight: 800;
-            cursor: pointer;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--gold), var(--gold2));
+            color: #0d0f1a;
             border: none;
+            font-weight: 800;
             font-size: 1rem;
-            margin-bottom: 15px;
-            transition: transform 0.2s;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-top: 10px;
         }
 
-        .btn:active {
+        .btn-primary:active {
             transform: scale(0.98);
         }
 
-        .btn-login {
-            background: linear-gradient(135deg, var(--gold), var(--gold2));
-            color: #0d0f1a;
+        /* --- REUSABLE COMPONENTS --- */
+        .container {
+            padding: 20px;
         }
 
-        .btn-register {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
+        .section-card {
+            background: var(--surface);
             border: 1px solid var(--border);
-            font-size: 0.9rem;
-            padding: 12px;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .toggle-link {
-            color: var(--text2);
-            font-size: 0.85rem;
-            text-decoration: none;
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--gold);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* --- HOME VIEW --- */
+        .play-hero {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(180deg, rgba(255, 215, 0, 0.1), transparent);
+            border-radius: 0 0 40px 40px;
+        }
+
+        .play-hero h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .btn-game-launch {
+            background: linear-gradient(90deg, var(--gold), var(--gold2));
+            color: #000;
+            padding: 18px 40px;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: 900;
+            border: none;
             cursor: pointer;
-            display: inline-block;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+            transition: 0.2s;
+        }
+
+        .leaderboard-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .lb-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            transition: 0.2s;
+        }
+
+        .lb-item.me {
+            border-color: var(--gold);
+            background: rgba(255, 215, 0, 0.05);
+        }
+
+        .lb-rank {
+            width: 24px;
+            font-weight: 800;
+            color: var(--text2);
+            text-align: center;
+        }
+
+        .lb-rank.top {
+            color: var(--gold);
+        }
+
+        .lb-info {
+            flex: 1;
+        }
+
+        .lb-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .lb-meta {
+            font-size: 0.7rem;
+            color: var(--text2);
+        }
+
+        .lb-score {
+            font-weight: 800;
+            color: var(--gold);
+        }
+
+        /* --- GAME VIEW --- */
+        .game-header {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .game-score {
+            font-size: 3.5rem;
+            font-weight: 900;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .clicker-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            min-height: 350px;
+        }
+
+        .clicker-stone {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.05s;
+            background-size: cover;
+            background-position: center;
+            border: 8px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0;
+        }
+
+        .clicker-stone:active {
+            transform: scale(0.92);
+        }
+
+        .energy-hud {
+            padding: 20px;
+        }
+
+        .energy-bar-track {
+            width: 100%;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-top: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .energy-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold2), var(--gold));
+            width: 100%;
+            transition: width 0.1s;
+        }
+
+        .floating-num {
+            position: absolute;
+            font-size: 2rem;
+            font-weight: 900;
+            color: white;
+            pointer-events: none;
+            animation: floatUp 0.8s forwards;
+            z-index: 100;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes floatUp {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+        }
+
+        /* --- TASKS VIEW --- */
+        .task-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .task-icon {
+            font-size: 1.5rem;
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .task-info {
+            flex: 1;
+            margin-left: 15px;
+        }
+
+        .task-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .task-reward {
+            color: var(--gold);
+            font-size: 0.8rem;
+            font-weight: 800;
+        }
+
+        .btn-task {
+            padding: 8px 16px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 800;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .btn-task.go {
+            background: var(--blue);
+            color: white;
+        }
+
+        .btn-task.claim {
+            background: var(--green);
+            color: white;
+        }
+
+        .btn-task.done {
+            background: var(--text3);
+            color: var(--text2);
+            cursor: default;
+        }
+
+        /* --- WALLET VIEW --- */
+        .qr-slot {
+            width: 80px;
+            height: 80px;
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background-size: cover;
+            position: relative;
+        }
+
+        .qr-slot.active {
+            border-style: solid;
+            border-color: var(--gold);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+        }
+
+        .qr-delete {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--red);
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .withdraw-input-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .withdraw-val {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin: 10px 0;
+            color: var(--gold);
+        }
+
+        .cooldown-pill {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--red);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
             margin-top: 10px;
-            border-bottom: 1px dashed var(--text2);
+            display: inline-block;
+        }
+
+        /* --- OVERLAYS --- */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .overlay-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            width: 100%;
+            max-width: 350px;
+        }
+
+        .modal-icon {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            display: none;
+            backdrop-filter: blur(2px);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100%;
+            background: var(--surface);
+            z-index: 2001;
+            transition: right 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.active {
+            right: 0;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
         }
     </style>
-    <meta name="monetag" content="f15c9aa6cd721474b07b0a0f974d06b8">
-    <script src='//libtl.com/sdk.js' data-zone='10676091' data-sdk='show_10676091'></script>
 </head>
 
 <body>
-    <div class="portal-card">
-        <div class="logo">🪨</div>
-        <div class="title" id="form-title">Account Login</div>
-        <div class="subtitle" id="form-subtitle">Welcome back! Please enter your details.</div>
 
-        <!-- LOGIN FORM -->
-        <div id="login-view">
-            <div class="input-group">
-                <label>Username</label>
-                <input type="text" id="log-username" placeholder="Enter username">
+    <!-- AUTH OVERLAY -->
+    <div id="auth-portal" class="auth-view">
+        <div id="auth-login" class="auth-card">
+            <h1>🪨 WELCOME</h1>
+            <div class="input-group"><label>Nickname</label><input type="text" id="auth-ln-nick"
+                    placeholder="Player123"></div>
+            <div class="input-group"><label>Login Key</label><input type="password" id="auth-ln-pass"
+                    placeholder="Your secret key"></div>
+            <button class="btn-primary" onclick="App.Auth.login()">Enter Game</button>
+            <p style="margin-top:10px; font-size: 0.75rem;"><a href="#" onclick="App.Auth.showReset()"
+                    style="color:var(--text2); text-decoration:none;">Forgot password?</a></p>
+            <p style="margin-top:20px; color:var(--text2); font-size:0.8rem;">New player? <span
+                    onclick="App.UI.toggleAuth('register')" style="color:var(--gold); cursor:pointer;">Register
+                    here</span></p>
+        </div>
+        <div id="auth-register" class="auth-card" style="display:none;">
+            <h1>⛏️ JOIN US</h1>
+            <div class="input-group"><label>Unique Nickname</label><input type="text" id="auth-rg-nick"
+                    placeholder="Enter nickname"></div>
+            <div class="input-group"><label>Email</label><input type="email" id="auth-rg-email"
+                    placeholder="you@example.com"></div>
+            <div class="input-group"><label>Creation Key</label><input type="password" id="auth-rg-pass"
+                    placeholder="Create a secret key"></div>
+            <button class="btn-primary" onclick="App.Auth.register()">Start Journey</button>
+            <p style="margin-top:20px; color:var(--text2); font-size:0.8rem;">Already a miner? <span
+                    onclick="App.UI.toggleAuth('login')" style="color:var(--gold); cursor:pointer;">Login here</span>
+            </p>
+        </div>
+        <div id="auth-reset" class="auth-card" style="display:none;">
+            <h1>🔑 RESET</h1>
+            <p style="color:var(--text2); font-size:0.8rem; margin-bottom:20px;">Enter your email to receive a reset
+                link.</p>
+            <div class="input-group"><label>Email</label><input type="email" id="auth-rs-email"
+                    placeholder="you@example.com"></div>
+            <button class="btn-primary" onclick="App.Auth.handleReset()">Send Link</button>
+            <p style="margin-top:20px; color:var(--text2); font-size:0.8rem;"><span onclick="App.UI.toggleAuth('login')"
+                    style="color:var(--gold); cursor:pointer;">← Back to Login</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- MAINTENANCE OVERLAY -->
+    <div id="maintenance-portal" class="maintenance-view">
+        <div class="m-card">
+            <div class="m-icon">🛠️</div>
+            <h1 style="color:var(--gold); margin-bottom:15px; font-size:1.8rem;">Under Maintenance</h1>
+            <p style="color:var(--text2); line-height:1.6; margin-bottom:30px;">We are currently updating the Krishna
+                Stone Game to bring you better features and performance. Please check back later!</p>
+            <div style="font-size: 0.8rem; color: var(--gold); font-weight: bold; opacity: 0.8;">Admin: Krishna</div>
+        </div>
+    </div>
+
+    <!-- MAIN APP STRUCTURE -->
+    <header id="app-header" style="display:none;">
+        <div class="header-left">
+            <div class="header-avatar" onclick="App.UI.openSidebar()">
+                <span id="h-avatar-emoji">🪙</span>
+                <img id="h-avatar-img" src="" style="display:none;">
             </div>
-            <div class="input-group">
-                <label>Password</label>
-                <input type="password" id="log-password" placeholder="••••••••">
+            <div>
+                <div class="header-user-name" id="h-user-name">Miner</div>
+                <div style="font-size:0.65rem; color:var(--gold); font-weight:800;" id="h-level-text">LEVEL 1</div>
             </div>
+        </div>
+        <div class="header-balance" id="h-balance">🪙 0</div>
+    </header>
 
-            <button class="btn btn-secondary" id="btn-new-player" onclick="toggleView('register')">New Player? Create
-                Account</button>
-            <button class="btn btn-login" onclick="handleLogin()">Login</button>
+    <!-- CONTENT VIEWS -->
+    <main id="app-main" style="display:none; flex: 1;">
 
-            <div style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 15px;">
-                <button
-                    onclick="sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true'); window.location.href='user_stone.html'"
-                    class="btn btn-secondary"
-                    style="background: rgba(39, 174, 96, 0.1); border: 1px solid rgba(39, 174, 96, 0.3); color: #2ecc71; margin-bottom: 5px;">
-                    🎮 Play Game (Home)
-                </button>
-                <div style="color: var(--text2); font-size: 0.75rem; margin-top: 5px;">Admin? Use Admin Creds to log in.
+        <!-- HOME VIEW -->
+        <div id="view-home" class="view active">
+            <div class="play-hero">
+                <h2 id="home-greeting">Strike the Stone!</h2>
+                <p style="color:var(--text2); font-size:0.85rem; margin-bottom:25px;">Mine gold, complete tasks, and win
+                    rewards.</p>
+                <button class="btn-game-launch" onclick="App.UI.showView('game')">▶ START MINING</button>
+            </div>
+            <div class="container">
+                <div class="section-card">
+                    <div class="section-title">🏆 GLOBAL RANKINGS</div>
+                    <div class="leaderboard-list" id="home-lb-list">
+                        <div class="loading-text" style="text-align:center; padding:20px; color:var(--text2);">Syncing
+                            rankings...</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- REGISTRATION FORM -->
-        <div id="register-view" style="display: none;">
-            <div class="input-group">
-                <label>Username</label>
-                <input type="text" id="reg-username" placeholder="Choose a username">
-            </div>
-            <div class="input-group">
-                <label>Email Address</label>
-                <input type="email" id="reg-email" placeholder="name@domain.com">
-            </div>
-            <div class="input-group">
-                <label>Phone Number</label>
-                <input type="tel" id="reg-phone" placeholder="Your mobile number">
-            </div>
-            <div class="input-group">
-                <label>Create Password</label>
-                <input type="password" id="reg-pass1" placeholder="••••••••">
-            </div>
-            <div class="input-group">
-                <label>Rewrite Password</label>
-                <input type="password" id="reg-pass2" placeholder="••••••••">
+        <!-- GAME VIEW -->
+        <div id="view-game" class="view">
+            <div class="game-header">
+                <div class="game-score"><span id="g-balance">0</span></div>
+                <div style="font-size:0.8rem; color:var(--gold); font-weight:800;">TOTAL STONES MINED</div>
             </div>
 
-            <button class="btn btn-register" onclick="handleRegister()">Registration</button>
-            <span class="toggle-link" onclick="toggleView('login')">&larr; Back to Login</span>
+            <div class="clicker-area" id="g-click-zone">
+                <div class="clicker-stone" id="g-stone" style="background-image: url('stone_level_1.png');">Rock</div>
+            </div>
+
+            <div class="energy-hud">
+                <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:800;">
+                    <span>⚡ ENERGY</span>
+                    <span id="g-energy-text">100 / 100</span>
+                </div>
+                <div class="energy-bar-track">
+                    <div class="energy-bar-fill" id="g-energy-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TASKS VIEW -->
+        <div id="view-tasks" class="view">
+            <div class="container">
+                <div class="section-card"
+                    style="background: linear-gradient(135deg, rgba(39, 174, 96, 0.1), transparent);">
+                    <div class="section-title">🎁 DAILY BONUS</div>
+                    <div class="task-card" style="margin-bottom:0;">
+                        <div class="task-icon">🔥</div>
+                        <div class="task-info">
+                            <div class="task-name">24h Streak</div>
+                            <div class="task-reward" id="t-streak-info">0/30 Days</div>
+                        </div>
+                        <button class="btn-task claim" id="btn-t-daily" onclick="App.Tasks.claimDaily()">Claim</button>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-left:10px;">📋 ACTIVE MISSIONS</div>
+                <div id="tasks-list">
+                    <!-- Dynamic -->
+                </div>
+            </div>
+        </div>
+
+        <!-- UPGRADES VIEW -->
+        <div id="view-upgrades" class="view">
+            <div class="container">
+                <div class="section-card">
+                    <div class="section-title">⚡ POWER UP</div>
+                    <div class="task-card">
+                        <div class="task-icon">⚒️</div>
+                        <div class="task-info">
+                            <div class="task-name">Tap Multiplier</div>
+                            <div class="task-reward" id="u-tap-info">Lv 1 (+1/tap)</div>
+                        </div>
+                        <button class="btn-task claim" onclick="App.Upgrades.buy('tap')">1,000🪙</button>
+                    </div>
+                    <div class="task-card">
+                        <div class="task-icon">🔋</div>
+                        <div class="task-info">
+                            <div class="task-name">Energy Limit</div>
+                            <div class="task-reward" id="u-energy-info">Lv 1 (500 MAX)</div>
+                        </div>
+                        <button class="btn-task claim" onclick="App.Upgrades.buy('energy')">2,500🪙</button>
+                    </div>
+                    <div class="task-card">
+                        <div class="task-icon">🔄</div>
+                        <div class="task-info">
+                            <div class="task-name">Recharge Speed</div>
+                            <div class="task-reward" id="u-speed-info">Lv 1 (1/sec)</div>
+                        </div>
+                        <button class="btn-task claim" onclick="App.Upgrades.buy('speed')">5,000🪙</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WALLET VIEW -->
+        <div id="view-wallet" class="view">
+            <div class="container">
+                <div class="section-card">
+                    <div class="section-title">💳 WITHDRAWAL</div>
+                    <div style="text-align:center; color:var(--text2); font-size:0.8rem; margin-bottom:20px;">Upload
+                        UPI/Bank QR Code to receive payment.</div>
+
+                    <div style="display:flex; justify-content:center; gap:15px; margin-bottom:25px;" id="w-qr-slots">
+                        <!-- Dynamic -->
+                    </div>
+
+                    <input type="file" id="w-qr-upload" accept="image/*" style="display:none;"
+                        onchange="App.Wallet.handleUpload(event)">
+
+                    <div class="withdraw-input-box">
+                        <div style="font-size:0.7rem; color:var(--text2); font-weight:800;">WITHDRAWAL AMOUNT</div>
+                        <div class="withdraw-val">₹10.00</div>
+                        <div style="font-size:0.75rem; color:var(--gold);">100,000 COINS</div>
+                        <button class="btn-primary" style="margin-top:20px;" onclick="App.Wallet.withdraw()">REQUEST
+                            PAYOUT</button>
+                        <div id="w-cooldown" class="cooldown-pill" style="display:none;">Next cooldown in 30:00</div>
+                    </div>
+                </div>
+
+                <div class="section-title">📜 HISTORY</div>
+                <div id="w-history-list"></div>
+            </div>
+        </div>
+
+        <!-- PROFILE VIEW -->
+        <div id="view-profile" class="view">
+            <div class="container">
+                <div class="section-card" style="text-align:center;">
+                    <div style="width:100px; height:100px; border-radius:30px; margin:0 auto 15px; background:rgba(255,255,255,0.05); border:2px solid var(--gold); display:flex; align-items:center; justify-content:center; font-size:3rem; overflow:hidden; position:relative;"
+                        id="p-avatar-box">
+                        <span id="p-avatar-emoji">👤</span>
+                        <img id="p-avatar-img" src="" style="display:none; width:100%; height:100%; object-fit:cover;">
+                    </div>
+                    <h2 id="p-name">Miner Name</h2>
+                    <div id="p-id" style="font-size:0.7rem; color:var(--text3); margin-top:2px;">ID: #00000000</div>
+                    <button class="badge" style="margin-top:15px; border:none; color:var(--gold); cursor:pointer;"
+                        onclick="App.UI.changeAvatar()">Change Avatar</button>
+                </div>
+
+                <div class="stats-grid"
+                    style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
+                    <div class="section-card" style="margin-bottom:0; text-align:center; padding:15px;">
+                        <div style="font-size:0.65rem; color:var(--text2); margin-bottom:5px;">TOTAL COINS</div>
+                        <div style="font-weight:900; color:var(--gold);" id="p-stat-coins">0</div>
+                    </div>
+                    <div class="section-card" style="margin-bottom:0; text-align:center; padding:15px;">
+                        <div style="font-size:0.65rem; color:var(--text2); margin-bottom:5px;">LEVEL RECLAIMED</div>
+                        <div style="font-weight:900; color:var(--blue);" id="p-stat-level">1</div>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <div class="section-title">🤝 REFERRAL</div>
+                    <div style="background:rgba(0,0,0,0.2); border-radius:10px; padding:12px; font-size:0.75rem; margin-bottom:15px; word-break:break-all;"
+                        id="ref-link">...</div>
+                    <button class="btn-primary" style="background:var(--blue2); color:white;"
+                        onclick="App.UI.copyRef()">Copy Invite Link</button>
+                </div>
+
+                <div class="section-card">
+                    <div class="section-title">📮 HELP & SUPPORT</div>
+                    <p style="font-size:0.8rem; color:var(--text2); margin-bottom:15px;">Found a bug? Contact us on
+                        Telegram or email our support desk.</p>
+                    <a href="https://t.me/stone_game_support"
+                        style="text-decoration:none; display:block; padding:12px; background:rgba(255,255,255,0.05); border-radius:10px; text-align:center; color:var(--gold); font-weight:700; border:1px solid var(--border);">Open
+                        Support Desk</a>
+                </div>
+
+                <button class="btn-primary" style="background:var(--red); color:white;"
+                    onclick="App.Auth.logout()">Logout</button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="bottom-nav" id="app-nav" style="display:none;">
+        <div class="nav-item active" onclick="App.UI.showView('home')">
+            <span class="nav-icon">🏠</span><span>Home</span>
+        </div>
+        <div class="nav-item" onclick="App.UI.showView('game')">
+            <span class="nav-icon">⚒️</span><span>Play</span>
+        </div>
+        <div class="nav-item" onclick="App.UI.showView('tasks')">
+            <span class="nav-icon">📋</span><span>Tasks</span>
+        </div>
+        <div class="nav-item" onclick="App.UI.showView('wallet')">
+            <span class="nav-icon">💳</span><span>Wallet</span>
+        </div>
+        <div class="nav-item" onclick="App.UI.showView('profile')">
+            <span class="nav-icon">👤</span><span>Me</span>
+        </div>
+    </nav>
+
+    <!-- TASK OVERLAY -->
+    <div class="overlay" id="task-active-overlay">
+        <div class="overlay-card">
+            <div class="modal-icon">📺</div>
+            <h2 id="task-o-title">Task Active</h2>
+            <div id="task-o-timer" style="font-size:3rem; font-weight:900; color:var(--gold); margin:20px 0;">30</div>
+            <p style="color:var(--text2); font-size:0.85rem; margin-bottom:25px;">Stay on this page until the timer ends
+                to claim your reward.</p>
+            <button id="task-o-btn" class="btn-primary" style="display:none;" onclick="App.Tasks.verify()">Claim
+                Reward</button>
         </div>
     </div>
 
+    <!-- SIDEBAR -->
+    <div class="sidebar-overlay" id="sb-overlay" onclick="App.UI.closeSidebar()"></div>
+    <div class="sidebar" id="sb-panel">
+        <div style="font-weight:800; color:var(--gold); font-size:1.2rem; margin-bottom:30px;">SETTINGS</div>
+        <div class="sidebar-item" onclick="App.UI.showView('profile')">⚙️ Account Settings</div>
+        <div class="sidebar-item" onclick="App.UI.showView('upgrades')">⚡ Power Upgrades</div>
+        <div class="sidebar-item" onclick="App.UI.changeAvatar()">🖼️ Change Avatar</div>
+        <div class="sidebar-item" onclick="App.Auth.logout()">🚪 Disconnect</div>
+        <div style="flex:1;"></div>
+        <div style="font-size:0.7rem; color:var(--text3); text-align:center;">V2.0.0 — STONE GAME</div>
+        <div id="admin-link-box" style="display:none;">
+            <a href="admin.html" class="sidebar-item"
+                style="color:var(--gold); border-top:1px solid var(--border); margin-top:10px;">🛡️ Admin Dashboard</a>
+        </div>
+    </div>
 
-
+    <!-- JS ENGINE -->
     <script>
-        function checkAuth() {
-            const isIndex = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/');
-            const loggedIn = sessionStorage.getItem('hammerStrikeUserLoggedIn') === 'true';
-            const hasData = localStorage.getItem('hammerStrikeSave') !== null;
+        const firebaseConfig = {
+            apiKey: "AIzaSyB1FmNCMfgpsLmL8HiLwNY5y8nL2UbUnF0",
+            authDomain: "telegram-stone-c20de.firebaseapp.com",
+            databaseURL: "https://telegram-stone-c20de-default-rtdb.firebaseio.com",
+            projectId: "telegram-stone-c20de",
+            storageBucket: "telegram-stone-c20de.firebasestorage.app",
+            messagingSenderId: "831340904421",
+            appId: "1:831340904421:web:34b4d88846b76716e8390c"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
 
-            if (isIndex) {
-                if (loggedIn && hasData) {
-                    window.location.href = 'user_stone.html';
+        const App = {
+            state: {
+                user: null,
+                energy: 100,
+                maxEnergy: 500,
+                rechargeRate: 1,
+                tapPower: 1,
+                lastUpdate: Date.now(),
+                currentView: 'home',
+                activeTask: null,
+                timer: null,
+                qrCodes: [],
+                withdrawHistory: []
+            },
+
+            init() {
+                this.Auth.check();
+                this.startEnergyLoop();
+                setInterval(() => this.UI.update(), 1000);
+
+                if (window.Telegram && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.expand();
+                    window.Telegram.WebApp.ready();
                 }
-            } else {
-                if (!loggedIn || !hasData) {
-                    window.location.href = 'index.html';
-                }
-            }
-        }
-        checkAuth();
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'hammerStrikeSave' && e.newValue === null) {
-                window.location.href = 'index.html';
-            }
-        });
 
-        // Check if user is forced to login (already registered)
-        if (localStorage.getItem('hammerStrikeUserRegistered') === 'true') {
-            document.getElementById('btn-new-player').style.display = 'none';
-            document.getElementById('form-subtitle').innerText = "Please log in to continue to the game.";
-        }
-
-        function toggleView(view) {
-            if (view === 'register') {
-                document.getElementById('login-view').style.display = 'none';
-                document.getElementById('register-view').style.display = 'block';
-                document.getElementById('form-title').innerText = "New Player details";
-                document.getElementById('form-subtitle').innerText = "Register securely to start playing.";
-            } else {
-                document.getElementById('login-view').style.display = 'block';
-                document.getElementById('register-view').style.display = 'none';
-                document.getElementById('form-title').innerText = "Account Login";
-                document.getElementById('form-subtitle').innerText = "Welcome back! Please enter your details.";
-            }
-        }
-
-        function handleRegister() {
-            const u = document.getElementById('reg-username').value.trim();
-            const e = document.getElementById('reg-email').value.trim();
-            const n = document.getElementById('reg-phone').value.trim();
-            const p1 = document.getElementById('reg-pass1').value.trim();
-            const p2 = document.getElementById('reg-pass2').value.trim();
-
-            if (!u || !e || !n || !p1 || !p2) {
-                alert("Please fill in all the details.");
-                return;
-            }
-
-            if (p1 !== p2) {
-                alert("Passwords do not match!");
-                return;
-            }
-
-            if (u.toLowerCase() === 'admin') {
-                alert("You cannot register an account with username 'admin'.");
-                return;
-            }
-
-            // Ensure phone number/username is unique by checking cloud list
-            const cloudUsers = JSON.parse(localStorage.getItem('hsAdminUsersList') || '[]');
-            const exists = cloudUsers.find(cu => cu.phone === n || cu.username === u || cu.nickname === u);
-            if (exists) {
-                alert("An account with this phone number or username already exists. Please login.");
-                return;
-            }
-
-            // Use phone number as unique ID
-            const userId = n;
-
-            // Save user global credentials
-            localStorage.setItem('hsGlobalUsername', u);
-            localStorage.setItem('hsGlobalPassword', p1);
-            localStorage.setItem('hsGlobalEmail', e);
-            localStorage.setItem('hsGlobalPhone', n);
-            localStorage.setItem('hsGlobalUserId', userId);
-            localStorage.setItem('hammerStrikeUserRegistered', 'true');
-            sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
-
-            // Sync internal save nickname (Preserving existing data)
-            let existingSave = null;
-            try { existingSave = JSON.parse(localStorage.getItem('hammerStrikeSave') || '{}'); } catch (e) { existingSave = {}; }
-
-            // Ensure basic stats exist if it was a totally clean start
-            if (typeof existingSave.coins !== 'number') existingSave.coins = 0;
-            if (!existingSave.level) existingSave.level = 1;
-
-            existingSave.nickname = u;
-            existingSave.userId = userId;
-            existingSave.password = p1; // Crucial for cloud login
-            localStorage.setItem('hammerStrikeSave', JSON.stringify(existingSave));
-
-            // Sync to Supabase
-            if (window.syncToSupabaseDirect) {
-                window.syncToSupabaseDirect(u, existingSave).then(() => {
-                    alert("Registration successful! Your account is now secured in the cloud.");
-                    // Switch back to login page and fill username
-                    document.getElementById('log-username').value = u;
-                    document.getElementById('log-password').value = "";
-                    document.getElementById('skip-link').style.display = 'none';
-                    document.getElementById('btn-new-player').style.display = 'none';
-                    toggleView('login');
-                }).catch(err => {
-                    console.error("Cloud registration failed:", err);
-                    alert("Account created locally, but cloud sync failed. Check your internet.");
+                // Handle maintenance mode check
+                db.ref('maintenance').on('value', snap => {
+                    const isMaint = snap.val() === true;
+                    const isAdmin = localStorage.getItem('hammerStrikeAdminLoggedIn') === 'true';
+                    if (isMaint && !isAdmin) {
+                        alert("Game is under maintenance. Please check back later.");
+                        location.reload();
+                    }
                 });
-            } else {
-                alert("Registration successful locally! Cloud sync script not ready yet.");
-                toggleView('login');
-            }
+            },
 
-            // Switch back to login page and fill username
-            document.getElementById('log-username').value = u;
-            document.getElementById('log-password').value = "";
-            document.getElementById('skip-link').style.display = 'none';
-            document.getElementById('btn-new-player').style.display = 'none';
-            toggleView('login');
-        }
+            async loadState(user) {
+                const snap = await db.ref('users/' + user.uid).get();
+                if (snap.exists()) {
+                    const data = snap.val();
+                    this.state.user = data;
+                    const save = data.save || {};
+                    this.state.energy = save.energy || 100;
+                    this.state.maxEnergy = 500 + ((save.upgrades?.eLimit || 0) * 500);
+                    this.state.tapPower = 1 + (save.upgrades?.power || 0);
+                    this.state.rechargeRate = 1 + (save.upgrades?.eSpeed || 0);
+                    this.state.qrCodes = data.qrCodes || [];
+                    this.state.withdrawHistory = data.withdrawals || [];
 
-        function handleLogin() {
-            const u = document.getElementById('log-username').value.trim();
-            const p = document.getElementById('log-password').value.trim();
+                    // Offline progress calculation
+                    const now = Date.now();
+                    const last = save.lastUpdate || now;
+                    const elapsed = Math.floor((now - last) / 1000);
+                    if (elapsed > 0) {
+                        this.state.energy = Math.min(this.state.maxEnergy, this.state.energy + (elapsed * this.state.rechargeRate));
+                    }
+                } else {
+                    // Initialize new user
+                    const initial = {
+                        username: user.displayName || user.email.split('@')[0],
+                        email: user.email,
+                        uid: user.uid,
+                        save: { coins: 0, level: 1, energy: 500, upgrades: { power: 1, eLimit: 1, eSpeed: 1 }, lastUpdate: Date.now() },
+                        createdAt: new Date().toISOString()
+                    };
+                    await db.ref('users/' + user.uid).set(initial);
+                    this.state.user = initial;
+                }
+                this.UI.update();
+            },
 
-            if (!u || !p) {
-                alert("Please enter both username and password.");
-                return;
-            }
+            saveState() {
+                if (this.state.user && this.state.user.uid) {
+                    const save = {
+                        ...this.state.user.save,
+                        energy: this.state.energy,
+                        lastUpdate: Date.now(),
+                        coins: this.state.user.save.coins
+                    };
+                    db.ref('users/' + this.state.user.uid + '/save').set(save);
+                }
+            },
 
-            // 1. Check Admin Credentials first
-            const customAdminUser = localStorage.getItem('hsAdminUser');
-            const customAdminPass = localStorage.getItem('hsAdminPass');
+            startEnergyLoop() {
+                setInterval(() => {
+                    if (this.state.energy < this.state.maxEnergy) {
+                        this.state.energy = Math.min(this.state.maxEnergy, this.state.energy + this.state.rechargeRate);
+                        this.UI.updateEnergyUI();
+                    }
+                }, 1000);
+            },
 
-            // Default fallback config
-            if (!customAdminUser && u === 'krishna' && p === 'krishna@123') {
-                localStorage.setItem('hsFirstTimeAdmin', 'true');
-                window.location.href = 'admin.html';
-                return;
-            } else if (customAdminUser && u === customAdminUser && p === customAdminPass) {
-                localStorage.setItem('hammerStrikeAdminLoggedIn', 'true');
-                window.location.href = 'admin_dashboard.html';
-                return;
-            }
-
-            // 2. Check Standard User Credentials
-            if (window.isMaintenance) {
-                alert("🛠️ Information: The game is currently under maintenance. Regular player access is temporarily disabled. Please try again later!");
-                return;
-            }
-
-            // TRY CLOUD LOGIN FIRST
-            const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://stone-game-backend.onrender.com';
-
-            fetch(`${baseUrl}/api/admin/users`) // Fetch all users to verify simple login (since we don't have a secure login API yet)
-                .then(res => res.json())
-                .then(users => {
-                    const userAccount = users.find(cu => cu.username === u && cu.hammer_strike_save?.password === p);
-
-                    if (userAccount) {
-                        sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
-                        localStorage.setItem('hsGlobalUsername', userAccount.username);
-                        localStorage.setItem('hsGlobalPassword', p);
-                        localStorage.setItem('hsGlobalUserId', userAccount.userId || '');
-
-                        if (userAccount.hammer_strike_save) {
-                            localStorage.setItem('hammerStrikeSave', JSON.stringify(userAccount.hammer_strike_save));
-                        }
-
-                        window.location.href = 'user_stone.html';
-                    } else {
-                        // LOCAL FALLBACK
-                        const storedU = localStorage.getItem('hsGlobalUsername');
-                        const storedP = localStorage.getItem('hsGlobalPassword');
-                        if (u === storedU && p === storedP) {
-                            sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
-                            window.location.href = 'user_stone.html';
+            Auth: {
+                check() {
+                    auth.onAuthStateChanged(user => {
+                        if (user) {
+                            document.getElementById('auth-portal').style.display = 'none';
+                            document.getElementById('app-header').style.display = 'flex';
+                            document.getElementById('app-main').style.display = 'flex';
+                            document.getElementById('app-nav').style.display = 'flex';
+                            App.loadState(user);
+                            App.UI.showView('home');
                         } else {
-                            alert("Invalid username or password! Please check your credentials.");
+                            document.getElementById('auth-portal').style.display = 'flex';
+                            document.getElementById('app-header').style.display = 'none';
+                            document.getElementById('app-main').style.display = 'none';
+                            document.getElementById('app-nav').style.display = 'none';
                         }
-                    }
-                }).catch(err => {
-                    console.error("Cloud login error:", err);
-                    // Fallback to local
-                    const storedU = localStorage.getItem('hsGlobalUsername');
-                    const storedP = localStorage.getItem('hsGlobalPassword');
-                    if (u === storedU && p === storedP) {
-                        sessionStorage.setItem('hammerStrikeUserLoggedIn', 'true');
-                        window.location.href = 'user_stone.html';
-                    } else {
-                        alert("Connection error and local login failed.");
-                    }
-                });
-        }
-    </script>
+                    });
+                },
+                async login() {
+                    const email = document.getElementById('auth-ln-nick').value.trim();
+                    const pass = document.getElementById('auth-ln-pass').value.trim();
+                    if (!email || !pass) return alert("Enter details");
+                    try {
+                        await auth.signInWithEmailAndPassword(email, pass);
+                    } catch (e) { alert(e.message); }
+                },
+                async register() {
+                    const nick = document.getElementById('auth-rg-nick').value.trim();
+                    const email = prompt("Enter Email for registration:");
+                    const pass = document.getElementById('auth-rg-pass').value.trim();
+                    if (!nick || !email || !pass) return alert("All fields required");
+                    try {
+                        const cred = await auth.createUserWithEmailAndPassword(email, pass);
+                        await cred.user.updateProfile({ displayName: nick });
+                        location.reload();
+                    } catch (e) { alert(e.message); }
+                },
+                async resetPassword() {
+                    const email = document.getElementById('auth-rs-email').value.trim();
+                    if (!email) return alert("Enter email");
+                    try {
+                        await auth.sendPasswordResetEmail(email);
+                        alert("Reset link sent!");
+                    } catch (e) { alert(e.message); }
+                },
+                logout() {
+                    auth.signOut().then(() => location.reload());
+                }
+            },
 
+            UI: {
+                showView(viewId) {
+                    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+                    document.getElementById('view-' + viewId).classList.add('active');
+                    App.state.currentView = viewId;
+
+                    // Match nav icons
+                    const navs = document.querySelectorAll('.nav-item');
+                    if (viewId === 'home') navs[0].classList.add('active');
+                    if (viewId === 'game') navs[1].classList.add('active');
+                    if (viewId === 'tasks') navs[2].classList.add('active');
+                    if (viewId === 'upgrades') { /* No nav item for upgrades */ }
+                    if (viewId === 'wallet') navs[3].classList.add('active');
+                    if (viewId === 'profile') navs[4].classList.add('active');
+
+                    this.update();
+                },
+                toggleAuth(view) {
+                    document.getElementById('auth-login').style.display = view === 'login' ? 'block' : 'none';
+                    document.getElementById('auth-register').style.display = view === 'register' ? 'block' : 'none';
+                    document.getElementById('auth-reset').style.display = view === 'reset' ? 'block' : 'none';
+                },
+                openSidebar() {
+                    document.getElementById('sb-panel').classList.add('active');
+                    document.getElementById('sb-overlay').style.display = 'block';
+
+                    // Check admin status
+                    if (localStorage.getItem('hammerStrikeAdminLoggedIn') === 'true') {
+                        document.getElementById('admin-link-box').style.display = 'block';
+                    }
+                },
+                closeSidebar() {
+                    document.getElementById('sb-panel').classList.remove('active');
+                    document.getElementById('sb-overlay').style.display = 'none';
+                },
+                update() {
+                    if (!App.state.user) return;
+                    const u = App.state.user;
+
+                    document.getElementById('h-user-name').innerText = u.nickname;
+                    document.getElementById('h-level-text').innerText = 'LEVEL ' + (u.level || 1);
+                    document.getElementById('h-balance').innerText = '🪙 ' + (u.coins || 0).toLocaleString();
+
+                    // Dashboard Elements
+                    if (App.state.currentView === 'home') this.renderLeaderboard();
+                    if (App.state.currentView === 'game') {
+                        document.getElementById('g-balance').innerText = (u.coins || 0).toLocaleString();
+                        this.updateEnergyUI();
+                    }
+                    if (App.state.currentView === 'tasks') App.Tasks.render();
+                    if (App.state.currentView === 'wallet') App.Wallet.render();
+                    if (App.state.currentView === 'profile') this.renderProfile();
+
+                    // Avatar Sync
+                    const pfp = localStorage.getItem('hsCustomAvatar');
+                    ['h-avatar', 'p-avatar'].forEach(pre => {
+                        const img = document.getElementById(pre + '-img');
+                        const emoji = document.getElementById(pre + '-emoji');
+                        if (pfp) {
+                            img.src = pfp; img.style.display = 'block';
+                            if (emoji) emoji.style.display = 'none';
+                        }
+                    });
+                },
+                updateEnergyUI() {
+                    const fill = document.getElementById('g-energy-fill');
+                    const text = document.getElementById('g-energy-text');
+                    if (fill) fill.style.width = (App.state.energy / App.state.maxEnergy * 100) + '%';
+                    if (text) text.innerText = `${Math.floor(App.state.energy)} / ${App.state.maxEnergy}`;
+                },
+                renderLeaderboard() {
+                    const list = document.getElementById('home-lb-list');
+                    db.ref('users').orderByChild('save/coins').limitToLast(50).once('value', snap => {
+                        if (!snap.exists()) return;
+                        const data = snap.val();
+                        const users = Object.values(data).sort((a, b) => (b.save?.coins || 0) - (a.save?.coins || 0));
+                        list.innerHTML = users.map((u, i) => `
+                            <div class="lb-item ${u.uid === App.state.user.uid ? 'me' : ''}">
+                                <div class="lb-rank ${i < 3 ? 'top' : ''}">${i + 1}</div>
+                                <div class="lb-info"><div class="lb-name">${u.username}</div><div class="lb-meta">Lvl ${u.save?.level || 1}</div></div>
+                                <div class="lb-score">${(u.save?.coins || 0).toLocaleString()}</div>
+                            </div>
+                        `).join('');
+                    });
+                },
+                renderProfile() {
+                    document.getElementById('p-name').innerText = App.state.user.username;
+                    document.getElementById('p-id').innerText = 'ID: ' + App.state.user.uid.slice(0, 8);
+                    document.getElementById('p-stat-coins').innerText = (App.state.user.save.coins || 0).toLocaleString();
+                    document.getElementById('p-stat-level').innerText = App.state.user.save.level || 1;
+                    document.getElementById('ref-link').innerText = `https://stonegame.com/?ref=${App.state.user.uid}`;
+                },
+                copyRef() {
+                    const link = document.getElementById('ref-link').innerText;
+                    navigator.clipboard.writeText(link).then(() => alert("Referral link copied!"));
+                },
+                changeAvatar() {
+                    const url = prompt("Enter Image URL for Avatar:");
+                    if (url) {
+                        db.ref('users/' + App.state.user.uid + '/avatar').set(url);
+                        location.reload();
+                    }
+                }
+            },
+
+            Game: {
+                tap(e) {
+                    if (App.state.energy < 1) return alert("Out of energy! Tap slower or upgrade.");
+
+                    App.state.energy -= 1;
+                    App.state.user.save.coins = (App.state.user.save.coins || 0) + App.state.tapPower;
+
+                    // Floating effect
+                    const num = document.createElement('div');
+                    num.className = 'floating-num';
+                    num.innerText = '+' + App.state.tapPower;
+                    num.style.left = (e.clientX || (e.touches ? e.touches[0].clientX : 0)) + 'px';
+                    num.style.top = (e.clientY || (e.touches ? e.touches[0].clientY : 0)) + 'px';
+                    document.body.appendChild(num);
+                    setTimeout(() => num.remove(), 800);
+
+                    if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+
+                    App.UI.update();
+                    App.saveState();
+                }
+            },
+
+            Tasks: {
+                render() {
+                    const container = document.getElementById('tasks-list');
+                    db.ref('admin/tasks').once('value', snap => {
+                        const adminTasks = snap.exists() ? Object.values(snap.val()) : [];
+                        const completed = App.state.user.completedTasks || [];
+
+                        if (adminTasks.length === 0) {
+                            container.innerHTML = '<div style="text-align:center; color:var(--text3); margin-top:20px;">No active missions. Check back later!</div>';
+                            return;
+                        }
+
+                        container.innerHTML = adminTasks.map(t => {
+                            const isDone = completed.includes(t.id);
+                            return `
+                                <div class="task-card">
+                                    <div class="task-icon">${t.type === 'youtube' ? '🎬' : '🌐'}</div>
+                                    <div class="task-info"><div class="task-name">${t.title}</div><div class="task-reward">+${t.reward} ⚡ Energy</div></div>
+                                    ${isDone ? '<button class="btn-task done">DONE</button>' : `<button class="btn-task claim" onclick="App.Tasks.start(${t.id})">GO</button>`}
+                                </div>
+                            `;
+                        }).join('');
+                    });
+                },
+                // ... rest of tasks ...
+            },
+
+            Upgrades: {
+                buy(type) {
+                    const u = App.state.user.save;
+                    if (!u.upgrades) u.upgrades = { power: 1, eLimit: 1, eSpeed: 1 };
+
+                    let cost = 0;
+                    if (type === 'tap') {
+                        cost = u.upgrades.power * 1000;
+                        if (u.save.coins < cost) return alert("Not enough coins!");
+                        u.save.coins -= cost;
+                        u.upgrades.power++;
+                    } else if (type === 'energy') {
+                        cost = u.upgrades.eLimit * 2500;
+                        if (u.save.coins < cost) return alert("Not enough coins!");
+                        u.save.coins -= cost;
+                        u.upgrades.eLimit++;
+                    } else if (type === 'speed') {
+                        cost = u.upgrades.eSpeed * 5000;
+                        if (u.save.coins < cost) return alert("Not enough coins!");
+                        u.save.coins -= cost;
+                        u.upgrades.eSpeed++;
+                    }
+
+                    db.ref('users/' + App.state.user.uid + '/save').set(u).then(() => {
+                        App.loadState(auth.currentUser);
+                        alert("Upgrade successful!");
+                    });
+                }
+            },
+
+            Wallet: {
+                render() {
+                    const slots = document.getElementById('w-qr-slots');
+                    slots.innerHTML = '';
+                    for (let i = 0; i < 3; i++) {
+                        const qr = App.state.qrCodes[i];
+                        slots.innerHTML += `
+                            <div class="qr-slot ${qr ? 'active' : ''}" onclick="${qr ? '' : 'document.getElementById(\'w-qr-upload\').click()'}">
+                                ${qr ? `<img src="${qr.image}" style="width:100%; height:100%; border-radius:10px;">` : '+'}
+                                ${qr ? `<div class="qr-delete" onclick="event.stopPropagation(); App.Wallet.delete(${i})">×</div>` : ''}
+                            </div>
+                        `;
+                    }
+
+                    const hist = document.getElementById('w-history-list');
+                    hist.innerHTML = App.state.withdrawHistory.slice(-5).reverse().map(h => `
+                        <div class="task-card" style="font-size:0.8rem;">
+                            <div>₹${(h.amount / 10000).toFixed(2)}</div>
+                            <div style="color:var(--text2);">${new Date(h.timestamp).toLocaleDateString()}</div>
+                            <div class="badge" style="color:${h.status === 'approved' ? 'var(--green)' : 'var(--gold)'}">${h.status.toUpperCase()}</div>
+                        </div>
+                    `).join('');
+                },
+                handleUpload(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (re) => {
+                        App.state.qrCodes.push({ image: re.target.result, timestamp: Date.now() });
+                        localStorage.setItem('hammerStrikeQRs', JSON.stringify(App.state.qrCodes));
+                        this.render();
+                    };
+                    reader.readAsDataURL(file);
+                },
+                delete(idx) {
+                    App.state.qrCodes.splice(idx, 1);
+                    localStorage.setItem('hammerStrikeQRs', JSON.stringify(App.state.qrCodes));
+                    this.render();
+                },
+                withdraw() {
+                    const u = App.state.user;
+                    if (u.coins < 100000) return alert("Minimum 100,000 coins required!");
+                    if (App.state.qrCodes.length === 0) return alert("Please upload a payout QR code first.");
+
+                    u.coins -= 100000;
+                    const req = {
+                        id: Date.now(),
+                        amount: 100000,
+                        status: 'pending',
+                        timestamp: Date.now(),
+                        user: u.nickname,
+                        image: App.state.qrCodes[0].image
+                    };
+                    App.state.withdrawHistory.push(req);
+                    localStorage.setItem('hammerStrikeWithdrawals', JSON.stringify(App.state.withdrawHistory));
+                    App.saveState();
+                    alert("Withdrawal request submitted! Payout will arrive in 24h.");
+                    this.render();
+                }
+            }
+        };
+
+        // Event Listeners
+        document.getElementById('g-stone').addEventListener('mousedown', (e) => App.Game.tap(e));
+        document.getElementById('g-stone').addEventListener('touchstart', (e) => { e.preventDefault(); App.Game.tap(e); });
+
+        // Start
+        window.onload = () => App.init();
+    </script>
 </body>
 
 </html>
