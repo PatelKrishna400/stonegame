@@ -1,15 +1,12 @@
-# Backend
-backend/.env
-backend/__pycache__/
-backend/*.pyc
-backend/venv/
+# System files
+.DS_Store
+Thumbs.db
 
-# Assets/Images (if any large ones are generated)
+# Editor
+.vscode/
+
+# Large assets (optional — remove if you want images tracked)
 *.png
 *.jpg
 *.jpeg
 *.gif
-
-# System
-.DS_Store
-Thumbs.db
