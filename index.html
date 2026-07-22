@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#09090b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Stellar Pro - Elite Dashboard</title>
+    <!-- ========================================== -->
+    <!--  APP CONFIGURATION (EDIT KEYS HERE)        -->
+    <!-- ========================================== -->
+    <script>
+        const APP_CONFIG = {
+            // 1. FIREBASE CONFIG
+            FIREBASE: {
+                apiKey: "AIzaSyCmtznxs_VO7hJFtBFABF4IXskhWb25yyo",
+                authDomain: "taskads-f894a.firebaseapp.com",
+                projectId: "taskads-f894a",
+                storageBucket: "taskads-f894a.firebasestorage.app",
+                messagingSenderId: "365573359165",
+                appId: "1:365573359165:web:d7af40d47cfd0cf0e00c54",
+                measurementId: "G-H3BL2ZD6PW"
+            },
+            
+            // 2. MONETAG ADS CONFIG (Enter Zone ID here)
+            MONETAG_ZONE_ID: "11363275",
+            
+            // 3. FALLBACK DIRECT AD LINK (If Monetag fails)
+            DIRECT_AD_LINK: "https://poawooptugoo.com/4/8802924",
+            
+            // 4. TASK SYNC DIRECT LINK
+            TASK_LINK: "https://omg10.com/4/10684653"
+        };
+
+        // Dynamically Inject Monetag SDK based on Config
+        let mTag = document.createElement('script');
+        mTag.src = 'https://libtl.com/sdk.js';
+        mTag.dataset.zone = APP_CONFIG.MONETAG_ZONE_ID;
+        mTag.dataset.sdk = 'show_' + APP_CONFIG.MONETAG_ZONE_ID;
+        document.head.appendChild(mTag);
+    </script>
+    <!-- ========================================== -->
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
+
+        const app = initializeApp(APP_CONFIG.FIREBASE);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        signInAnonymously(auth).catch(err => console.error(err.message || "Auth error"));
+
+        onAuthStateChanged(auth, async user => {
+            if (!user) return;
+            const uRef = doc(db, 'users', user.uid);
+            const snap = await getDoc(uRef).catch(() => null);
+            if (snap && !snap.exists()) await setDoc(uRef, { uid: user.uid, coins: 0, stars: 0, level: 1, energy: 10, joinedAt: serverTimestamp() }).catch(() => {});
+            window._FB = { db, uRef, uid: user.uid, auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, doc, setDoc, getDoc, updateDoc, collection, getDocs, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit };
+            window._FB_READY = true;
+            onSnapshot(uRef, (s) => { if(s.exists()) applySync(s.data()); });
+
+
+            if(!user.isAnonymous) document.getElementById('authEntryBtn').style.display = 'none';
+        });
+
+        function applySync(d) {
+            localStorage.setItem('profileName', d.username || 'Agent');
+            localStorage.setItem('profilePhoto', d.photoURL || '');
+            localStorage.setItem('coins', d.coins ?? 0);
+            localStorage.setItem('stars', d.stars ?? 0);
+            localStorage.setItem('level', d.level ?? 1);
+            localStorage.setItem('energy', d.energy ?? 10);
+            localStorage.setItem('dtAdsWatched', d.dtAdsWatched ?? 0);
+            localStorage.setItem('dTaskCount', d.dTaskCount ?? 0);
+            localStorage.setItem('payoutAds', d.payoutAds ?? 0);
+            localStorage.setItem('pdDay', d.pdDay ?? 0);
+            if(window.s) {
+                window.s.coins = d.coins ?? 0;
+                window.s.stars = d.stars ?? 0;
+                window.s.level = d.level ?? 1;
+                window.s.energy = d.energy ?? 10;
+                window.s.dtAdsWatched = d.dtAdsWatched ?? 0;
+                window.s.dTaskCount = d.dTaskCount ?? 0;
+                window.s.payoutAds = d.payoutAds ?? 0;
+                window.s.pdDay = d.pdDay ?? 0;
+            }
+            if(window.updateUI) window.updateUI();
+        }
+    </script>
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Premium Dark Mode Glassmorphism Palette */
+            --bg-base: #09090b; /* Zinc 950 */
+            --bg-layer: #18181b; /* Zinc 900 */
+            --card-glass: rgba(24, 24, 27, 0.75);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            
+            --brand-primary: #8b5cf6; /* Violet 500 */
+            --brand-secondary: #c084fc; /* Violet 400 */
+            --brand-accent: #38bdf8; /* Light Blue 400 */
+            
+            --gold-glow: #fbbf24;
+            --success: #10b981;
+            --danger: #ef4444;
+            
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        /* Mobile-native strict viewport constraints */
+        html, body {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            overflow: hidden; width: 100%; height: 100%;
+            overscroll-behavior-y: none;
+            -webkit-user-select: none; user-select: none;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg-base); 
+            color: var(--text-main); 
+            display: flex; flex-direction: column; 
+            /* Subtle beautiful glowing background gradients */
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.2), transparent 45%),
+                radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.15), transparent 45%);
+            animation: bgPulse 8s ease-in-out infinite alternate;
+        }
+        @keyframes bgPulse {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; opacity: 0.9; }
+            100% { background-position: 0% 50%; opacity: 1; filter: hue-rotate(15deg); }
+        }
+
+        .app-container { 
+            width: 100%; 
+            max-width: 480px; 
+            margin: 0 auto; 
+            height: 100%;
+            padding: calc(env(safe-area-inset-top, 0px) + 24px) 24px calc(env(safe-area-inset-bottom, 0px) + 110px) 24px;
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; 
+            position: relative;
+        }
+        .app-container::-webkit-scrollbar { display: none; }
+
+        /* HEADER */
+        .hdr { 
+            display: flex; align-items: center; justify-content: space-between; 
+            margin-bottom: 30px; 
+        }
+        .logo-wrap { display: flex; align-items: center; gap: 10px; }
+        .logo-icon { 
+            font-size: 28px; 
+            filter: drop-shadow(0 0 12px rgba(251,191,36,0.6)); 
+            animation: pulse-glow 3s infinite alternate; 
+        }
+        @keyframes pulse-glow { 0% { transform: scale(1); filter: drop-shadow(0 0 12px rgba(251,191,36,0.5)); } 100% { transform: scale(1.05); filter: drop-shadow(0 0 20px rgba(251,191,36,0.9)); } }
+        .brand-name { 
+            font-size: 18px; font-weight: 900; letter-spacing: 1.5px; 
+            text-transform: uppercase; 
+            background: linear-gradient(90deg, #fff, #cbd5e1);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .rank-badge { 
+            background: rgba(251,191,36,0.1); 
+            padding: 6px 14px; border-radius: 20px; 
+            font-size: 11px; font-weight: 800; color: var(--gold-glow); 
+            border: 1px solid rgba(251,191,36,0.3);
+            box-shadow: 0 0 15px rgba(251,191,36,0.15);
+        }
+
+        /* CARD UI */
+        .glass-card { 
+            background: var(--card-glass); 
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--border-glass); 
+            border-top: 1px solid rgba(255,255,255,0.15);
+            border-radius: 24px; padding: 24px; 
+            margin-bottom: 16px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 2px 20px rgba(255,255,255,0.03);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s;
+        }
+        .glass-card:hover { box-shadow: 0 15px 50px rgba(139, 92, 246, 0.15), inset 0 2px 20px rgba(255,255,255,0.05); }
+        .glass-card:active { transform: scale(0.98); }
+
+        .stat-lbl { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 8px; }
+        .stat-val { 
+            font-size: 52px; font-weight: 900; color: var(--gold-glow); 
+            line-height: 1; letter-spacing: -1.5px;
+            text-shadow: 0 0 25px rgba(251,191,36,0.3); 
+        }
+        
+        /* BUTTONS */
+        .btn { 
+            padding: 16px; border-radius: 18px; border: none; 
+            font-family: 'Inter', sans-serif; font-weight: 800; font-size: 14px; 
+            letter-spacing: 1.2px; text-transform: uppercase; 
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+            position: relative; overflow: hidden;
+        }
+        .btn::after { content:''; position:absolute; top:0; left:-100%; width:50%; height:100%; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transform:skewX(-20deg); transition:0.5s; }
+        .btn:hover::after { left:150%; }
+        .btn:active { transform: scale(0.96); }
+        
+        .btn-p { 
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary)); 
+            color: white; 
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.4); 
+        }
+        .btn-p:disabled { background: #334155; color:#94a3b8; box-shadow:none; pointer-events:none; }
+        .btn-g { 
+            background: rgba(255,255,255,0.03); color: var(--text-main); 
+            border: 1px solid var(--border-glass); 
+            backdrop-filter: blur(10px);
+        }
+
+        /* NAV DOCK */
+        .nav-dock { 
+            position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); left: 50%; transform: translateX(-50%);
+            width: calc(100% - 48px); max-width: 432px; height: 72px; 
+            background: rgba(24, 24, 27, 0.85); 
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; 
+            display: flex; align-items: center; justify-content: space-between; 
+            padding: 0 10px; z-index: 1000; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1); 
+        }
+        .nav-i { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 5px; color: #64748b; font-size: 9px; font-weight: 800; cursor: pointer; 
+            width: 60px; height: 60px; border-radius: 20px; transition: 0.3s; 
+        }
+        .nav-i svg { width: 22px; height: 22px; stroke-width: 2.2; transition: 0.3s; }
+        .nav-i.on { 
+            color: white; 
+            background: rgba(139, 92, 246, 0.15); 
+            box-shadow: inset 0 0 10px rgba(139, 92, 246, 0.2); 
+        }
+        .nav-i.on svg { color: var(--brand-secondary); filter: drop-shadow(0 0 8px var(--brand-primary)); transform: translateY(-2px); }
+
+        /* VIEWS */
+        .view { display: none; animation: fadeSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .view.on { display: block; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(15px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+        /* EARN CIRCLE (Professional Pulse Orb) */
+        .orb-wrap { position: relative; width: 200px; height: 200px; margin: 40px auto; display:flex; align-items:center; justify-content:center; }
+        .orb-ring {
+            position: absolute; inset: -15px; border-radius: 50%;
+            border: 2px dashed rgba(139, 92, 246, 0.3);
+            animation: spin 15s linear infinite; pointer-events: none;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        .earn-orb { 
+            width: 180px; height: 180px; border-radius: 50%; 
+            background: radial-gradient(circle at 35% 25%, #4c1d95, #0f172a 80%); 
+            border: 4px solid rgba(139, 92, 246, 0.4); 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            box-shadow: 0 0 50px rgba(139, 92, 246, 0.3), inset 0 0 40px rgba(0,0,0,0.8); 
+            cursor: pointer; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; z-index: 10;
+        }
+        .earn-orb:hover { transform: scale(1.05); box-shadow: 0 0 70px rgba(139, 92, 246, 0.5), inset 0 0 30px rgba(0,0,0,0.6); border-color: var(--brand-secondary); }
+        .earn-orb:active { transform: scale(0.95); }
+        .orb-icon { font-size: 56px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.4)); margin-bottom: 5px; }
+        .orb-txt { font-size: 13px; font-weight: 900; letter-spacing: 3px; color: white; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+
+        /* PROGRESS BARS */
+        .prog-bg { width: 100%; height: 8px; background: rgba(0,0,0,0.4); border-radius: 10px; overflow: hidden; margin-top: 6px; border: 1px solid rgba(255,255,255,0.03); }
+        .prog-fill { height: 100%; background: linear-gradient(90deg, var(--brand-primary), var(--brand-accent)); border-radius: 10px; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
+
+        /* TASKS */
+        .tsk-row { display: flex; align-items: center; gap: 16px; }
+        .tsk-ic { width: 50px; height: 50px; border-radius: 16px; background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(56,189,248,0.15)); border: 1px solid rgba(139,92,246,0.3); display: flex; justify-content: center; align-items: center; font-size: 24px; flex-shrink: 0; }
+        .tsk-info { flex: 1; }
+        .tsk-n { font-weight: 800; font-size: 15px; margin-bottom: 4px; color: white;}
+        .tsk-d { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+        
+        .tsk-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: white; padding: 8px 16px; border-radius: 12px; font-weight: 800; font-size: 12px; cursor: pointer; transition: 0.2s; }
+        .tsk-btn.ready { background: linear-gradient(135deg, var(--success), #059669); border: none; box-shadow: 0 4px 15px rgba(16,185,129,0.3); }
+        .tsk-btn.done { background: rgba(0,0,0,0.5); color: var(--success); border: 1px dashed rgba(16,185,129,0.4); pointer-events: none; }
+
+        /* TOAST */
+        .toast { position: fixed; top: 40px; left: 50%; transform: translate(-50%, -20px); background: rgba(9, 9, 11, 0.95); backdrop-filter: blur(10px); border: 1px solid var(--brand-primary); color: white; padding: 14px 28px; border-radius: 20px; font-weight: 800; font-size: 14px; opacity: 0; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 9999; pointer-events: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(139,92,246,0.2); }
+        .toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+        /* PROFILE */
+        .pav { width: 110px; height: 110px; border-radius: 50%; background: linear-gradient(135deg, var(--brand-primary), var(--brand-accent)); border: 4px solid var(--bg-base); display: flex; align-items: center; justify-content: center; font-size: 45px; overflow: hidden; margin: 0 auto 15px; box-shadow: 0 10px 25px rgba(139,92,246,0.3); }
+        .pav img { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* MODAL (Fixed Overlay) */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 5000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+        .modal.on { display: flex; }
+        .m-card { background: var(--bg-layer); border: 1px solid var(--border-glass); border-radius: 28px; padding: 35px 24px; width: 90%; max-width: 340px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.6); animation: fadeSlide 0.3s; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="mainScroll">
+        <!-- HEADER -->
+        <div class="hdr">
+            <div class="logo-wrap">
+                <div class="logo-icon">🌟</div>
+                <div class="brand-name">Stellar Pro</div>
+            </div>
+            <div class="rank-badge" style="cursor:pointer;" onclick="document.getElementById('upgradeModal').classList.add('on')">RANK <span id="hLvl">1</span></div>
+        </div>
+
+        <!-- HOME VIEW -->
+        <div id="v-home" class="view on">
+            <div class="glass-card" style="text-align: center; padding: 40px 20px;">
+                <div class="stat-lbl">Total Asset Liquidity</div>
+                <div class="stat-val" id="hCoins">0</div>
+                
+                <div style="display: flex; justify-content: space-around; margin-top: 30px; border-top: 1px solid var(--border-glass); padding-top: 25px;">
+                    <div><div style="font-size: 22px; font-weight: 900; color: var(--brand-accent);" id="hStars">0</div><div class="stat-lbl" style="margin:0; font-size:9px;">STARS ✨</div></div>
+                    <div style="width: 1px; background: var(--border-glass);"></div>
+                    <div><div style="font-size: 22px; font-weight: 900; color: var(--brand-secondary);" id="hLevelHome">1</div><div class="stat-lbl" style="margin:0; font-size:9px;">RANK</div></div>
+                </div>
+            </div>
+            
+            <button class="btn btn-p" onclick="sv('earn')" style="margin-bottom: 20px; font-size:15px; padding:18px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                Initiate Extraction
+            </button>
+            
+            <div class="glass-card" style="text-align: center; padding: 20px; cursor:pointer; background: linear-gradient(135deg, rgba(251,191,36,0.1), rgba(245,158,11,0.1)); border: 1px dashed rgba(251,191,36,0.3);" onclick="sv('leaderboard')">
+                <div style="font-size:13px; font-weight:900; color:var(--gold-glow); display:flex; align-items:center; justify-content:center; gap:8px;">
+                    🏆 View Global Leaderboard <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- LEADERBOARD VIEW -->
+        <div id="v-leaderboard" class="view">
+            <h2 style="text-align: center; margin-bottom: 5px; font-weight: 900; font-size:24px; color:white;">Global Rankings</h2>
+            <div style="text-align:center; font-size:12px; font-weight:800; color:var(--brand-accent); margin-bottom:20px; text-transform:uppercase; letter-spacing:1px;">
+                Season Ends In: <span id="seasonTimer">Loading...</span>
+            </div>
+
+            <div class="glass-card" style="padding: 16px; margin-bottom:120px; background:rgba(0,0,0,0.5);">
+                <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:900; color:var(--text-muted); padding-bottom:10px; border-bottom:1px solid var(--border-glass); margin-bottom:10px;">
+                    <span>RANK & OPERATIVE</span>
+                    <span>LVL / PRIZE</span>
+                </div>
+                <div id="lbList" style="display:flex; flex-direction:column; gap:10px;">
+                    <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">Connecting to Secure Network...</div>
+                </div>
+            </div>
+
+            <div class="nav-dock" style="bottom: 110px; height:auto; padding:15px; flex-direction:column; align-items:stretch; background: rgba(15, 23, 42, 0.95); border-color: rgba(56,189,248,0.3);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-size:18px; font-weight:900; color:white;" id="myLbRank">#--</span>
+                        <div style="display:flex; flex-direction:column;">
+                            <span style="font-size:12px; font-weight:800; color:var(--brand-accent);">YOU</span>
+                            <span style="font-size:10px; color:var(--text-muted);">Level <span id="myLbLvl">1</span></span>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:13px; font-weight:900; color:var(--gold-glow);"><span id="myLbPrize">0</span> 🪙</div>
+                    </div>
+                </div>
+                <button class="btn btn-p" style="padding:10px; font-size:11px;" id="claimSeasonBtn" onclick="openSeasonModal()">🎁 CLAIM REWARD (30 ADS)</button>
+            </div>
+        </div>
+
+        <!-- EARN VIEW -->
+        <div id="v-earn" class="view">
+            <h2 style="text-align: center; margin-bottom: 20px; font-weight: 900; font-size:24px; letter-spacing: -0.5px;">Network Extraction</h2>
+            <p style="text-align:center; color:var(--text-muted); font-size:13px; margin-bottom:10px;">Connect to the Ad Network to extract maximum assets.</p>
+            
+            <div class="orb-wrap">
+                <div class="orb-ring"></div>
+                <div class="earn-orb" onclick="tapOrb()">
+                    <div class="orb-icon">💎</div>
+                    <div class="orb-txt">EXTRACT</div>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+                    <div style="letter-spacing:1px;">SYSTEM ENERGY</div><div style="color:white;"><span id="eEnergy">100</span>/100⚡ <span id="eTimer" style="font-size:9px;color:var(--text-muted);margin-left:5px;"></span></div>
+                </div>
+                <div class="prog-bg"><div class="prog-fill" id="eFill" style="width: 100%;"></div></div>
+            </div>
+        </div>
+
+        <!-- TASKS VIEW -->
+        <div id="v-tasks" class="view">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <span style="font-size: 16px; font-weight: 900; letter-spacing:1px;">DATA SYNCS</span>
+                <!-- The original Watch ads button functionality moved to the Earn page but keeping a small renew button here -->
+                <button class="btn btn-g" id="renewTasksBtn" onclick="dtWatchAd()" style="width: auto; padding: 10px 16px; font-size: 11px;">🔄 Watch 0/5 to Renew</button>
+            </div>
+            
+            <!-- Syndicate -->
+            <div class="glass-card" onclick="copyInvite()" style="border: 1px dashed rgba(139,92,246,0.5); cursor: pointer; background:linear-gradient(135deg, rgba(139,92,246,0.1), rgba(56,189,248,0.05)); transition: 0.3s; transform-origin: center;">
+                <div class="tsk-row">
+                    <div class="tsk-ic">👥</div>
+                    <div class="tsk-info"><div class="tsk-n">Syndicate Invite</div><div class="tsk-d">Invite operatives & collect assets!</div></div>
+                    <div style="color:var(--brand-accent); font-weight:900">+10⚡</div>
+                </div>
+            </div>
+            
+            <div id="taskList" style="display:flex; flex-direction:column; gap:12px;"></div>
+        </div>
+
+        <!-- WITHDRAW VIEW -->
+        <div id="v-withdraw" class="view">
+            <div class="glass-card" style="text-align: center; padding: 35px 20px;">
+                <div class="stat-lbl">Safe Vault Balance</div>
+                <div class="bal-v" id="glbCoinsWd">0 <span>🪙</span></div>
+                <div style="background: rgba(239, 68, 68, 0.1); color: var(--danger); font-size:11px; font-weight:800; display:inline-block; padding:6px 14px; border-radius:20px; margin-top:15px; border:1px solid rgba(239,68,68,0.2);">MINIMUM THRESHOLD: 20,000 🪙</div>
+            </div>
+            
+            <button id="payoutBtn" class="btn btn-p" onclick="initiatePayout()" disabled style="margin-bottom: 24px;">🔒 Request Payout Link</button>
+            
+            <div class="glass-card">
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;">
+                    <div><div class="stat-lbl">SECURE PAYOUT</div><div style="font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900; color: var(--gold-glow);">30-Day Protocol</div></div>
+                    <div style="font-size: 12px; font-weight: 800; background: rgba(255,255,255,0.08); padding: 6px 12px; border-radius: 12px; color:white;">Day <span id="wdChDay">0</span>/30</div>
+                </div>
+                
+                <div style="margin-bottom: 25px;">
+                    <div onclick="sv('earn')" style="cursor:pointer; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.02); margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; transform-origin: center;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='rgba(255,255,255,0.02)'" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:12px; font-weight:700; color:var(--text-muted);"><span>📺 Completed Ads (Tap to Watch)</span><span style="color:white;"><span id="adNum">0</span>/50</span></div>
+                        <div class="prog-bg"><div class="prog-fill" id="adProg" style="width:0%"></div></div>
+                    </div>
+                    
+                    <div onclick="sv('tasks')" style="cursor:pointer; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; transform-origin: center;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='rgba(255,255,255,0.02)'" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:12px; font-weight:700; color:var(--text-muted);"><span>📋 Task Syncs (Tap to Sync)</span><span style="color:white;"><span id="taskNum">0</span>/30</span></div>
+                        <div class="prog-bg" style="margin-top: 6px;"><div class="prog-fill" id="taskProg" style="width:0%; background:linear-gradient(90deg, #f59e0b, #fbbf24);"></div></div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-g" id="claimDayBtn" onclick="claimProtocolDay()" disabled style="width:100%; font-size:13px; padding:15px;">Operations Pending</button>
+            </div>
+        </div>
+
+        <!-- PROFILE VIEW -->
+        <div id="v-profile" class="view">
+            <div style="text-align: center; margin-bottom: 30px; margin-top:20px;">
+                <div class="pav" id="pav">👤</div>
+                <div style="font-family:'Playfair Display',serif; font-size:32px; font-weight:900; margin-bottom:5px;" id="hName">Agent</div>
+                <div class="stat-lbl">SECURE PROTOCOL IDENTITY</div>
+            </div>
+            
+            <div class="s-grid">
+                <div class="glass-card s-item" style="margin:0; padding:15px 10px;"><div class="stat-val" style="font-size:24px;" id="sCoins">0</div><div class="stat-lbl" style="margin:0; margin-top:8px;">Assets</div></div>
+                <div class="glass-card s-item" style="margin:0; padding:15px 10px;"><div class="stat-val" style="font-size:24px;" id="sLevel">1</div><div class="stat-lbl" style="margin:0; margin-top:8px;">Rank</div></div>
+                <div class="glass-card s-item" style="margin:0; padding:15px 10px;"><div class="stat-val" style="font-size:24px; color:var(--brand-accent);" id="sStars">0</div><div class="stat-lbl" style="margin:0; margin-top:8px;">Stars</div></div>
+            </div>
+            
+            <div style="margin-top:25px;">
+                <button class="btn btn-p" onclick="upgradeRank()" style="margin-bottom: 15px;">⭐ LEVEL UPGRADE (Cost: <span id="rCost">10</span> Stars)</button>
+                <button class="btn btn-g" id="authEntryBtn" style="margin-bottom: 15px;" onclick="document.getElementById('authModal').classList.add('on')">🔐 Secure Cloud Account</button>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div id="energyModal" class="modal">
+        <div class="m-card">
+            <h2 style="font-weight: 900; color: var(--gold-glow); font-size:24px; margin-bottom: 10px;">Zero Energy! ⚡</h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Watch ads sequentially for bigger rewards! Max 7.</p>
+            
+            <div style="margin-bottom: 25px; text-align:left;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:11px; font-weight:800; color:white;" id="enAdTxt">0/7 Ads Watched</div>
+                <div class="prog-bg"><div class="prog-fill" id="enAdBar" style="width:0%"></div></div>
+                <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:10px; color:var(--text-muted); font-weight:700;">
+                   <span>1 Ad = 1⚡</span>
+                   <span style="color:var(--brand-accent)">4 Ads = 5⚡</span>
+                   <span style="color:var(--success)">7 Ads = 10⚡</span>
+                </div>
+            </div>
+            
+            <button class="btn btn-p" id="adWatchBtn" onclick="watchEnergyAd()" style="margin-bottom:12px;">📺 WATCH AD</button>
+            <button class="btn btn-g" id="adCollectBtn" onclick="claimEnergyProgress()">Close</button>
+        </div>
+    </div>
+
+    <div id="bonusModal" class="modal">
+        <div class="m-card">
+            <h2 style="font-weight: 900; color: var(--brand-accent); font-size:24px; margin-bottom: 10px;">Star Bonus! ✨</h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">You've extracted 10 times! Watch 3 ads to claim <strong>+10 Stars</strong> for Rank Upgrades.</p>
+            
+            <div style="margin-bottom: 25px; text-align:left;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:11px; font-weight:800; color:white;" id="bnAdTxt">0/3 Ads Watched</div>
+                <div class="prog-bg"><div class="prog-fill" id="bnAdBar" style="width:0%"></div></div>
+            </div>
+            
+            <button class="btn btn-p" id="bnWatchBtn" onclick="watchBonusAd()" style="margin-bottom:12px;">📺 WATCH AD</button>
+            <button class="btn btn-g" onclick="document.getElementById('bonusModal').classList.remove('on')">Close</button>
+        </div>
+    </div>
+
+    <!-- UPGRADE MODAL -->
+    <div id="upgradeModal" class="modal">
+        <div class="m-card" style="padding: 24px; text-align:center;">
+            <h2 style="font-weight: 900; color: var(--brand-accent); font-size:24px; margin-bottom: 10px;">Rank Operations ⚡</h2>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Upgrade your Rank to assert dominance! Convert Assets to Stars at a 2:1 ratio (Min 100🪙).</p>
+            
+            <div class="glass-card" style="padding: 15px; margin-bottom: 20px;">
+                <div style="font-size:12px; font-weight:900; color:white; margin-bottom:10px;">CURRENT RANK: <span id="umLvl" style="color:var(--brand-secondary);">1</span></div>
+                <button class="btn btn-p" onclick="upgradeRank()" style="width:100%; font-size:13px; margin-bottom:5px;">⭐ UPGRADE RANK (Cost: <span id="umCost">50</span> Stars)</button>
+            </div>
+
+            <div class="glass-card" style="padding: 15px; margin-bottom: 25px;">
+                <div style="font-size:12px; font-weight:900; color:white; margin-bottom:10px;">ASSET CONVERSION 🪙 ➔ ⭐</div>
+                <input type="number" id="convAmt" placeholder="e.g. 100" min="100" step="2" style="width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.5); color:white; margin-bottom:12px; text-align:center;">
+                <button class="btn btn-g" onclick="convertCoinsToStars()" style="width:100%; font-size:13px; color:var(--brand-accent);">Convert to Stars</button>
+            </div>
+            
+            <button class="btn btn-g" onclick="document.getElementById('upgradeModal').classList.remove('on')" style="width:100%;">Close</button>
+        </div>
+    </div>
+
+    <div id="seasonModal" class="modal">
+        <div class="m-card">
+            <h2 style="font-weight: 900; color: var(--gold-glow); font-size:24px; margin-bottom: 10px;">Season Reward! 🏆</h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Watch 30 Ads to collect your Leaderboard 🪙 Win!</p>
+            <p style="font-size: 10px; color: var(--brand-accent); margin-bottom: 20px;">NOTICE: Season reset assesses a 50k penalty to your lifetime stars spent before refunding any remainder.</p>
+            
+            <div style="margin-bottom: 25px; text-align:left;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:11px; font-weight:800; color:white;" id="szAdTxt">0/30 Ads Watched</div>
+                <div class="prog-bg"><div class="prog-fill" id="szAdBar" style="width:0%"></div></div>
+            </div>
+            
+            <button class="btn btn-p" id="szWatchBtn" onclick="watchSeasonAd()" style="margin-bottom:12px;">📺 WATCH AD</button>
+            <button class="btn btn-g" onclick="document.getElementById('seasonModal').classList.remove('on')">Close</button>
+        </div>
+    </div>
+
+    <!-- AUTH MODAL -->
+    <div id="authModal" class="modal">
+        <div class="m-card" style="padding: 24px;">
+            <h2 style="font-weight: 900; color: var(--brand-primary); font-size:22px; margin-bottom: 5px;">Secure Account 🔐</h2>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Link email and password to safely backup assets.</p>
+            
+            <div style="margin-bottom: 15px;">
+                <input type="email" id="authEmail" placeholder="Agent Email..." style="width:100%; padding:14px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:var(--bg-base); color:white; margin-bottom:10px; font-family:'Inter', sans-serif;">
+                <input type="password" id="authPass" placeholder="Secret Password..." style="width:100%; padding:14px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:var(--bg-base); color:white; font-family:'Inter', sans-serif;">
+            </div>
+            
+            <button class="btn btn-p" onclick="processAuth()" style="width:100%; font-size:13px; margin-bottom:10px;">🛡️ LINK SECURE CLOUD</button>
+            <button class="btn btn-g" onclick="document.getElementById('authModal').classList.remove('on')" style="width:100%; font-size:12px;">Close</button>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast">Message</div>
+
+    <!-- NAV DOCK -->
+    <nav class="nav-dock">
+        <div onclick="sv('home')" class="nav-i on" id="n-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg><span>HOME</span></div>
+        <div onclick="sv('earn')" class="nav-i" id="n-earn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg><span>EARN</span></div>
+        <div onclick="sv('tasks')" class="nav-i" id="n-tasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>TASKS</span></div>
+        <div onclick="sv('withdraw')" class="nav-i" id="n-withdraw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span>PAYOUT</span></div>
+        <div onclick="sv('profile')" class="nav-i" id="n-profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>ME</span></div>
+    </nav>
+
+
+
+    <script>
+        window.s = {
+            coins: parseInt(localStorage.getItem('coins')) || 0,
+            stars: parseInt(localStorage.getItem('stars')) || 0,
+            starsSpent: parseInt(localStorage.getItem('starsSpent')) || 0,
+            level: parseInt(localStorage.getItem('level')) || 1,
+            energy: localStorage.getItem('energy') ? parseInt(localStorage.getItem('energy')) : 100,
+            dailyYield: parseInt(localStorage.getItem('dailyYield')) || 0,
+            dtAdsWatched: parseInt(localStorage.getItem('dtAdsWatched')) || 0,
+            dTaskCount: parseInt(localStorage.getItem('dTaskCount')) || 0,
+            payoutAds: parseInt(localStorage.getItem('payoutAds')) || 0,
+            pdDay: parseInt(localStorage.getItem('pdDay')) || 0,
+            cDay: parseInt(localStorage.getItem('cDay')) || 0
+        };
+        const s = window.s;
+        const DT_ADS_GOAL = 5;
+
+        function showToast(msg, isErr=false) {
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.style.borderColor = isErr ? 'var(--danger)' : 'var(--brand-primary)';
+            t.classList.add('on'); setTimeout(() => t.classList.remove('on'), 2500);
+        }
+
+        function save(sync = true) {
+            localStorage.setItem('coins', s.coins); 
+            localStorage.setItem('energy', s.energy);
+            localStorage.setItem('starsSpent', s.starsSpent || 0);
+            localStorage.setItem('dtAdsWatched', s.dtAdsWatched);
+            localStorage.setItem('dTaskCount', s.dTaskCount);
+            localStorage.setItem('payoutAds', s.payoutAds);
+            localStorage.setItem('pdDay', s.pdDay);
+            updateUI();
+            
+            const payload = {
+                coins: Number(s.coins) || 0,
+                stars: Number(s.stars) || 0,
+                starsSpent: Number(s.starsSpent) || 0,
+                level: Number(s.level) || 1,
+                energy: Number(s.energy) || 0,
+                dailyYield: Number(s.dailyYield) || 0,
+                dtAdsWatched: Number(s.dtAdsWatched) || 0,
+                dTaskCount: Number(s.dTaskCount) || 0,
+                payoutAds: Number(s.payoutAds) || 0,
+                pdDay: Number(s.pdDay) || 0,
+                cDay: Number(s.cDay) || 0
+            };
+            
+            if(sync && window._FB_READY && window._FB.uRef) {
+                window._FB.updateDoc(window._FB.uRef, payload).catch((err)=>{
+                    console.error("Firebase Sync Error", err.message || "Sync error");
+                });
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('hCoins').innerText = s.coins.toLocaleString();
+            document.getElementById('glbCoinsWd').innerHTML = s.coins.toLocaleString() + ' <span>🪙</span>';
+            document.getElementById('sCoins').innerText = s.coins.toLocaleString();
+            document.getElementById('eEnergy').innerText = s.energy;
+            document.getElementById('eFill').style.width = Math.min((s.energy / 100) * 100, 100) + "%";
+            document.getElementById('hName').innerText = localStorage.getItem('profileName') || 'Agent';
+            document.getElementById('hLvl').innerText = s.level;
+            document.getElementById('sLevel').innerText = s.level;
+            let lh = document.getElementById('hLevelHome'); if(lh) lh.innerText = s.level;
+            document.getElementById('hStars').innerText = s.stars.toLocaleString();
+            document.getElementById('sStars').innerText = s.stars.toLocaleString();
+            let cCost = document.getElementById('rCost'); if(cCost) cCost.innerText = s.level * 50;
+            let umLvl = document.getElementById('umLvl'); if(umLvl) umLvl.innerText = s.level;
+            let umCost = document.getElementById('umCost'); if(umCost) umCost.innerText = s.level * 50;
+
+            let pAds = s.payoutAds;
+            document.getElementById('adNum').innerText = pAds;
+            document.getElementById('adProg').style.width = Math.min((pAds/50)*100, 100)+'%';
+            
+            document.getElementById('taskNum').innerText = s.dTaskCount;
+            document.getElementById('taskProg').style.width = Math.min((s.dTaskCount/30)*100, 100)+'%';
+            
+            let pdDay = s.pdDay;
+            let wd = document.getElementById('wdChDay'); if(wd) wd.innerText = pdDay;
+            
+            const pbBtn = document.getElementById('claimDayBtn');
+            if(pbBtn) {
+                if(pAds >= 50 && s.dTaskCount >= 30) {
+                    pbBtn.innerText = '🎁 DECRYPT BOUNTY';
+                    pbBtn.disabled = false;
+                    pbBtn.style.background = 'var(--brand-primary)';
+                    pbBtn.style.color = 'black';
+                } else {
+                    pbBtn.innerText = 'Operations Pending';
+                    pbBtn.disabled = true;
+                    pbBtn.style.background = 'rgba(255,255,255,0.05)';
+                    pbBtn.style.color = 'var(--text-muted)';
+                }
+            }
+
+            const rBtn = document.getElementById('renewTasksBtn');
+            if(rBtn) {
+                if(s.dtAdsWatched >= DT_ADS_GOAL) {
+                    rBtn.innerText = '🔄 Click to Renew All'; rBtn.style.background = 'var(--success)'; rBtn.style.color = 'white'; rBtn.onclick = renewAllTasks;
+                } else {
+                    rBtn.innerText = `📺 Watch ${s.dtAdsWatched}/${DT_ADS_GOAL} to Renew`; rBtn.style.background = 'rgba(255,255,255,0.05)'; rBtn.style.color = 'white'; rBtn.onclick = dtWatchAd;
+                }
+            }
+        }
+
+        const SEASON_END_MS = new Date("2026-04-30T00:00:00Z").getTime();
+        function sv(id) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+            document.getElementById('v-' + id).classList.add('on');
+            document.querySelectorAll('.nav-i').forEach(n => n.classList.remove('on'));
+            let nBtn = document.getElementById('n-' + id);
+            if(nBtn) nBtn.classList.add('on');
+            if(id === 'tasks') renderTasks();
+            if(id === 'leaderboard') loadLeaderboard();
+        }
+        
+        async function loadLeaderboard() {
+            if(!window._FB_READY) return;
+            const lbList = document.getElementById('lbList');
+            lbList.innerHTML = `<div style="text-align:center; padding:20px; font-size:12px;">Fetching from Secure Network...</div>`;
+            try {
+                const q = window._FB.query(window._FB.collection(window._FB.db, 'users'), window._FB.orderBy('level', 'desc'), window._FB.limit(50));
+                const snap = await window._FB.getDocs(q);
+                lbList.innerHTML = '';
+                let rank = 1; let myRnk = "--"; let myPrize = 0;
+                
+                snap.forEach(doc => {
+                    let d = doc.data();
+                    let prize = rank <= 5 ? 3000 : (rank <= 10 ? 1000 : 500);
+                    if (d.uid === window._FB.uid) { myRnk = rank; myPrize = prize; }
+                    
+                    let bg = rank <= 3 ? "background: linear-gradient(90deg, rgba(251,191,36,0.15), transparent);" : "";
+                    let cl = rank <= 3 ? 'color:var(--gold-glow); font-size:16px;' : 'color:var(--text-muted); font-size:14px;';
+                    let medal = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : `#${rank}`));
+                    
+                    lbList.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-radius:16px; border:1px solid rgba(255,255,255,0.05); margin-bottom:8px; ${bg}">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div style="font-weight:900; width:30px; text-align:center; ${cl}">${medal}</div>
+                            <div style="font-size:13px; font-weight:800; color:white;">${(d.username || 'Agent-'+d.uid.substring(0,4)).substring(0,12)}</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:13px; font-weight:900; color:var(--brand-accent);">Lv.${d.level || 1}</div>
+                            <div style="font-size:10px; font-weight:700; color:var(--gold-glow);">+${prize}🪙</div>
+                        </div>
+                    </div>`;
+                    rank++;
+                });
+                
+                document.getElementById('myLbRank').innerText = myRnk === "--" ? "--" : `#${myRnk}`;
+                document.getElementById('myLbLvl').innerText = s.level;
+                document.getElementById('myLbPrize').innerText = myPrize;
+            } catch(e) { console.error(e.message || "Leaderboard error"); }
+        }
+
+        function openSeasonModal() {
+            let now = Date.now();
+            if (now < SEASON_END_MS) { showToast("Season is not over yet!", true); return; }
+            let myPrize = parseInt(document.getElementById('myLbPrize').innerText) || 0;
+            if (myPrize <= 0) { showToast("You are not in top 50!", true); return; }
+            if (localStorage.getItem('seasonClaimed') === 'true') { showToast("Already Claimed!", true); return; }
+            
+            document.getElementById('seasonModal').classList.add('on');
+            updateSeasonModalUI();
+        }
+
+        function triggerAdProtocol(resolveFn) {
+            let funcName = 'show_' + APP_CONFIG.MONETAG_ZONE_ID;
+            if(typeof window[funcName] === 'function') {
+                showToast("Loading Ad..."); window[funcName]().then(resolveFn).catch(resolveFn);
+            } else {
+                showToast("Loading Direct Link...");
+                setTimeout(() => { window.open(APP_CONFIG.DIRECT_AD_LINK, "_blank"); resolveFn(); }, 500);
+            }
+        }
+
+        function watchSeasonAd() {
+            triggerAdProtocol(seasonAdDone);
+        }
+
+        function seasonAdDone() {
+            let p = parseInt(localStorage.getItem('seasonAdProg')) || 0; p++;
+            if (p >= 30) {
+                let myPrize = parseInt(document.getElementById('myLbPrize').innerText) || 0;
+                let spent = s.starsSpent || 0;
+                let winStars = Math.max(0, spent - 50000);
+                if(winStars > 0) s.stars += winStars;
+                s.starsSpent = 0; s.level = 1;
+                s.coins += myPrize;
+                localStorage.setItem('seasonClaimed', 'true');
+                save(); 
+                showToast(`🎉 +${myPrize}🪙 Claimed! You recovered ${winStars}⭐!`);
+                document.getElementById('seasonModal').classList.remove('on');
+            } else {
+                localStorage.setItem('seasonAdProg', p);
+                showToast(`Ad Counted! ${p}/30`);
+                updateSeasonModalUI();
+            }
+        }
+
+        function updateSeasonModalUI() {
+            let p = parseInt(localStorage.getItem('seasonAdProg')) || 0;
+            const t = document.getElementById('szAdTxt'); if(t) t.innerText = `${p}/30 Ads Watched`;
+            const b = document.getElementById('szAdBar'); if(b) b.style.width = Math.min((p/30)*100, 100) + "%";
+        }
+
+        function upgradeRank() {
+            let cost = s.level * 50;
+            if (s.stars >= cost) {
+                s.stars -= cost;
+                s.starsSpent = (s.starsSpent || 0) + cost;
+                s.level += 1;
+                save();
+                showToast(`🎉 Rank Upgraded to ${s.level}!`);
+            } else {
+                showToast(`Not enough Stars! You need ${cost}`, true);
+            }
+        }
+
+        function convertCoinsToStars() {
+            let amt = parseInt(document.getElementById('convAmt').value);
+            if (isNaN(amt) || amt < 100) { showToast("Minimum conversion is 100 Assets!", true); return; }
+            if (s.coins < amt) { showToast("Insufficient Assets!", true); return; }
+            let starsEarned = Math.floor(amt / 2);
+            let cost = starsEarned * 2;
+            s.coins -= cost;
+            s.stars += starsEarned;
+            save();
+            showToast(`Converted ${cost}🪙 into ${starsEarned}⭐`);
+            document.getElementById('convAmt').value = '';
+        }
+
+        /* ==== ENERGY & ORB LOGIC ==== */
+        function tapOrb() {
+            if (s.energy <= 0) { updateEnergyModalUI(); document.getElementById('energyModal').classList.add('on'); return; }
+            triggerAdProtocol(orbAdDone);
+        }
+        function orbAdDone() {
+            if (s.energy > 0) {
+                s.energy -= 1; 
+                s.coins += 5; 
+                s.dailyYield += 5;
+                s.payoutAds += 1;
+                
+                if (s.energy === 99) localStorage.setItem('lastEnergyT', Date.now());
+                
+                let extCount = parseInt(localStorage.getItem('extCount')) || 0;
+                extCount++;
+                if (extCount >= 10) {
+                    extCount = 0;
+                    document.getElementById('bnAdTxt').innerText = "0/3 Ads Watched";
+                    document.getElementById('bnAdBar').style.width = "0%";
+                    localStorage.setItem('bonusAdProg', 0);
+                    document.getElementById('bonusModal').classList.add('on');
+                }
+                localStorage.setItem('extCount', extCount);
+                
+                save(); showToast("Asset Extracted! +5🪙");
+            }
+        }
+        function updateEnergyModalUI() {
+            let p = parseInt(localStorage.getItem('energyAdProg')) || 0;
+            const t = document.getElementById('enAdTxt'); 
+            if(t) {
+                if(p < 1) t.innerText = p + "/7 Ads (Next: +1⚡ at 1 Ad)";
+                else if(p < 4) t.innerText = p + "/7 Ads (Next: +5⚡ at 4 Ads)";
+                else if(p < 7) t.innerText = p + "/7 Ads (Next: +10⚡ at 7 Ads)";
+                else t.innerText = "7/7 Ads! Max Reward Reached!";
+            }
+            const b = document.getElementById('enAdBar'); if(b) b.style.width = Math.min((p/7)*100, 100) + "%";
+            
+            const watchBtn = document.getElementById('adWatchBtn');
+            if(watchBtn) {
+                if(p >= 7) watchBtn.style.display = 'none';
+                else watchBtn.style.display = 'flex';
+            }
+            
+            const btn = document.getElementById('adCollectBtn');
+            if(btn) {
+                if(p >= 7) { btn.innerText = "🎉 COLLECT +10⚡"; btn.style.background = "var(--success)"; btn.style.color = "white"; }
+                else if(p >= 4) { btn.innerText = "STOP & COLLECT +5⚡"; btn.style.background = "var(--brand-primary)"; btn.style.color = "white"; }
+                else if(p >= 1) { btn.innerText = "STOP & COLLECT +1⚡"; btn.style.background = "var(--brand-primary)"; btn.style.color = "white"; }
+                else { btn.innerText = "Close"; btn.style.background = "rgba(255,255,255,0.05)"; btn.style.color = "var(--text-main)"; }
+            }
+        }
+        function claimEnergyProgress() {
+            let p = parseInt(localStorage.getItem('energyAdProg')) || 0;
+            if(p >= 7) { s.energy += 10; showToast("✅ +10⚡ Energy Restored!"); }
+            else if(p >= 4) { s.energy += 5; showToast("✅ +5⚡ Energy Restored!"); }
+            else if(p >= 1) { s.energy += 1; showToast("✅ +1⚡ Energy Restored!"); }
+            else { document.getElementById('energyModal').classList.remove('on'); return; }
+            
+            localStorage.setItem('energyAdProg', 0);
+            save(); document.getElementById('energyModal').classList.remove('on');
+        }
+        function watchEnergyAd() {
+            triggerAdProtocol(energyAdDone);
+        }
+        function energyAdDone() {
+            let p = parseInt(localStorage.getItem('energyAdProg')) || 0; p++;
+            localStorage.setItem('energyAdProg', Math.min(p, 7));
+            showToast(`Ad Counted! The meter filled to ${Math.min(p, 7)}/7`);
+            updateEnergyModalUI();
+        }
+        
+        function watchBonusAd() {
+            triggerAdProtocol(bonusAdDone);
+        }
+        function bonusAdDone() {
+            let p = parseInt(localStorage.getItem('bonusAdProg')) || 0; p++;
+            if (p >= 3) {
+                s.stars += 10; localStorage.setItem('bonusAdProg', 0);
+                save(); showToast("🎉 +10 Stars Claimed!");
+                document.getElementById('bonusModal').classList.remove('on');
+            } else {
+                localStorage.setItem('bonusAdProg', p);
+                showToast(`Ad Counted! ${p}/3`);
+                document.getElementById('bnAdTxt').innerText = `${p}/3 Ads Watched`;
+                document.getElementById('bnAdBar').style.width = Math.min((p/3)*100, 100) + "%";
+            }
+        }
+
+        // 60 Sec Timer Logic limit 100
+        setInterval(() => {
+            let now = Date.now(); 
+            
+            let todayStr = new Date().toDateString();
+            if (localStorage.getItem('lastLoadDate') && localStorage.getItem('lastLoadDate') !== todayStr) {
+                checkDailyProtocol();
+            }
+            
+            let sEl = document.getElementById('seasonTimer');
+            if(sEl) {
+                let sRem = SEASON_END_MS - now;
+                if(sRem <= 0) {
+                    sEl.innerText = "SEASON COMPLETE! CLAIM REWARDS!";
+                } else {
+                    let d = Math.floor(sRem / (1000 * 60 * 60 * 24));
+                    let h = Math.floor((sRem % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    let m = Math.floor((sRem % (1000 * 60 * 60)) / (1000 * 60));
+                    sEl.innerText = `${d}D ${h}H ${m}M`;
+                }
+            }
+
+            let lastT = parseInt(localStorage.getItem('lastEnergyT'));
+            if (isNaN(lastT) || lastT <= 0) { 
+                lastT = now; 
+                if (s.energy < 100) localStorage.setItem('lastEnergyT', lastT); 
+            }
+            
+            let msInInterval = 60 * 1000; // 60 seconds
+            if (s.energy < 100 && now - lastT >= msInInterval) {
+                let addE = Math.floor((now - lastT) / msInInterval);
+                s.energy = Math.min(100, s.energy + addE);
+                lastT = now - ((now - lastT) % msInInterval);
+                localStorage.setItem('lastEnergyT', lastT); 
+                save(); 
+            } else if (s.energy >= 100) { 
+                localStorage.setItem('lastEnergyT', now); 
+            }
+            
+            let tEl = document.getElementById('eTimer');
+            if(tEl) {
+                if(s.energy >= 100) tEl.innerText = 'MAX CAPACITY';
+                else {
+                    let rem = msInInterval - (now - lastT);
+                    if (rem < 0) rem = 0;
+                    let sec = Math.floor(rem / 1000);
+                    tEl.innerText = `+1⚡ in ${sec}s`;
+                }
+            }
+        }, 1000);
+
+        function dtWatchAd() { 
+            if (s.dtAdsWatched >= DT_ADS_GOAL) return;
+            triggerAdProtocol(dtAdPass);
+        }
+        function dtAdPass() { 
+            s.dtAdsWatched++; 
+            s.payoutAds++; 
+            s.energy += 2; // Bonus 2 energy that can bypass limit
+            save(); showToast(`Extraction complete! ${s.dtAdsWatched}/${DT_ADS_GOAL}`); 
+        }
+        const BASE_TASKS = [
+            { id: "sp_1", n: "Ad Energy Sync 1", i: "⚡", e: 5 },
+            { id: "sp_2", n: "Ad Energy Sync 2", i: "⚡", e: 5 },
+            { id: "sp_3", n: "Ad Energy Sync 3", i: "⚡", e: 5 },
+            { id: "sp_4", n: "Ad Energy Sync 4", i: "⚡", e: 5 },
+            { id: "sp_5", n: "Ad Energy Sync 5", i: "⚡", e: 5 }
+        ];
+
+        function renewAllTasks() {
+            s.dtAdsWatched = 0; 
+            const allTasks = [...BASE_TASKS, ...(JSON.parse(localStorage.getItem('specialTasks')) || [])];
+            allTasks.forEach(st => localStorage.removeItem('task_done_' + st.id));
+            save(); showToast('🔄 Operations Renewed!'); renderTasks(); 
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('taskList'); if(!list) return; list.innerHTML = '';
+            const allTasks = [...BASE_TASKS, ...(JSON.parse(localStorage.getItem('specialTasks')) || [])];
+            allTasks.forEach(st => {
+                const isDone = localStorage.getItem('task_done_' + st.id);
+                const rwHtml = st.e ? `<div style="color:var(--brand-accent); font-weight:900; margin-bottom:4px; font-size:11px;">+${st.e}⚡ Energy</div>` : `<div style="color:var(--gold-glow); font-weight:900; margin-bottom:4px; font-size:11px;">+20🪙 Assets</div>`;
+                list.innerHTML += `<div class="glass-card" style="padding:16px; margin-bottom:0;"><div class="tsk-row"><div class="tsk-ic">${st.i || '📋'}</div><div class="tsk-info"><div class="tsk-n">${st.n}</div></div><div style="display:flex; flex-direction:column; align-items:flex-end;">${rwHtml}${isDone ? `<button class="tsk-btn done">✓ DONE</button>` : `<button class="tsk-btn ready" id="claim-${st.id}" onclick="processTask('${st.id}', ${st.e || 0})">SYNC NOW</button>`}</div></div></div>`;
+            });
+        }
+        
+        function processTask(id, eReward) {
+            triggerAdProtocol(() => { finishTask(id, eReward); });
+        }
+
+        function finishTask(id, eReward) { 
+            localStorage.setItem('task_done_' + id, 'true'); 
+            s.dTaskCount++; 
+            if(eReward > 0) { s.energy += eReward; showToast(`Operation Successful! +${eReward}⚡`); } 
+            else { s.coins += 20; showToast("Operation Successful! +20🪙"); }
+            save(); renderTasks(); 
+        }
+
+        function claimProtocolDay() {
+            if (s.payoutAds < 50 || s.dTaskCount < 30) return;
+            if (s.pdDay >= 30) { showToast("Protocol Already Completed!", true); return; }
+            s.pdDay++; 
+            s.payoutAds = 0;
+            s.dTaskCount = 0; 
+            s.coins += 5000;
+            localStorage.setItem('lastClaimDate', new Date().toDateString());
+            save();
+            showToast(`🎉 Protocol Day ${s.pdDay}/30 Executed! +5000🪙`);
+        }
+        
+        function checkDailyProtocol() {
+            let todayStr = new Date().toDateString();
+            let lastLoad = localStorage.getItem('lastLoadDate');
+            let lastClaim = localStorage.getItem('lastClaimDate');
+
+            if (!lastLoad) {
+                localStorage.setItem('lastLoadDate', todayStr);
+                return;
+            }
+
+            if (lastLoad !== todayStr) {
+                let lastLoadDayStart = new Date(lastLoad).setHours(0,0,0,0);
+                let todayStart = new Date(todayStr).setHours(0,0,0,0);
+                let missingCalendarDays = Math.floor((todayStart - lastLoadDayStart) / (1000 * 60 * 60 * 24));
+                
+                let missedDays = (lastClaim === lastLoad) ? (missingCalendarDays - 1) : missingCalendarDays;
+                
+                let changed = false;
+                if (missedDays > 0) {
+                    if (s.pdDay > 0) {
+                        s.pdDay -= missedDays;
+                        if (s.pdDay < 0) s.pdDay = 0;
+                        showToast(`⚠️ You missed ${missedDays} day(s) of operations! Protocol Day decreased.`);
+                    }
+                    s.payoutAds = 0;
+                    s.dTaskCount = 0;
+                    changed = true;
+                } else if (missingCalendarDays > 0) {
+                    // Claimed yesterday, start fresh today
+                    s.payoutAds = 0;
+                    s.dTaskCount = 0;
+                    changed = true;
+                }
+                
+                if (changed) { save(true); updateUI(); }
+                localStorage.setItem('lastLoadDate', todayStr);
+            }
+        }
+
+        function initiatePayout() {
+            if(s.coins < 20000) { showToast("Not enough assets! 20,000 required.", true); return; }
+            s.coins -= 20000; save();
+            showToast("Gateway unlocked! Redirecting..."); 
+            setTimeout(() => window.open("https://docs.google.com/forms/d/e/1FAIpQLSeXXXXXXX/viewform", "_blank"), 1500);
+        }
+
+        async function processAuth() {
+            let e = document.getElementById('authEmail').value;
+            let p = document.getElementById('authPass').value;
+            if(!e || !p) { showToast("Provide both Email and Password!", true); return; }
+            if(!window._FB_READY) { showToast("Network Offline!", true); return; }
+            
+            showToast("Encrypting Identity...");
+            try {
+                await window._FB.createUserWithEmailAndPassword(window._FB.auth, e, p);
+                showToast("✅ Secure Identity Created!");
+                document.getElementById('authModal').classList.remove('on');
+                document.getElementById('authEntryBtn').style.display = 'none';
+            } catch(err) {
+                if(err.code === 'auth/email-already-in-use') {
+                    try {
+                        await window._FB.signInWithEmailAndPassword(window._FB.auth, e, p);
+                        showToast("✅ Account Linked!");
+                        document.getElementById('authModal').classList.remove('on');
+                        document.getElementById('authEntryBtn').style.display = 'none';
+                    } catch(err2) {
+                        showToast(err2.message.replace('Firebase:', '').trim(), true);
+                    }
+                } else {
+                    showToast(err.message.replace('Firebase:', '').trim(), true);
+                }
+            }
+        }
+
+        function copyInvite() {
+            let uid = window._FB?.uid || 'N/A';
+            navigator.clipboard.writeText(`https://t.me/StellarPro_Bot?start=${uid}`);
+            showToast("🚀 Invite Copied to Clipboard!");
+        }
+
+
+
+        window.onload = () => { checkDailyProtocol(); updateUI(); sv('home'); };
+    </script>
+</body>
+</html>
